@@ -165,11 +165,13 @@ export function applyCachedAvatars({ parsed, scriptDir, cacheManager, config, mo
   const { jobs } = collectAvatarJobs({ parsed, scriptDir, cacheManager, config, models, bags });
   let applied = 0;
   let missing = 0;
+  const missingLayers = [];
   const clips = [];
   for (const job of jobs) {
     const cached = cacheManager.getSync(job.cacheKey, AVATAR_CACHE_EXT, AVATAR_CACHE_CATEGORY);
     if (!cached) {
       missing++;
+      missingLayers.push({ sceneId: job.sceneId, layerName: job.layerName });
       continue;
     }
     job.layer.properties.layer_type = 'video';
@@ -178,5 +180,5 @@ export function applyCachedAvatars({ parsed, scriptDir, cacheManager, config, mo
     clips.push(cached);
     applied++;
   }
-  return { applied, missing, clips };
+  return { applied, missing, missingLayers, clips };
 }
