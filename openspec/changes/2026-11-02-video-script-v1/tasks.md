@@ -1,6 +1,6 @@
 # Tasks: video-script V_1-0-0 (decision-in redesign)
 
-Skill root `S` = `iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script`. Tests live in `S/test` (`node --test`). Strict TDD: every slice lists RED (failing test) before GREEN (code) before REFACTOR. All slices land on `dev` as one PR each; nothing is committed by this phase.
+Skill root `S` = `iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script`. Tests live in `S/test` (`node --test`). Strict TDD: every slice lists RED (failing test) before GREEN (code) before REFACTOR. Chain strategy is `feature-branch-chain`: tracker branch `feature/conntent-v1` cut from `origin/dev`; PR D targets the tracker, every later slice PR targets the previous slice's branch; only the tracker merges into `dev`, and only on the maintainer's word. After Slice R, `S` moves to `iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent`.
 
 ## Review Workload Forecast
 
@@ -9,14 +9,14 @@ Skill root `S` = `iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script`. 
 | Estimated changed lines | about 5,500 total (see per-slice estimates); generated bundles and the `spec_NN.md` text excluded from review weight |
 | 400-line budget risk | High |
 | Chained PRs recommended | Yes |
-| Suggested split | 0a, 0b, 1, 2a, 2b, 3a, 3b, 4, 5, 6, 7a, 7b, 8, 9, 10 (Slice 11 is external) |
+| Suggested split | D, 0a, 0b, 1, R, 2a, 2b, 3a, 3b, 4, 5, 6, 7a, 7b, 8, 9, 10 (Slice 11 is external) |
 | Delivery strategy | ask-on-risk |
-| Chain strategy | pending |
+| Chain strategy | feature-branch-chain (tracker `feature/conntent-v1`) |
 
-Decision needed before apply: Yes
+Decision needed before apply: No (all resolved 2026-11-02, see below)
 Chained PRs recommended: Yes
-Chain strategy: pending
-400-line budget risk: High
+Chain strategy: feature-branch-chain
+400-line budget risk: High (Slices R and 2a carry `size:exception`: mechanical rename / spec text)
 
 ### Suggested Work Units
 
@@ -41,20 +41,37 @@ Chain strategy: pending
 
 Each PR states start, end, prior dependency, follow-up and out-of-scope in its Chain Context, with a diagram marking the current PR. Rollback boundary for every slice: revert that PR alone; later slices are not merged until the earlier ones are verified.
 
-## Pre-apply maintainer decisions
+## Maintainer decisions (resolved 2026-11-02)
 
-| # | Decision | Blocks |
-|---|----------|--------|
-| 1 | Layer type set: keep 10 or reduce to the 8 used (`brand`, `quote` unused) | 2a |
-| 2 | Meaning of `for:: narration` (the scene body) on `Variant` | 2a, 8 |
-| 3 | `budget` default (spec says 0 = always ask) and `language` default `en` | 2a, 4 |
-| 4 | Series chrome media folder: `series/<s>/assets/` vs `shared/<kind>/` | 2a, 4 |
-| 5 | Episode document name `<slug>_NN.md` vs the domaiNN-unique stem naming rule | 2a, 7a |
-| 6 | Are `.cognnitive/video/` facts gitignored, and how do multi-machine facts reach the console | 3b, 6, 9 |
-| 7 | Produce writing Chapters into `description.md` | 10 |
-| 8 | Block `infinitetalk` (`status:: blocked`) or keep active with a warning | 0b, 3a |
+These override proposal, specs and design wherever they disagree. Slice D writes them into those artifacts.
 
-Also confirm the design's open items: A12 (generic `.data.mjs` hook, blocks 8), A4 (applied draft under `status:: draft`, blocks 7a), A6 (video-level beats kind-level, blocks 4), A10 (bundle size, measured in 1), `daily_budget` scope (blocks 3b).
+| # | Decision | Resolution | Blocks |
+|---|----------|------------|--------|
+| 1 | Layer types | Exactly four behaviour types: `avatar` (lip-synced, paid job), `media` (image/video; `placement:: full \| inset`, `timing:: scene \| slot`), `text` (overlay text; `style::` selects the visual component: title, lower-third, caption, watermark, quote; `source:: narration` takes the scene narration), `animation` (authored HyperFrames sub-composition). Appearance lives in Presets ("Lower third", "Title", "Quote", "Captions", "B-roll"…). `presenter`, `background`, `b-roll`, `title`, `lower-third`, `caption`, `brand`, `quote`, `watermark` stop being types. | D, 2a, 3a, 4, 5 |
+| 1b | Avatar naming | `avatar` everywhere: `type:: avatar`, internal manifest kind `avatar`, fields `avatar*`. Delete `presenter`, `talking_avatar`, `talking-avatar` with no alias. | D, 2a, 5 |
+| 2 | `for:: narration` | Reserved name meaning the scene body (narration stays prose, not a field). | D, 2a, 8 |
+| 3 | Defaults | The bluepriNNt ships NO `budget` and NO `language` default. Unset budget = always ask; unset language = validation error. The maintainer's domaiNN sets `language:: es` and `budget:: 1.5` (USD, single currency per domaiNN) per episode. | D, 2a, 4 |
+| 4 | Series media folder | `series/<s>/assets/` holds series-level media (bumper, logo, music, avatar images, sounds, frames). The engine discovers episodes ONLY under `series/<s>/episodes/`; legacy episode folders left in `assets/` are ignored (the maintainer reorganises them by hand). | D, 2a, 4 |
+| 5 | Episode document name | `<slug>_coNNtent_<s>_NN.md` (keeps the domaiNN-unique stem rule of `video-folder-contract`; `<slug>_NN.md` is rejected). | D, 2a, 7a |
+| 6 | Facts in git | `.cognnitive/video/` facts are gitignored, one log per machine; every row carries the machine fingerprint so logs from several machines can be compared if merged by hand. | D, 3b, 6, 9 |
+| 7 | Chapters | `produce` writes chapters into `description.md` between `<!-- chapters:start -->` and `<!-- chapters:end -->`, never touching the rest. | D, 10 |
+| 8 | `infinitetalk` | Allowed. It stays in the reference catalog as an active avatar model; no warning. | D, 0b, 3a |
+| 9 | bluepriNNt rename | `video-script` becomes `coNNtent` (display and id, NN casing as in `domaiNN`): folder `iNNfo/specs/bluepriNNts/coNNtent/`, catalog id `coNNtent`. Skill `nn-video-script` becomes `nn-conntent` (skills are lowercase, NN words keep the double n, as `nn-innfo`). OpenSpec capability names keep `video-*`. No aliases or redirects. | D, R |
+
+Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the agent's draft is applied into the model under `status:: draft`; A6 video-level beats kind-level in the cascade; A10 bundle size measured in Slice 1; `daily_budget` limited to domaiNN and bluepriNNt levels.
+
+## Slice D: Align OpenSpec artifacts with the resolved decisions (docs-only)
+
+- [ ] D.1 Update `proposal.md`, `design.md` and `specs/*/spec.md` of this change to decisions 1–9 (layer type set, avatar naming, defaults, folders, names, rename). Keep capability names `video-*`.
+- [ ] D.2 Update this file's slice tasks that still name old types, paths or the old blueprint id.
+- [ ] Verify: no remaining `presenter`, `talking_avatar`, `brand`, `quote` (as a type), `<slug>_NN.md`, `budget=0`, `language=en` default in the change folder (`rg`), except in REMOVED requirement blocks.
+
+## Slice R: Rename the bluepriNNt to coNNtent (after Slice 1, before 2a; `size:exception`, mechanical)
+
+- [ ] R.1 RED: tests/guards that expect `coNNtent` in `iNNfo/specs/bluepriNNts/catalog.json`, `docs/innfo/blueprints/catalog.json`, the publish-web skill allowlist and the core-mirror target name.
+- [ ] R.2 GREEN: `git mv` the bluepriNNt folder to `coNNtent/` and the skill to `skills/nn-conntent`; update catalog entries, `parent_spec` URLs, SKILL.md name/triggers, `scripts/` references, docs, tests, `.atl` registry source if tracked. No alias, no redirect.
+- [ ] R.3 Regenerate every derived artifact (`npm run regen`) and commit the results.
+- [ ] Verify: `node scripts/verify.js`; `rg -i "video-script|nn-video-script"` returns only OpenSpec history, archived changes and REMOVED blocks.
 
 ## Slice 0a: Quick wins on the engine (V_0-14-x)
 
@@ -68,7 +85,7 @@ Also confirm the design's open items: A12 (generic `.data.mjs` hook, blocks 8), 
 
 - [ ] 0b.1 RED: test that `draft-template.html` exposes only preset controls.
 - [ ] 0b.2 GREEN: remove non-preset controls from `S/scripts/draft-template.html`.
-- [ ] 0b.3 RED then GREEN: allowed model without price emits a warning in `asset-cost-estimator.mjs`. Apply decision 8 for `infinitetalk`.
+- [ ] 0b.3 RED then GREEN: allowed model without price emits a warning in `asset-cost-estimator.mjs`. `infinitetalk` stays allowed (decision 8).
 - [ ] Verify: as 0a.
 
 ## Slice 1: Core mirror target
@@ -81,7 +98,7 @@ Also confirm the design's open items: A12 (generic `.data.mjs` hook, blocks 8), 
 
 ## Slice 2a: Spec V_1-0-0 text
 
-- [ ] 2a.1 Resolve decisions 1-5, then edit `iNNfo/specs/bluepriNNts/video-script/spec_NN.md`: Scene Kind, Chrome, Variant, new and removed fields, `blueprint_version: V_1-0-0`. Never edit a published `_V_x-y-z_` file.
+- [ ] 2a.1 Apply decisions 1–9, then edit `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md`: Scene Kind, Chrome, Variant, new and removed fields, `blueprint_version: V_1-0-0`. Never edit a published `_V_x-y-z_` file.
 - [ ] 2a.2 Bump `template_version` and register it in the editor's `SHIPPED_TEMPLATE_VERSIONS`; keep `manifest/source.yaml` `version:` on the spec axis.
 - [ ] 2a.3 Sync `openspec/specs/` deltas only at archive time, not here.
 - [ ] Verify: `node scripts/verify.js`, `check:spec-urls`.
@@ -154,6 +171,7 @@ Also confirm the design's open items: A12 (generic `.data.mjs` hook, blocks 8), 
 
 Target: `D:\Users\lucas\Documents\_NN\video_NN`.
 
+- [ ] 11.0 DomaiNN setup: declare `language:: es` and `budget:: 1.5` (USD) at domaiNN level; add the domaiNN catalog overlay (allowed models, invoice prices; `infinitetalk` allowed); delete the line in the domaiNN `AGENTS.md` that calls `infinitetalk` blocked; delete `video-guard.json` once the overlay replaces it.
 - [ ] 11.1 Port cognitive-use-cases by hand (Series with kinds and chrome, Episode docs). Run `produce` from `idea` to `produced`; check success criteria.
 - [ ] 11.2 Run `prune-duplicates.mjs --dry-run`, review the list, then delete only files whose exact bytes exist in `.cognnitive/cache`.
 - [ ] 11.3 Never touch inntrevistas or cosicah `public/`.
