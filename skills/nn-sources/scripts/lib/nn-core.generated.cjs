@@ -10634,8 +10634,6 @@ var OWNED_KEYS = /* @__PURE__ */ new Set([
   "source_format",
   "normalized_at",
   "normalized_by",
-  "sources",
-  // A sidecar's upstream edge is `sources`; the projection derives `derived_from` itself.
   "derived_from"
 ]);
 var FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
@@ -10660,8 +10658,6 @@ function buildSidecar(i) {
     normalized_at: i.normalizedAt
   };
   if (i.normalizedBy) fm["normalized_by"] = i.normalizedBy;
-  const sources = i.sources ?? i.previous?.["sources"];
-  if (sources !== void 0) fm["sources"] = sources;
   for (const extras of [i.previous ?? {}, i.metadata ?? {}]) {
     for (const [key, value] of Object.entries(extras)) {
       if (!OWNED_KEYS.has(key)) fm[key] = value;
@@ -10855,8 +10851,7 @@ async function cognitivize(root, rel, o = {}) {
   const sidecarAbs = path3.join(rootAbs, sidecarRel);
   const existing = await readOrNull(sidecarAbs);
   const previous = existing ? parseSidecarFrontmatter(existing.toString("utf8")) : null;
-  const sourcesCurrent = o.sources === void 0 || JSON.stringify(previous?.["sources"]) === JSON.stringify(o.sources);
-  if (previous && String(previous["sha256"] ?? "").toLowerCase() === sha256 && sourcesCurrent) {
+  if (previous && String(previous["sha256"] ?? "").toLowerCase() === sha256) {
     return { status: "unchanged", sidecar: sidecarRel, sha256 };
   }
   const format = parsed.ext.toLowerCase();
@@ -10872,8 +10867,7 @@ async function cognitivize(root, rel, o = {}) {
     normalizedBy: normalized?.normalizedBy,
     previous,
     metadata: normalized?.metadata,
-    body: textNative ? void 0 : normalized?.body,
-    sources: o.sources
+    body: textNative ? void 0 : normalized?.body
   });
   await import_node_fs3.promises.writeFile(sidecarAbs, text, "utf8");
   return { status: existing ? "refreshed" : "written", sidecar: sidecarRel, sha256 };

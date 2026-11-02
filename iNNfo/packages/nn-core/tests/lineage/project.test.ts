@@ -215,7 +215,15 @@ sources:
       knowledge_version: 'V_1-0-0',
       model_template: 'business',
     })
-    expect(knowledge[0].citations).toEqual([])
+    // Transitional (S5b.4): a legacy `sources::` field is still reported as a citation.
+    expect(knowledge[0].citations).toEqual([
+      {
+        value: 'sources/import/interview.md@## Clients',
+        referringPath: 'kNNowledge/Strategy_business_NN.md',
+        element: 'Positioning',
+        field: 'sources',
+      },
+    ])
   })
 
   it('projects suffixed or upstream-declaring files as artifacts and nothing else', () => {
