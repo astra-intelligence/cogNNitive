@@ -9,7 +9,7 @@
  */
 import { parseFrontmatter } from '../parser/yaml.js'
 import { parseKnowledge } from '../parser/core.js'
-import { SOURCE_FIELD_NAMES, splitSourceFieldValue } from '../sourceRef.js'
+import { splitSourceFieldValue } from '../sourceRef.js'
 import type { CitationSite } from '../validator/workspaceSources.js'
 import type { FileSnapshot } from '../queryUnits.js'
 import {
@@ -165,24 +165,10 @@ export function extractDeclaredCitations(file: FileSnapshot): CitationSite[] {
       for (const raw of splitSourceFieldValue(fm.sources)) push(raw, 'sources')
     }
   } else if (ext === 'html' || ext === 'htm') {
-    // Dual read: artifacts written before the `nn-` prefix migration carry
-    // `id="innfo-model"`, and the stamped console exports keep that historical
-    // id. The writer emits `nn-model` now; both must resolve.
-    const modelMatch = file.content.match(
-      /<script[^>]+id=["'](?:innfo|nn)-model["'][^>]*>([\s\S]*?)<\/script>/i,
-    )
-    if (modelMatch) {
-      try {
-        const parsed = JSON.parse(modelMatch[1].trim())
-        if (Array.isArray(parsed?.meta?.sources)) {
-          for (const raw of parsed.meta.sources) {
-            if (typeof raw === 'string' && raw.trim()) push(raw.trim(), 'meta.sources')
-          }
-        }
-      } catch {
-        // Ignore parse errors on corrupted HTML payloads
-      }
-    }
+    // Console exports carry their model payload in an inline script, but
+    // `meta.sources` there names the model file, not its citations: a console
+    // export declares no upstream through it (provenance is the change log).
+    return sites
   } else if (ext === 'csv') {
     const lines = file.content.split(/\r?\n/)
     const header = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, ''))
@@ -358,13 +344,16 @@ export function projectLineage(
       (typeof parsed.frontmatter?.model === 'string' ? parsed.frontmatter.model : undefined)
 
     const citations: CitationSite[] = []
+    // Transitional (S5b.4 rebuilds the corpora): a model's legacy `sources::`
+    // field is still reported as a citation so the audits and gc keep protecting
+    // the files it names. S5a.3 reports the field itself as banned.
     for (const [, elements] of parsed.elements.entries()) {
       for (const el of elements) {
         for (const [fieldName, val] of Object.entries(el.fields)) {
-          if (SOURCE_FIELD_NAMES.has(fieldName.toLowerCase())) {
-            for (const raw of splitSourceFieldValue(val)) {
-              citations.push({ value: raw, referringPath: kf.path, element: el.name, field: fieldName })
-            }
+          const lower = fieldName.toLowerCase()
+          if (lower !== 'sources' && lower !== 'source') continue
+          for (const raw of splitSourceFieldValue(val)) {
+            citations.push({ value: raw, referringPath: kf.path, element: el.name, field: fieldName })
           }
         }
       }

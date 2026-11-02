@@ -215,14 +215,7 @@ sources:
       knowledge_version: 'V_1-0-0',
       model_template: 'business',
     })
-    expect(knowledge[0].citations).toEqual([
-      {
-        value: 'sources/import/interview.md@## Clients',
-        referringPath: 'kNNowledge/Strategy_business_NN.md',
-        element: 'Positioning',
-        field: 'sources',
-      },
-    ])
+    expect(knowledge[0].citations).toEqual([])
   })
 
   it('projects suffixed or upstream-declaring files as artifacts and nothing else', () => {
@@ -231,7 +224,6 @@ sources:
 
     expect(refs).toEqual([
       'artifacts/Report.md',
-      'artifacts/Strategy_Console.html',
       'artifacts/data.json',
       'artifacts/summary.csv',
       'artifacts/summary_20261002T101500Z.md',
@@ -240,14 +232,9 @@ sources:
     const report = artifacts.find((a) => a.name === 'Report')
     expect(report?.artifact_format).toBe('report')
     expect(report?.citations).toHaveLength(1)
-    expect(artifacts.find((a) => a.name === 'Strategy_Console')?.artifact_format).toBe('board')
-    expect(artifacts.find((a) => a.name === 'Strategy_Console')?.citations).toEqual([
-      {
-        value: 'kNNowledge/Strategy_business_NN.md',
-        referringPath: 'artifacts/Strategy_Console.html',
-        field: 'meta.sources',
-      },
-    ])
+    // `meta.sources` in a console export names the model, not a citation: the
+    // export no longer counts as an artifact (S5a.1).
+    expect(artifacts.find((a) => a.name === 'Strategy_Console')).toBeUndefined()
     expect(artifacts.find((a) => a.name === 'summary')?.artifact_format).toBe('dataset')
     expect(artifacts.find((a) => a.name === 'data')?.citations).toHaveLength(2)
     expect(artifacts.find((a) => a.name === 'summary_20261002T101500Z')?.citations).toEqual([])

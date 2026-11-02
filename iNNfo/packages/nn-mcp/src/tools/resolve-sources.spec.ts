@@ -331,10 +331,9 @@ describe('resolve_sources', () => {
     expect(after).toEqual(before)
 
     const paths = results.map((r) => r.path)
-    // Both the name-based `sources` field and the schema-typed `precio_source`
-    // field resolve to the same target here, so the same path appears twice —
-    // once per field — proving both selection paths fired.
-    expect(paths.filter((p) => p === 'sources/import/pricing.md')).toHaveLength(2)
+    // Only the schema-typed `precio_source` field is a citation field now:
+    // `sources::` is not read.
+    expect(paths.filter((p) => p === 'sources/import/pricing.md')).toHaveLength(1)
   })
 
   it('truncates a long section to the excerpt cap', async () => {

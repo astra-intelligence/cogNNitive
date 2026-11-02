@@ -7712,7 +7712,6 @@ function ensureNNFilename(name) {
 // iNNfo/packages/nn-core/src/sourceRef.ts
 var SLUG = "[a-z0-9]+(?:-[a-z0-9]+)*";
 var MODEL_ID = "[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*";
-var SOURCE_FIELD_NAMES = /* @__PURE__ */ new Set(["sources", "source"]);
 function parseSourceRef(input) {
   if (!input || typeof input !== "string") return null;
   const clean = input.trim();
@@ -9922,20 +9921,7 @@ function extractDeclaredCitations(file) {
       for (const raw of splitSourceFieldValue(fm.sources)) push(raw, "sources");
     }
   } else if (ext === "html" || ext === "htm") {
-    const modelMatch = file.content.match(
-      /<script[^>]+id=["'](?:innfo|nn)-model["'][^>]*>([\s\S]*?)<\/script>/i
-    );
-    if (modelMatch) {
-      try {
-        const parsed = JSON.parse(modelMatch[1].trim());
-        if (Array.isArray(parsed?.meta?.sources)) {
-          for (const raw of parsed.meta.sources) {
-            if (typeof raw === "string" && raw.trim()) push(raw.trim(), "meta.sources");
-          }
-        }
-      } catch {
-      }
-    }
+    return sites;
   } else if (ext === "csv") {
     const lines = file.content.split(/\r?\n/);
     const header = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, ""));
@@ -10063,10 +10049,10 @@ function projectLineage(files, log = buildChangeLog(files), options = {}) {
     for (const [, elements] of parsed.elements.entries()) {
       for (const el of elements) {
         for (const [fieldName, val] of Object.entries(el.fields)) {
-          if (SOURCE_FIELD_NAMES.has(fieldName.toLowerCase())) {
-            for (const raw of splitSourceFieldValue(val)) {
-              citations.push({ value: raw, referringPath: kf.path, element: el.name, field: fieldName });
-            }
+          const lower = fieldName.toLowerCase();
+          if (lower !== "sources" && lower !== "source") continue;
+          for (const raw of splitSourceFieldValue(val)) {
+            citations.push({ value: raw, referringPath: kf.path, element: el.name, field: fieldName });
           }
         }
       }

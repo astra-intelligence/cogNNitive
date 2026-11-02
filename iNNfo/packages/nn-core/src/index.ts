@@ -95,8 +95,6 @@ export {
   slugifyHeading,
   extractHeadings,
   resolveHeadingSection,
-  SOURCE_FIELD_NAMES,
-  CONFLICT_FIELD_NAMES,
 } from './sourceRef.js'
 export type { Citation, SourceRef, HeadingInfo, ResolvedHeadingSection } from './sourceRef.js'
 export { serializeKnowledgeUnitRef, slugifyUnitHeading, normalizeName } from './sourceRef.js'

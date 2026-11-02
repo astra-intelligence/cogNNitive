@@ -418,22 +418,7 @@ conflicts:: [present.md#intro]
 })
 
 describe('validateWorkspaceSources — LEGACY_DERIVATION_KEY (D3)', () => {
-  it('fires for a workspace Models entry carrying derived_from', () => {
-    const diags = validateWorkspaceSources(
-      resultWithSchema('Models', 'derived_from', 'kNNowledge/other.md', WORKSPACE_SCHEMA),
-      resolver({}),
-    )
-    expect(diags.some((d) => d.code === 'LEGACY_DERIVATION_KEY')).toBe(true)
-    expect(diags.find((d) => d.code === 'LEGACY_DERIVATION_KEY')?.severity).toBe('warning')
-  })
 
-  it('fires for an Artifacts entry carrying derived_from_inputs::', () => {
-    const diags = validateWorkspaceSources(
-      resultWithSchema('Artifacts', 'derived_from_inputs', 'some prose', WORKSPACE_SCHEMA),
-      resolver({}),
-    )
-    expect(diags.some((d) => d.code === 'LEGACY_DERIVATION_KEY')).toBe(true)
-  })
 
   it('stays silent for the frozen cogNNitive ModelRecords schema', () => {
     const diags = validateWorkspaceSources(

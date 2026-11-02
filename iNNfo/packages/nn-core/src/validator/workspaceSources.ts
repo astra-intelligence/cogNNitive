@@ -5,8 +5,6 @@ import { assertNever } from '../assertNever.js'
 import { resolveJsonPointer } from '../jsonPointer.js'
 import { parseKnowledgeQuery } from '../queryUnits.js'
 import {
-  SOURCE_FIELD_NAMES,
-  CONFLICT_FIELD_NAMES,
   extractHeadings,
   normalizeName,
   parseCitation,
@@ -180,28 +178,14 @@ function isCitationField(
 ): boolean {
   const declared = findDeclaredField(schema, conceptType, fieldName)
   if (declared) return declared.type === 'citation'
-  return SOURCE_FIELD_NAMES.has(fieldName.toLowerCase())
+  // Transitional: until the corpus rebuild (S5b.4) a legacy `sources::` field is
+  // still validated; S5a.3 reports the field itself as SOURCES_FIELD_BANNED.
+  const lower = fieldName.toLowerCase()
+  return lower === 'sources' || lower === 'source'
 }
 
 function isConflictField(fieldName: string): boolean {
-  return CONFLICT_FIELD_NAMES.has(fieldName.toLowerCase())
-}
-
-const LEGACY_DERIVATION_FIELD_NAMES = new Set(['derived_from', 'derived_from_inputs'])
-
-function legacyDerivationKeyFor(
-  fieldName: string,
-  conceptType: string | undefined,
-  schema: BlueprintSchema | undefined,
-): string | undefined {
-  const lower = fieldName.toLowerCase()
-  if (!LEGACY_DERIVATION_FIELD_NAMES.has(lower)) return undefined
-  if (!schema || !conceptType) return undefined
-  const concept = schema.concepts.find((c) => c.name.toLowerCase() === conceptType.toLowerCase())
-  if (!concept) return undefined
-  const declaresField = concept.fields?.some((f) => f.name.toLowerCase() === lower)
-  if (declaresField) return undefined
-  return fieldName
+  return fieldName.toLowerCase() === 'conflicts'
 }
 
 export function validateWorkspaceSources(
@@ -240,18 +224,6 @@ export function validateWorkspaceSources(
 
     for (const [fieldName, fv] of Object.entries(node.fields)) {
       const isConflict = isConflictField(fieldName)
-      const legacyKey = legacyDerivationKeyFor(fieldName, node.type, schema)
-
-      if (legacyKey) {
-        const path = `${node.source.path}#${node.name}.${fieldName}`
-        diagnostics.push({
-          path,
-          message: `"${legacyKey}" is deprecated — write "sources::" (pointer list); lineage is computed`,
-          severity: 'warning',
-          code: 'LEGACY_DERIVATION_KEY',
-        })
-      }
-
       if (!isConflict && !isCitationField(fieldName, node.type, schema)) continue
 
       const sites: CitationSite[] = []

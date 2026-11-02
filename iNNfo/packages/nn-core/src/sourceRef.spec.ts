@@ -159,28 +159,7 @@ describe('levenshteinDistance', () => {
   })
 })
 
-describe('SOURCE_FIELD_NAMES', () => {
-  it('exports the single citation field-name set shared by the writer and both readers (H2/H3)', () => {
-    expect(SOURCE_FIELD_NAMES).toEqual(new Set(['sources', 'source']))
-    expect(SOURCE_FIELD_NAMES.has('sources')).toBe(true)
-    expect(SOURCE_FIELD_NAMES.has('source')).toBe(true)
-    expect(SOURCE_FIELD_NAMES.has('SOURCES')).toBe(false) // case-folding is the caller's job
-    expect(SOURCE_FIELD_NAMES.has('title')).toBe(false)
-  })
 
-  it('stays unchanged by the addition of CONFLICT_FIELD_NAMES', () => {
-    expect(SOURCE_FIELD_NAMES).toEqual(new Set(['sources', 'source']))
-  })
-})
-
-describe('CONFLICT_FIELD_NAMES', () => {
-  it('exports exactly the reserved "conflicts" property name, separate from SOURCE_FIELD_NAMES', () => {
-    expect(CONFLICT_FIELD_NAMES).toEqual(new Set(['conflicts']))
-    expect(CONFLICT_FIELD_NAMES.has('conflicts')).toBe(true)
-    expect(CONFLICT_FIELD_NAMES.has('sources')).toBe(false)
-    expect(SOURCE_FIELD_NAMES.has('conflicts')).toBe(false)
-  })
-})
 
 describe('extractHeadings', () => {
   it('numbers duplicate slugs the GitHub way', () => {

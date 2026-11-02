@@ -7900,566 +7900,6 @@ function getSectionType(rawTitle) {
 // iNNfo/packages/nn-core/src/parser/serializer.ts
 var import_yaml3 = __toESM(require_dist(), 1);
 
-// iNNfo/packages/nn-core/src/assertNever.ts
-function assertNever(value, context = "value") {
-  throw new Error(`Unhandled ${context}: ${JSON.stringify(value)}`);
-}
-
-// iNNfo/packages/nn-core/src/jsonPointer.ts
-var POINTER_RE = /^(?:\/(?:[^~/]|~[01])*)*$/;
-var ARRAY_INDEX_RE = /^(?:0|[1-9]\d*)$/;
-function isJsonPointer(pointer) {
-  return POINTER_RE.test(pointer);
-}
-var unescapeToken = (token) => token.replace(/~1/g, "/").replace(/~0/g, "~");
-function resolveJsonPointer(content, pointer) {
-  let current;
-  try {
-    current = JSON.parse(content);
-  } catch {
-    return { ok: false, reason: "invalid-json" };
-  }
-  if (!isJsonPointer(pointer)) return { ok: false, reason: "unknown-pointer" };
-  if (pointer === "") return { ok: true, value: current };
-  for (const raw of pointer.slice(1).split("/")) {
-    const token = unescapeToken(raw);
-    if (Array.isArray(current)) {
-      if (!ARRAY_INDEX_RE.test(token) || Number(token) >= current.length) {
-        return { ok: false, reason: "unknown-pointer" };
-      }
-      current = current[Number(token)];
-    } else if (current !== null && typeof current === "object" && Object.hasOwn(current, token)) {
-      current = current[token];
-    } else {
-      return { ok: false, reason: "unknown-pointer" };
-    }
-  }
-  return { ok: true, value: current };
-}
-
-// iNNfo/packages/nn-core/src/schema/nature.ts
-var CORE_BLUEPRINT_NATURE = {
-  sources: { structure: "catalog", ownership: "derived" },
-  artifacts: { structure: "catalog", ownership: "derived" },
-  procedures: { structure: "catalog", ownership: "derived" },
-  changes: { structure: "members", ownership: "derived" }
-};
-function natureOfBlueprint(blueprintName) {
-  return CORE_BLUEPRINT_NATURE[blueprintName];
-}
-
-// iNNfo/packages/nn-core/src/naming/contract.ts
-var ENTRYPOINT_FILENAME = "domaiNN_NN.md";
-var SPEC_FILENAME = "spec_NN.md";
-var SIDECAR_BLUEPRINT = "sidecar";
-var NN_SUFFIX_RE = /_NN\.md$/i;
-var SIDECAR_PATH_RE = /^(.*\.[^./\\]+)_sidecar_NN\.md$/i;
-var STAMP_SUFFIX_RE = /^(.+)_(\d{8}T\d{6}Z)(?:-(\d+))?$/;
-function baseOf(path2) {
-  const i = Math.max(path2.lastIndexOf("/"), path2.lastIndexOf("\\"));
-  return i < 0 ? path2 : path2.slice(i + 1);
-}
-function parseName(basename5) {
-  if (NN_SUFFIX_RE.test(basename5)) {
-    const stem2 = basename5.replace(NN_SUFFIX_RE, "");
-    const sidecar = SIDECAR_PATH_RE.exec(basename5);
-    return sidecar ? { kind: "nn", basename: basename5, stem: stem2, sidecarOf: sidecar[1] } : { kind: "nn", basename: basename5, stem: stem2 };
-  }
-  const dot = basename5.lastIndexOf(".");
-  const hasExt = dot > 0;
-  const stem = hasExt ? basename5.slice(0, dot) : basename5;
-  const ext = hasExt ? basename5.slice(dot + 1) : "";
-  const m = STAMP_SUFFIX_RE.exec(stem);
-  if (!m) return { kind: "file", basename: basename5, key: stem, ext };
-  return {
-    kind: "file",
-    basename: basename5,
-    key: m[1],
-    ext,
-    stamp: { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 }
-  };
-}
-function formatMemberName(key, ext, stamp) {
-  const suffix = stamp ? `_${stamp.stamp}${stamp.seq > 1 ? `-${stamp.seq}` : ""}` : "";
-  return `${key}${suffix}${ext ? `.${ext}` : ""}`;
-}
-function sidecarPathOf(rawPath) {
-  return `${rawPath}_sidecar_NN.md`;
-}
-function displayStem(basename5) {
-  if (NN_SUFFIX_RE.test(basename5)) return basename5.replace(NN_SUFFIX_RE, "");
-  return basename5.replace(/\.md$/i, "");
-}
-var IGNORED_DIRECTORIES = /* @__PURE__ */ new Set(["backups", "archive", "specs"]);
-var CORE_BLUEPRINT_ROLE = {
-  sidecar: "sidecar",
-  changes: "changeset",
-  workspace: "catalog",
-  sources: "catalog",
-  artifacts: "catalog"
-};
-function coreBlueprintKey(parentSpecName) {
-  return (parentSpecName ?? "").trim().toLowerCase().split("_")[0];
-}
-function segmentsOf(path2) {
-  return path2.replace(/\\/g, "/").split("/").filter((s) => s && s !== ".");
-}
-function roleOf(i) {
-  const base = baseOf(i.path);
-  const parsed = parseName(base);
-  if (parsed.kind === "file") return i.hasSidecar ? "source" : "artifact";
-  if (parsed.sidecarOf !== void 0) return "sidecar";
-  const lower = base.toLowerCase();
-  if (lower === ENTRYPOINT_FILENAME.toLowerCase()) return "entrypoint";
-  if (lower === SPEC_FILENAME.toLowerCase()) return "spec";
-  const bp = coreBlueprintKey(i.parentSpecName);
-  if (bp === "procedures") {
-    return parsed.stem.toLowerCase() === "procedures" ? "catalog" : "procedure";
-  }
-  return CORE_BLUEPRINT_ROLE[bp] ?? "knowledge";
-}
-function isExcludedPath(path2) {
-  const segs = segmentsOf(path2);
-  if (segs.length > 0 && IGNORED_DIRECTORIES.has(segs[0])) return true;
-  return segs.some((s) => s === "archive" || s === "staging" || s.startsWith(".") && s !== "..");
-}
-function changesetStampOf(nameOrPath) {
-  const parsed = parseName(baseOf(nameOrPath));
-  if (parsed.kind !== "nn" || parsed.sidecarOf !== void 0) return null;
-  if (!/_changes$/i.test(parsed.stem)) return null;
-  const m = STAMP_SUFFIX_RE.exec(parsed.stem.slice(0, -"_changes".length));
-  return m ? { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 } : null;
-}
-function compareMembers(a, b) {
-  const pa = parseName(baseOf(a));
-  const pb = parseName(baseOf(b));
-  const sa = pa.kind === "file" ? pa.stamp : void 0;
-  const sb = pb.kind === "file" ? pb.stamp : void 0;
-  if (!sa && !sb) return 0;
-  if (!sa) return -1;
-  if (!sb) return 1;
-  if (sa.stamp !== sb.stamp) return sa.stamp < sb.stamp ? -1 : 1;
-  return sa.seq - sb.seq;
-}
-var pad = (n, width = 2) => String(n).padStart(width, "0");
-function formatUtcStamp(at) {
-  return `${pad(at.getUTCFullYear(), 4)}${pad(at.getUTCMonth() + 1)}${pad(at.getUTCDate())}T${pad(at.getUTCHours())}${pad(at.getUTCMinutes())}${pad(at.getUTCSeconds())}Z`;
-}
-function nextStamp(at, latest) {
-  const now = formatUtcStamp(at);
-  if (!latest || latest.stamp < now) return { stamp: now, seq: 1 };
-  return { stamp: latest.stamp, seq: latest.seq + 1 };
-}
-var WIN32_PATH_LIMIT = 259;
-function checkPathBudget(absPath, platform) {
-  if (platform === "win32" && absPath.length > WIN32_PATH_LIMIT) {
-    return { ok: false, limit: WIN32_PATH_LIMIT, length: absPath.length };
-  }
-  return { ok: true };
-}
-function parentSpecNameOf(frontmatter) {
-  const parentSpec = frontmatter["parent_spec"];
-  if (!parentSpec) return void 0;
-  if (typeof parentSpec === "string") return parentSpec;
-  if (typeof parentSpec === "object") {
-    const name = parentSpec.name;
-    return typeof name === "string" ? name : void 0;
-  }
-  return void 0;
-}
-function isUnderRootSources(path2) {
-  return segmentsOf(path2)[0]?.toLowerCase() === "sources";
-}
-function isConsoleModel(f) {
-  if (isExcludedPath(f.path)) return false;
-  const parentSpecName = parentSpecNameOf(f.frontmatter);
-  const role = roleOf({ path: f.path, parentSpecName });
-  if ((role === "knowledge" || role === "procedure") && isUnderRootSources(f.path)) return false;
-  if (role === "knowledge") return true;
-  if (role === "procedure") return !segmentsOf(f.path).includes("procedures");
-  return natureOfBlueprint(coreBlueprintKey(parentSpecName))?.structure === "catalog";
-}
-function isNNName(nameOrPath) {
-  return NN_SUFFIX_RE.test(baseOf(nameOrPath));
-}
-function isSidecarName(nameOrPath) {
-  return SIDECAR_PATH_RE.test(nameOrPath);
-}
-
-// iNNfo/packages/nn-core/src/sourceRef.ts
-var SLUG = "[a-z0-9]+(?:-[a-z0-9]+)*";
-var MODEL_ID = "[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*";
-var SOURCE_FIELD_NAMES = /* @__PURE__ */ new Set(["sources", "source"]);
-function parseSourceRef(input) {
-  if (!input || typeof input !== "string") return null;
-  const clean = input.trim();
-  if (/#L\d+(-L\d+)?$/i.test(clean)) return null;
-  if (/^src-\d+/i.test(clean)) return null;
-  const legacy = clean.match(new RegExp(`^([^#:]+?)(?:#(${SLUG}))?$`));
-  if (!legacy) return null;
-  const resolved = resolveUnitPath(legacy[1]);
-  if (!resolved) return null;
-  return {
-    filePath: resolved.filePath,
-    fileName: basename(resolved.filePath),
-    slug: legacy[2] || void 0,
-    kind: resolved.kind,
-    raw: clean
-  };
-}
-function parseCitation(input) {
-  if (!input || typeof input !== "string") return null;
-  const clean = input.trim();
-  if (!clean) return null;
-  if (/[#@]L\d+(-L\d+)?$/i.test(clean)) return null;
-  if (/^src-\d+/i.test(clean)) return null;
-  if (clean.includes("@")) {
-    return parseKnowledgeUnitRef(clean);
-  }
-  if (clean.includes("#")) {
-    const ref = parseSourceRef(clean);
-    if (ref && ref.slug) {
-      return { ...ref, legacyHash: true };
-    }
-    return null;
-  }
-  const resolved = resolveUnitPath(clean);
-  if (!resolved) return null;
-  return {
-    filePath: resolved.filePath,
-    fileName: basename(resolved.filePath),
-    kind: resolved.kind,
-    raw: clean
-  };
-}
-function basename(p) {
-  return p.split(/[/\\]/).pop() || p;
-}
-function cleanSourceItem(v) {
-  if (v === void 0 || v === null) return "";
-  let s = String(v).trim();
-  if (s.startsWith('"') && s.endsWith('"') && s.length >= 2 || s.startsWith("'") && s.endsWith("'") && s.length >= 2) {
-    s = s.slice(1, -1).trim();
-  }
-  return s.replace(/\\,/g, ",").trim();
-}
-function parseBracketedSourceList(inner) {
-  const tokens = [];
-  let cur = "";
-  let inQuote = null;
-  let escaped = false;
-  for (let i = 0; i < inner.length; i++) {
-    const ch = inner[i];
-    if (escaped) {
-      if (ch === ",") {
-        cur += ",";
-      } else if (ch === inQuote) {
-        cur += ch;
-      } else if (ch === "\\") {
-        cur += "\\";
-      } else {
-        cur += "\\" + ch;
-      }
-      escaped = false;
-      continue;
-    }
-    if (ch === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (inQuote) {
-      if (ch === inQuote) {
-        inQuote = null;
-      } else {
-        cur += ch;
-      }
-      continue;
-    }
-    if (ch === '"' || ch === "'") {
-      inQuote = ch;
-      continue;
-    }
-    if (ch === ",") {
-      const cleaned2 = cleanSourceItem(cur);
-      if (cleaned2) tokens.push(cleaned2);
-      cur = "";
-      continue;
-    }
-    cur += ch;
-  }
-  if (escaped) {
-    cur += "\\";
-  }
-  const cleaned = cleanSourceItem(cur);
-  if (cleaned) tokens.push(cleaned);
-  return tokens;
-}
-function splitSourceFieldValue(value) {
-  if (Array.isArray(value)) {
-    const out = [];
-    for (const v of value) {
-      const cleaned2 = cleanSourceItem(v);
-      if (cleaned2) out.push(cleaned2);
-    }
-    return out;
-  }
-  const s = typeof value === "string" ? value.trim() : String(value ?? "").trim();
-  if (!s) return [];
-  if (s.startsWith("[")) {
-    const inner = s.endsWith("]") ? s.slice(1, -1) : s.slice(1);
-    if (s.endsWith("]") || s.includes(",")) {
-      return parseBracketedSourceList(inner);
-    }
-  }
-  const cleaned = cleanSourceItem(s);
-  return cleaned ? [cleaned] : [];
-}
-function levenshteinDistance(a, b) {
-  const an = a.length;
-  const bn = b.length;
-  if (an === 0) return bn;
-  if (bn === 0) return an;
-  const matrix = Array.from({ length: bn + 1 }, () => new Array(an + 1).fill(0));
-  for (let i = 0; i <= an; i++) matrix[0][i] = i;
-  for (let j = 0; j <= bn; j++) matrix[j][0] = j;
-  for (let j = 1; j <= bn; j++) {
-    for (let i = 1; i <= an; i++) {
-      const cost = a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1;
-      matrix[j][i] = Math.min(
-        matrix[j - 1][i] + 1,
-        matrix[j][i - 1] + 1,
-        matrix[j - 1][i - 1] + cost
-      );
-    }
-  }
-  return matrix[bn][an];
-}
-function slugifyHeading(text) {
-  const stripped = nfc(text).replace(/^\s*#{1,6}\s*/, "").replace(/[*_`]/g, "");
-  return stripped.split(/(?<=[\p{L}\p{N}])--(?=[\p{L}\p{N}])/gu).map(slugifyFlat).join("--");
-}
-function slugifyFlat(part) {
-  const transliterated = stripCombiningMarks(part);
-  const dashed = transliterated.trim().toLowerCase().replace(/\s+/g, "-");
-  const filtered = dashed.replace(/[^\p{L}\p{N}-]+/gu, "");
-  return filtered.replace(/-+/g, "-").replace(/^-+|-+$/g, "");
-}
-function extractHeadings(markdown) {
-  const lines = markdown.split("\n");
-  const seen = /* @__PURE__ */ new Map();
-  const headings = [];
-  for (let i = 0; i < lines.length; i++) {
-    const match = lines[i].match(/^(#{1,6})\s+(.+?)\s*$/);
-    if (!match) continue;
-    const level = match[1].length;
-    const text = match[2].replace(/[*_`]/g, "").trim();
-    const { concept, element, slug: baseSlug } = headingSlugParts(text);
-    const occurrence = seen.get(baseSlug) ?? 0;
-    seen.set(baseSlug, occurrence + 1);
-    const slug = occurrence === 0 ? baseSlug : `${baseSlug}-${occurrence}`;
-    headings.push({ level, text, slug, line: i, concept, element });
-  }
-  return headings;
-}
-function resolveHeadingSection(markdown, slug) {
-  const headings = extractHeadings(markdown);
-  const index = headings.findIndex((h) => h.slug === slug);
-  if (index === -1) return null;
-  const heading = headings[index];
-  const lines = markdown.split("\n");
-  let endLine = lines.length;
-  for (let j = index + 1; j < headings.length; j++) {
-    if (headings[j].level <= heading.level) {
-      endLine = headings[j].line;
-      break;
-    }
-  }
-  return { heading, startLine: heading.line, endLine };
-}
-function headingSlugParts(text) {
-  const clean = text.trim();
-  const boundary = clean.indexOf(":");
-  if (boundary > 0) {
-    const concept = clean.slice(0, boundary).trim();
-    const element = clean.slice(boundary + 1).trim();
-    if (concept && element) {
-      return {
-        slug: `${slugifyHeading(concept)}--${slugifyHeading(element)}`,
-        concept,
-        element
-      };
-    }
-  }
-  return { slug: slugifyHeading(clean) };
-}
-function slugifyUnitHeading(level, text) {
-  const clean = text.trim();
-  const { slug } = headingSlugParts(clean);
-  const clamped = Math.min(6, Math.max(1, Math.floor(level) || 1));
-  return { level: clamped, text: clean, slug };
-}
-function normalizeName(name) {
-  return nfc(name).trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_\-\p{L}\p{N}]+/gu, "");
-}
-function resolveUnitPath(rawPath) {
-  const trimmed = rawPath.trim();
-  if (!trimmed || /^https?:\/\//i.test(trimmed)) return null;
-  const segments = trimmed.split(/[/\\]/);
-  if (segments.some((s) => s === "..")) return null;
-  const forward = segments.join("/");
-  const isMd = /\.md$/i.test(forward);
-  const isCsv = /\.csv$/i.test(forward);
-  const isJson = /\.json$/i.test(forward);
-  if (!isMd && !isCsv && !isJson) {
-    if (new RegExp(`^${MODEL_ID}$`).test(trimmed)) {
-      return { filePath: trimmed, kind: "model" };
-    }
-    return null;
-  }
-  if (/^[a-zA-Z]:[/\\]/.test(trimmed) || trimmed.startsWith("/")) return null;
-  return { filePath: forward, kind: roleOf({ path: forward }) === "knowledge" ? "model" : "source" };
-}
-function decodeSegment(segment) {
-  try {
-    return decodeURIComponent(segment);
-  } catch (err) {
-    return null;
-  }
-}
-var HEADER_UNIT = /^(#{1,6})\s*(.+?)\s*$/;
-function parsePointerRef(resolved, rawPointer, raw) {
-  if (rawPointer.includes("&")) return null;
-  const pointer = decodeSegment(rawPointer);
-  if (pointer === null || !isJsonPointer(pointer)) return null;
-  return {
-    filePath: resolved.filePath,
-    fileName: basename(resolved.filePath),
-    kind: resolved.kind,
-    unit: { kind: "pointer", pointer },
-    subunits: [],
-    raw
-  };
-}
-function parseKnowledgeUnitRef(input) {
-  if (!input || typeof input !== "string") return null;
-  const clean = input.trim();
-  const at = clean.indexOf("@");
-  if (at === -1) return null;
-  const resolved = resolveUnitPath(clean.slice(0, at));
-  if (!resolved) return null;
-  if (/\.json$/i.test(resolved.filePath)) return parsePointerRef(resolved, clean.slice(at + 1), clean);
-  const rawSegments = clean.slice(at + 1).split("&");
-  if (rawSegments.some((s) => s.trim() === "")) return null;
-  const decoded = [];
-  for (const part of rawSegments) {
-    const text = decodeSegment(part.trim());
-    if (text === null || text.trim() === "") return null;
-    decoded.push(text.trim());
-  }
-  const [unitRaw, ...subunits] = decoded;
-  if (!/\.(md|csv|json)$/i.test(resolved.filePath)) {
-    if (unitRaw.startsWith("concept:")) {
-      const slug = unitRaw.slice("concept:".length);
-      if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
-      const unit3 = {
-        kind: "header",
-        level: 1,
-        text: slug,
-        slug
-      };
-      return {
-        filePath: resolved.filePath,
-        fileName: basename(resolved.filePath),
-        slug,
-        kind: "model",
-        unit: unit3,
-        subunits,
-        raw: clean
-      };
-    }
-    if (unitRaw.startsWith("matrix:")) {
-      const slug = unitRaw.slice("matrix:".length);
-      if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
-      const unit3 = {
-        kind: "matrix",
-        matrixSlug: slug,
-        ...subunits.length === 2 ? { rowSlug: subunits[0], colSlug: subunits[1] } : {}
-      };
-      return {
-        filePath: resolved.filePath,
-        fileName: basename(resolved.filePath),
-        slug,
-        kind: "model",
-        unit: unit3,
-        subunits,
-        raw: clean
-      };
-    }
-    if (!new RegExp(`^${SLUG}$`).test(unitRaw)) return null;
-    if (subunits.length === 2) {
-      const unit3 = {
-        kind: "matrix",
-        matrixSlug: unitRaw,
-        rowSlug: subunits[0],
-        colSlug: subunits[1]
-      };
-      return {
-        filePath: resolved.filePath,
-        fileName: basename(resolved.filePath),
-        slug: unitRaw,
-        kind: "model",
-        unit: unit3,
-        subunits,
-        raw: clean
-      };
-    }
-    const unit2 = {
-      kind: "element",
-      slug: unitRaw
-    };
-    return {
-      filePath: resolved.filePath,
-      fileName: basename(resolved.filePath),
-      slug: unitRaw,
-      kind: "model",
-      unit: unit2,
-      subunits,
-      raw: clean
-    };
-  }
-  const isCsv = /\.csv$/i.test(resolved.filePath);
-  if (isCsv) {
-    if (resolved.kind === "model") return null;
-    return {
-      filePath: resolved.filePath,
-      fileName: basename(resolved.filePath),
-      kind: "source",
-      unit: { kind: "row", id: unitRaw },
-      subunits,
-      raw: clean
-    };
-  }
-  const heading = unitRaw.match(HEADER_UNIT);
-  if (!heading) return null;
-  const headed = slugifyUnitHeading(heading[1].length, heading[2]);
-  if (!headed.text || !headed.slug) return null;
-  const unit = {
-    kind: "header",
-    level: headed.level,
-    text: headed.text,
-    slug: headed.slug
-  };
-  return {
-    filePath: resolved.filePath,
-    fileName: basename(resolved.filePath),
-    slug: headed.slug,
-    kind: resolved.kind,
-    unit,
-    subunits,
-    raw: clean
-  };
-}
-
 // iNNfo/packages/nn-core/src/parser/core.ts
 function deriveElementSlugs(elements) {
   const usedSlugs = /* @__PURE__ */ new Map();
@@ -9179,6 +8619,17 @@ function findCanonicalBlueprint(key) {
   return key === "changes" ? { name: "changes", version: "V_0-6-0", aliases: [], specContent: "" } : null;
 }
 
+// iNNfo/packages/nn-core/src/schema/nature.ts
+var CORE_BLUEPRINT_NATURE = {
+  sources: { structure: "catalog", ownership: "derived" },
+  artifacts: { structure: "catalog", ownership: "derived" },
+  procedures: { structure: "catalog", ownership: "derived" },
+  changes: { structure: "members", ownership: "derived" }
+};
+function natureOfBlueprint(blueprintName) {
+  return CORE_BLUEPRINT_NATURE[blueprintName];
+}
+
 // iNNfo/packages/nn-core/src/resolver.ts
 var PACKAGE_NON_VERSION_DIRS = /* @__PURE__ */ new Set([
   "procedures",
@@ -9675,6 +9126,554 @@ function computeSha256(content) {
     ];
   }
   return H.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
+}
+
+// iNNfo/packages/nn-core/src/naming/contract.ts
+var ENTRYPOINT_FILENAME = "domaiNN_NN.md";
+var SPEC_FILENAME = "spec_NN.md";
+var SIDECAR_BLUEPRINT = "sidecar";
+var NN_SUFFIX_RE = /_NN\.md$/i;
+var SIDECAR_PATH_RE = /^(.*\.[^./\\]+)_sidecar_NN\.md$/i;
+var STAMP_SUFFIX_RE = /^(.+)_(\d{8}T\d{6}Z)(?:-(\d+))?$/;
+function baseOf(path2) {
+  const i = Math.max(path2.lastIndexOf("/"), path2.lastIndexOf("\\"));
+  return i < 0 ? path2 : path2.slice(i + 1);
+}
+function parseName(basename5) {
+  if (NN_SUFFIX_RE.test(basename5)) {
+    const stem2 = basename5.replace(NN_SUFFIX_RE, "");
+    const sidecar = SIDECAR_PATH_RE.exec(basename5);
+    return sidecar ? { kind: "nn", basename: basename5, stem: stem2, sidecarOf: sidecar[1] } : { kind: "nn", basename: basename5, stem: stem2 };
+  }
+  const dot = basename5.lastIndexOf(".");
+  const hasExt = dot > 0;
+  const stem = hasExt ? basename5.slice(0, dot) : basename5;
+  const ext = hasExt ? basename5.slice(dot + 1) : "";
+  const m = STAMP_SUFFIX_RE.exec(stem);
+  if (!m) return { kind: "file", basename: basename5, key: stem, ext };
+  return {
+    kind: "file",
+    basename: basename5,
+    key: m[1],
+    ext,
+    stamp: { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 }
+  };
+}
+function formatMemberName(key, ext, stamp) {
+  const suffix = stamp ? `_${stamp.stamp}${stamp.seq > 1 ? `-${stamp.seq}` : ""}` : "";
+  return `${key}${suffix}${ext ? `.${ext}` : ""}`;
+}
+function sidecarPathOf(rawPath) {
+  return `${rawPath}_sidecar_NN.md`;
+}
+function displayStem(basename5) {
+  if (NN_SUFFIX_RE.test(basename5)) return basename5.replace(NN_SUFFIX_RE, "");
+  return basename5.replace(/\.md$/i, "");
+}
+var IGNORED_DIRECTORIES = /* @__PURE__ */ new Set(["backups", "archive", "specs"]);
+var CORE_BLUEPRINT_ROLE = {
+  sidecar: "sidecar",
+  changes: "changeset",
+  workspace: "catalog",
+  sources: "catalog",
+  artifacts: "catalog"
+};
+function coreBlueprintKey(parentSpecName) {
+  return (parentSpecName ?? "").trim().toLowerCase().split("_")[0];
+}
+function segmentsOf(path2) {
+  return path2.replace(/\\/g, "/").split("/").filter((s) => s && s !== ".");
+}
+function roleOf(i) {
+  const base = baseOf(i.path);
+  const parsed = parseName(base);
+  if (parsed.kind === "file") return i.hasSidecar ? "source" : "artifact";
+  if (parsed.sidecarOf !== void 0) return "sidecar";
+  const lower = base.toLowerCase();
+  if (lower === ENTRYPOINT_FILENAME.toLowerCase()) return "entrypoint";
+  if (lower === SPEC_FILENAME.toLowerCase()) return "spec";
+  const bp = coreBlueprintKey(i.parentSpecName);
+  if (bp === "procedures") {
+    return parsed.stem.toLowerCase() === "procedures" ? "catalog" : "procedure";
+  }
+  return CORE_BLUEPRINT_ROLE[bp] ?? "knowledge";
+}
+function isExcludedPath(path2) {
+  const segs = segmentsOf(path2);
+  if (segs.length > 0 && IGNORED_DIRECTORIES.has(segs[0])) return true;
+  return segs.some((s) => s === "archive" || s === "staging" || s.startsWith(".") && s !== "..");
+}
+function changesetStampOf(nameOrPath) {
+  const parsed = parseName(baseOf(nameOrPath));
+  if (parsed.kind !== "nn" || parsed.sidecarOf !== void 0) return null;
+  if (!/_changes$/i.test(parsed.stem)) return null;
+  const m = STAMP_SUFFIX_RE.exec(parsed.stem.slice(0, -"_changes".length));
+  return m ? { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 } : null;
+}
+function compareMembers(a, b) {
+  const pa = parseName(baseOf(a));
+  const pb = parseName(baseOf(b));
+  const sa = pa.kind === "file" ? pa.stamp : void 0;
+  const sb = pb.kind === "file" ? pb.stamp : void 0;
+  if (!sa && !sb) return 0;
+  if (!sa) return -1;
+  if (!sb) return 1;
+  if (sa.stamp !== sb.stamp) return sa.stamp < sb.stamp ? -1 : 1;
+  return sa.seq - sb.seq;
+}
+var pad = (n, width = 2) => String(n).padStart(width, "0");
+function formatUtcStamp(at) {
+  return `${pad(at.getUTCFullYear(), 4)}${pad(at.getUTCMonth() + 1)}${pad(at.getUTCDate())}T${pad(at.getUTCHours())}${pad(at.getUTCMinutes())}${pad(at.getUTCSeconds())}Z`;
+}
+function nextStamp(at, latest) {
+  const now = formatUtcStamp(at);
+  if (!latest || latest.stamp < now) return { stamp: now, seq: 1 };
+  return { stamp: latest.stamp, seq: latest.seq + 1 };
+}
+var WIN32_PATH_LIMIT = 259;
+function checkPathBudget(absPath, platform) {
+  if (platform === "win32" && absPath.length > WIN32_PATH_LIMIT) {
+    return { ok: false, limit: WIN32_PATH_LIMIT, length: absPath.length };
+  }
+  return { ok: true };
+}
+function parentSpecNameOf(frontmatter) {
+  const parentSpec = frontmatter["parent_spec"];
+  if (!parentSpec) return void 0;
+  if (typeof parentSpec === "string") return parentSpec;
+  if (typeof parentSpec === "object") {
+    const name = parentSpec.name;
+    return typeof name === "string" ? name : void 0;
+  }
+  return void 0;
+}
+function isUnderRootSources(path2) {
+  return segmentsOf(path2)[0]?.toLowerCase() === "sources";
+}
+function isConsoleModel(f) {
+  if (isExcludedPath(f.path)) return false;
+  const parentSpecName = parentSpecNameOf(f.frontmatter);
+  const role = roleOf({ path: f.path, parentSpecName });
+  if ((role === "knowledge" || role === "procedure") && isUnderRootSources(f.path)) return false;
+  if (role === "knowledge") return true;
+  if (role === "procedure") return !segmentsOf(f.path).includes("procedures");
+  return natureOfBlueprint(coreBlueprintKey(parentSpecName))?.structure === "catalog";
+}
+function isNNName(nameOrPath) {
+  return NN_SUFFIX_RE.test(baseOf(nameOrPath));
+}
+function isSidecarName(nameOrPath) {
+  return SIDECAR_PATH_RE.test(nameOrPath);
+}
+
+// iNNfo/packages/nn-core/src/assertNever.ts
+function assertNever(value, context = "value") {
+  throw new Error(`Unhandled ${context}: ${JSON.stringify(value)}`);
+}
+
+// iNNfo/packages/nn-core/src/jsonPointer.ts
+var POINTER_RE = /^(?:\/(?:[^~/]|~[01])*)*$/;
+var ARRAY_INDEX_RE = /^(?:0|[1-9]\d*)$/;
+function isJsonPointer(pointer) {
+  return POINTER_RE.test(pointer);
+}
+var unescapeToken = (token) => token.replace(/~1/g, "/").replace(/~0/g, "~");
+function resolveJsonPointer(content, pointer) {
+  let current;
+  try {
+    current = JSON.parse(content);
+  } catch {
+    return { ok: false, reason: "invalid-json" };
+  }
+  if (!isJsonPointer(pointer)) return { ok: false, reason: "unknown-pointer" };
+  if (pointer === "") return { ok: true, value: current };
+  for (const raw of pointer.slice(1).split("/")) {
+    const token = unescapeToken(raw);
+    if (Array.isArray(current)) {
+      if (!ARRAY_INDEX_RE.test(token) || Number(token) >= current.length) {
+        return { ok: false, reason: "unknown-pointer" };
+      }
+      current = current[Number(token)];
+    } else if (current !== null && typeof current === "object" && Object.hasOwn(current, token)) {
+      current = current[token];
+    } else {
+      return { ok: false, reason: "unknown-pointer" };
+    }
+  }
+  return { ok: true, value: current };
+}
+
+// iNNfo/packages/nn-core/src/sourceRef.ts
+var SLUG = "[a-z0-9]+(?:-[a-z0-9]+)*";
+var MODEL_ID = "[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*";
+function parseSourceRef(input) {
+  if (!input || typeof input !== "string") return null;
+  const clean = input.trim();
+  if (/#L\d+(-L\d+)?$/i.test(clean)) return null;
+  if (/^src-\d+/i.test(clean)) return null;
+  const legacy = clean.match(new RegExp(`^([^#:]+?)(?:#(${SLUG}))?$`));
+  if (!legacy) return null;
+  const resolved = resolveUnitPath(legacy[1]);
+  if (!resolved) return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename2(resolved.filePath),
+    slug: legacy[2] || void 0,
+    kind: resolved.kind,
+    raw: clean
+  };
+}
+function parseCitation(input) {
+  if (!input || typeof input !== "string") return null;
+  const clean = input.trim();
+  if (!clean) return null;
+  if (/[#@]L\d+(-L\d+)?$/i.test(clean)) return null;
+  if (/^src-\d+/i.test(clean)) return null;
+  if (clean.includes("@")) {
+    return parseKnowledgeUnitRef(clean);
+  }
+  if (clean.includes("#")) {
+    const ref = parseSourceRef(clean);
+    if (ref && ref.slug) {
+      return { ...ref, legacyHash: true };
+    }
+    return null;
+  }
+  const resolved = resolveUnitPath(clean);
+  if (!resolved) return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename2(resolved.filePath),
+    kind: resolved.kind,
+    raw: clean
+  };
+}
+function basename2(p) {
+  return p.split(/[/\\]/).pop() || p;
+}
+function cleanSourceItem(v) {
+  if (v === void 0 || v === null) return "";
+  let s = String(v).trim();
+  if (s.startsWith('"') && s.endsWith('"') && s.length >= 2 || s.startsWith("'") && s.endsWith("'") && s.length >= 2) {
+    s = s.slice(1, -1).trim();
+  }
+  return s.replace(/\\,/g, ",").trim();
+}
+function parseBracketedSourceList(inner) {
+  const tokens = [];
+  let cur = "";
+  let inQuote = null;
+  let escaped = false;
+  for (let i = 0; i < inner.length; i++) {
+    const ch = inner[i];
+    if (escaped) {
+      if (ch === ",") {
+        cur += ",";
+      } else if (ch === inQuote) {
+        cur += ch;
+      } else if (ch === "\\") {
+        cur += "\\";
+      } else {
+        cur += "\\" + ch;
+      }
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (inQuote) {
+      if (ch === inQuote) {
+        inQuote = null;
+      } else {
+        cur += ch;
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      inQuote = ch;
+      continue;
+    }
+    if (ch === ",") {
+      const cleaned2 = cleanSourceItem(cur);
+      if (cleaned2) tokens.push(cleaned2);
+      cur = "";
+      continue;
+    }
+    cur += ch;
+  }
+  if (escaped) {
+    cur += "\\";
+  }
+  const cleaned = cleanSourceItem(cur);
+  if (cleaned) tokens.push(cleaned);
+  return tokens;
+}
+function splitSourceFieldValue(value) {
+  if (Array.isArray(value)) {
+    const out = [];
+    for (const v of value) {
+      const cleaned2 = cleanSourceItem(v);
+      if (cleaned2) out.push(cleaned2);
+    }
+    return out;
+  }
+  const s = typeof value === "string" ? value.trim() : String(value ?? "").trim();
+  if (!s) return [];
+  if (s.startsWith("[")) {
+    const inner = s.endsWith("]") ? s.slice(1, -1) : s.slice(1);
+    if (s.endsWith("]") || s.includes(",")) {
+      return parseBracketedSourceList(inner);
+    }
+  }
+  const cleaned = cleanSourceItem(s);
+  return cleaned ? [cleaned] : [];
+}
+function levenshteinDistance(a, b) {
+  const an = a.length;
+  const bn = b.length;
+  if (an === 0) return bn;
+  if (bn === 0) return an;
+  const matrix = Array.from({ length: bn + 1 }, () => new Array(an + 1).fill(0));
+  for (let i = 0; i <= an; i++) matrix[0][i] = i;
+  for (let j = 0; j <= bn; j++) matrix[j][0] = j;
+  for (let j = 1; j <= bn; j++) {
+    for (let i = 1; i <= an; i++) {
+      const cost = a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j - 1][i] + 1,
+        matrix[j][i - 1] + 1,
+        matrix[j - 1][i - 1] + cost
+      );
+    }
+  }
+  return matrix[bn][an];
+}
+function slugifyHeading(text) {
+  const stripped = nfc(text).replace(/^\s*#{1,6}\s*/, "").replace(/[*_`]/g, "");
+  return stripped.split(/(?<=[\p{L}\p{N}])--(?=[\p{L}\p{N}])/gu).map(slugifyFlat).join("--");
+}
+function slugifyFlat(part) {
+  const transliterated = stripCombiningMarks(part);
+  const dashed = transliterated.trim().toLowerCase().replace(/\s+/g, "-");
+  const filtered = dashed.replace(/[^\p{L}\p{N}-]+/gu, "");
+  return filtered.replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+}
+function extractHeadings(markdown) {
+  const lines = markdown.split("\n");
+  const seen = /* @__PURE__ */ new Map();
+  const headings = [];
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/^(#{1,6})\s+(.+?)\s*$/);
+    if (!match) continue;
+    const level = match[1].length;
+    const text = match[2].replace(/[*_`]/g, "").trim();
+    const { concept, element, slug: baseSlug } = headingSlugParts(text);
+    const occurrence = seen.get(baseSlug) ?? 0;
+    seen.set(baseSlug, occurrence + 1);
+    const slug = occurrence === 0 ? baseSlug : `${baseSlug}-${occurrence}`;
+    headings.push({ level, text, slug, line: i, concept, element });
+  }
+  return headings;
+}
+function resolveHeadingSection(markdown, slug) {
+  const headings = extractHeadings(markdown);
+  const index = headings.findIndex((h) => h.slug === slug);
+  if (index === -1) return null;
+  const heading = headings[index];
+  const lines = markdown.split("\n");
+  let endLine = lines.length;
+  for (let j = index + 1; j < headings.length; j++) {
+    if (headings[j].level <= heading.level) {
+      endLine = headings[j].line;
+      break;
+    }
+  }
+  return { heading, startLine: heading.line, endLine };
+}
+function headingSlugParts(text) {
+  const clean = text.trim();
+  const boundary = clean.indexOf(":");
+  if (boundary > 0) {
+    const concept = clean.slice(0, boundary).trim();
+    const element = clean.slice(boundary + 1).trim();
+    if (concept && element) {
+      return {
+        slug: `${slugifyHeading(concept)}--${slugifyHeading(element)}`,
+        concept,
+        element
+      };
+    }
+  }
+  return { slug: slugifyHeading(clean) };
+}
+function slugifyUnitHeading(level, text) {
+  const clean = text.trim();
+  const { slug } = headingSlugParts(clean);
+  const clamped = Math.min(6, Math.max(1, Math.floor(level) || 1));
+  return { level: clamped, text: clean, slug };
+}
+function normalizeName(name) {
+  return nfc(name).trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_\-\p{L}\p{N}]+/gu, "");
+}
+function resolveUnitPath(rawPath) {
+  const trimmed = rawPath.trim();
+  if (!trimmed || /^https?:\/\//i.test(trimmed)) return null;
+  const segments = trimmed.split(/[/\\]/);
+  if (segments.some((s) => s === "..")) return null;
+  const forward = segments.join("/");
+  const isMd = /\.md$/i.test(forward);
+  const isCsv = /\.csv$/i.test(forward);
+  const isJson = /\.json$/i.test(forward);
+  if (!isMd && !isCsv && !isJson) {
+    if (new RegExp(`^${MODEL_ID}$`).test(trimmed)) {
+      return { filePath: trimmed, kind: "model" };
+    }
+    return null;
+  }
+  if (/^[a-zA-Z]:[/\\]/.test(trimmed) || trimmed.startsWith("/")) return null;
+  return { filePath: forward, kind: roleOf({ path: forward }) === "knowledge" ? "model" : "source" };
+}
+function decodeSegment(segment) {
+  try {
+    return decodeURIComponent(segment);
+  } catch (err) {
+    return null;
+  }
+}
+var HEADER_UNIT = /^(#{1,6})\s*(.+?)\s*$/;
+function parsePointerRef(resolved, rawPointer, raw) {
+  if (rawPointer.includes("&")) return null;
+  const pointer = decodeSegment(rawPointer);
+  if (pointer === null || !isJsonPointer(pointer)) return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename2(resolved.filePath),
+    kind: resolved.kind,
+    unit: { kind: "pointer", pointer },
+    subunits: [],
+    raw
+  };
+}
+function parseKnowledgeUnitRef(input) {
+  if (!input || typeof input !== "string") return null;
+  const clean = input.trim();
+  const at = clean.indexOf("@");
+  if (at === -1) return null;
+  const resolved = resolveUnitPath(clean.slice(0, at));
+  if (!resolved) return null;
+  if (/\.json$/i.test(resolved.filePath)) return parsePointerRef(resolved, clean.slice(at + 1), clean);
+  const rawSegments = clean.slice(at + 1).split("&");
+  if (rawSegments.some((s) => s.trim() === "")) return null;
+  const decoded = [];
+  for (const part of rawSegments) {
+    const text = decodeSegment(part.trim());
+    if (text === null || text.trim() === "") return null;
+    decoded.push(text.trim());
+  }
+  const [unitRaw, ...subunits] = decoded;
+  if (!/\.(md|csv|json)$/i.test(resolved.filePath)) {
+    if (unitRaw.startsWith("concept:")) {
+      const slug = unitRaw.slice("concept:".length);
+      if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
+      const unit3 = {
+        kind: "header",
+        level: 1,
+        text: slug,
+        slug
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename2(resolved.filePath),
+        slug,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    if (unitRaw.startsWith("matrix:")) {
+      const slug = unitRaw.slice("matrix:".length);
+      if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
+      const unit3 = {
+        kind: "matrix",
+        matrixSlug: slug,
+        ...subunits.length === 2 ? { rowSlug: subunits[0], colSlug: subunits[1] } : {}
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename2(resolved.filePath),
+        slug,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    if (!new RegExp(`^${SLUG}$`).test(unitRaw)) return null;
+    if (subunits.length === 2) {
+      const unit3 = {
+        kind: "matrix",
+        matrixSlug: unitRaw,
+        rowSlug: subunits[0],
+        colSlug: subunits[1]
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename2(resolved.filePath),
+        slug: unitRaw,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    const unit2 = {
+      kind: "element",
+      slug: unitRaw
+    };
+    return {
+      filePath: resolved.filePath,
+      fileName: basename2(resolved.filePath),
+      slug: unitRaw,
+      kind: "model",
+      unit: unit2,
+      subunits,
+      raw: clean
+    };
+  }
+  const isCsv = /\.csv$/i.test(resolved.filePath);
+  if (isCsv) {
+    if (resolved.kind === "model") return null;
+    return {
+      filePath: resolved.filePath,
+      fileName: basename2(resolved.filePath),
+      kind: "source",
+      unit: { kind: "row", id: unitRaw },
+      subunits,
+      raw: clean
+    };
+  }
+  const heading = unitRaw.match(HEADER_UNIT);
+  if (!heading) return null;
+  const headed = slugifyUnitHeading(heading[1].length, heading[2]);
+  if (!headed.text || !headed.slug) return null;
+  const unit = {
+    kind: "header",
+    level: headed.level,
+    text: headed.text,
+    slug: headed.slug
+  };
+  return {
+    filePath: resolved.filePath,
+    fileName: basename2(resolved.filePath),
+    slug: headed.slug,
+    kind: resolved.kind,
+    unit,
+    subunits,
+    raw: clean
+  };
 }
 
 // iNNfo/packages/nn-core/src/csvTable.ts
@@ -10997,9 +10996,8 @@ function groupCitationsByField(citations) {
 function citationFieldsFor(conceptName, fields, schema) {
   const result = /* @__PURE__ */ new Set();
   for (const fieldName of Object.keys(fields)) {
-    if (SOURCE_FIELD_NAMES.has(fieldName.toLowerCase())) {
-      result.add(fieldName);
-    }
+    const lower = fieldName.toLowerCase();
+    if (lower === "sources" || lower === "source") result.add(fieldName);
   }
   if (schema) {
     const schemaFields = Array.isArray(schema.fields) ? schema.fields : typeof schema.fields === "object" && schema.fields !== null ? Object.values(schema.fields).flat() : [];

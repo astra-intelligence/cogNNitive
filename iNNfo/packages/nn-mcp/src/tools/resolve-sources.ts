@@ -6,7 +6,6 @@
  * Reuses the canonical citation resolution logic from `@cognnitive/nn-core`.
  */
 import {
-  SOURCE_FIELD_NAMES,
   findDeclaredField,
   splitSourceFieldValue,
   resolveCitation,
@@ -165,8 +164,8 @@ function findElement(model: ParsedKnowledge, elementId: string): FoundElement | 
  * Field selection (design D6): explicit `fieldName` skips schema resolution
  * entirely (works standalone, no A3 dependency). When omitted, the schema
  * comes from `resolveBlueprintWithCache` + `buildBlueprintSchemaResolverFromCache`
- * — a single-model read, never a full `recursiveParse` — and falls back to
- * `SOURCE_FIELD_NAMES` only when no schema resolves.
+ * — a single-model read, never a full `recursiveParse` — and returns no field
+ * when no schema resolves (`sources::` is no longer read).
  */
 async function resolveFieldNames(
   rootDir: string,
@@ -177,17 +176,12 @@ async function resolveFieldNames(
   if (explicitFieldName) return [explicitFieldName]
 
   const candidateNames = Object.keys(element.fields)
-  const nameBased = candidateNames.filter((f) => SOURCE_FIELD_NAMES.has(f.toLowerCase()))
-
   const schema = await resolveSchemaForModel(rootDir, model)
-  if (!schema) return nameBased
+  if (!schema) return []
 
-  const schemaTyped = candidateNames.filter(
-    (f) =>
-      !SOURCE_FIELD_NAMES.has(f.toLowerCase()) &&
-      findDeclaredField(schema, element.concept, f)?.type === 'citation',
+  return candidateNames.filter(
+    (f) => findDeclaredField(schema, element.concept, f)?.type === 'citation',
   )
-  return [...nameBased, ...schemaTyped]
 }
 
 async function resolveSchemaForModel(

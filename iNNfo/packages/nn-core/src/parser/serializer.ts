@@ -4,7 +4,6 @@ import { stringify as yamlStringify } from 'yaml'
 import { printTaxonomyNode } from './taxonomy.js'
 import { parsePropertyValue } from './sections.js'
 import {
-  SOURCE_FIELD_NAMES,
   parseCitation,
   serializeKnowledgeUnitRef,
 } from '../sourceRef.js'
@@ -92,37 +91,6 @@ function serializeListValue(value: unknown[]): string | null {
   return `[${value.map(String).join(', ')}]`
 }
 
-
-/**
- * Requirement 6: a citation list never carries the same pointer twice.
- *
- * Comparison is on the PARSED pointer, so `file.md@## X` and
- * `file.md@##x` are recognised as one citation. Returns the value
- * unchanged when nothing was duplicated, which is what keeps this compatible
- * with round-trip identity (Requirement 1): only an already-malformed document
- * is rewritten, and its raw text is deliberately discarded in that one case.
- *
- * The serializer has no schema, so citation fields are recognised by name here
- * — the documented fallback of AD-5.
- */
-function dedupeCitationList(value: unknown): unknown {
-  if (!Array.isArray(value)) return value
-  const seen = new Set<string>()
-  const kept: unknown[] = []
-  for (const item of value) {
-    const text = String(item).trim()
-    const parsed = parseCitation(text)
-    const key = parsed?.unit
-      ? serializeKnowledgeUnitRef(parsed.filePath, parsed.unit, parsed.subunits ?? [])
-      : parsed?.filePath
-        ? (parsed.slug ? `${parsed.filePath}#${parsed.slug}` : parsed.filePath)
-        : text.toLowerCase()
-    if (seen.has(key)) continue
-    seen.add(key)
-    kept.push(item)
-  }
-  return kept.length === value.length ? value : kept
-}
 
 function isSafeListItem(v: unknown): boolean {
   if (typeof v === 'number' || typeof v === 'boolean') return true
@@ -357,7 +325,7 @@ export function serializeKnowledge(model: ParsedKnowledge): string {
       // A citation field with a repeated pointer is rewritten (dropping
       // its raw text, deliberately); anything else keeps the author's
       // exact source text.
-      const value = SOURCE_FIELD_NAMES.has(k.toLowerCase()) ? dedupeCitationList(v) : v
+      const value = v
       const raw = value === v ? node.rawFields?.[k] : undefined
       lines.push(`${k}:: ${serializePropertyValue(value, raw)}`)
     }

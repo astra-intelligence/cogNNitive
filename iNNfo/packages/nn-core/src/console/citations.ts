@@ -8,7 +8,6 @@ import {
   resolveHeadingSection,
   resolveUnit,
   extractHeadings,
-  SOURCE_FIELD_NAMES,
 } from '../index.js'
 import { assertNever } from '../assertNever.js'
 import type {
@@ -344,7 +343,10 @@ export function groupCitationsByField(
 }
 
 /**
- * Determines which fields in an element carry citations (name-based or schema type:: citation).
+ * Determines which fields in an element carry citations: a schema field declared
+ * `type:: citation`, plus — transitionally, until the corpus rebuild (S5b.4) —
+ * a field literally named `sources`/`source`, which the validator still resolves
+ * and S5a.3 reports as banned.
  */
 export function citationFieldsFor(
   conceptName: string,
@@ -353,9 +355,8 @@ export function citationFieldsFor(
 ): string[] {
   const result = new Set<string>()
   for (const fieldName of Object.keys(fields)) {
-    if (SOURCE_FIELD_NAMES.has(fieldName.toLowerCase())) {
-      result.add(fieldName)
-    }
+    const lower = fieldName.toLowerCase()
+    if (lower === 'sources' || lower === 'source') result.add(fieldName)
   }
 
   if (schema) {

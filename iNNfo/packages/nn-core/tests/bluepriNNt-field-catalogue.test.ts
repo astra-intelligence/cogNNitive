@@ -16,7 +16,6 @@ const EXPECTED_TAGS_L2S = [
   'blank',
   'business-model',
   'changes',
-  'cogNNitive',
   'design-presets',
   'documentation',
   'domaiNN',
@@ -169,12 +168,6 @@ describe('Task 2.2: Shipped Field Catalogue and Blueprint Conventions', () => {
     }
   })
 
-  it('frozen cogNNitive_V_0-2-1_NN.md stays byte-identical', async () => {
-    const historicalPath = join(REPO_ROOT, 'iNNfo/specs/cogNNitive_V_0-2-1_NN.md')
-    const content = await readFile(historicalPath, 'utf-8')
-    expect(content).toContain('spec_version: "V_0-2-1"')
-    expect(content).toContain('template_version: "V_0-4-0"')
-  })
 
   it('frozen workspace_V_0-2-2_NN.md stays byte-identical', async () => {
     const historicalPath = join(REPO_ROOT, 'iNNfo/specs/workspace_V_0-2-2_NN.md')
