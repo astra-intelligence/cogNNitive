@@ -9,7 +9,8 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 ## Slice D — Align OpenSpec artifacts with the resolved decisions (docs-only)
 
 - Branch: `feature/conntent-v1-d` (base `feature/conntent-v1`)
-- PR: pending
+- PR: https://github.com/cogNNitive/cogNNitive/pull/462
+- Commits: `d3c002f2` docs(openspec): align coNNtent V_1-0-0 artifacts with the resolved decisions
 - Scope: `proposal.md`, `design.md`, `specs/*/spec.md`, `tasks.md` in this change folder.
 - Changes:
   - Four Layer behaviour types (`avatar`, `media`, `text`, `animation`); appearance and visual
