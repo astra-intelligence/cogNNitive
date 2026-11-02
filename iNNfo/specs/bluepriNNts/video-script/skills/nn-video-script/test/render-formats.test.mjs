@@ -14,6 +14,11 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const cliPath = path.join(__dirname, '..', 'scripts', 'render-formats.mjs');
 
 import {
   DELIVERY_FORMATS,
@@ -86,12 +91,14 @@ async function runTests() {
     });
     assert.strictEqual(calls.length, 3, 'square, vertical and horizontal');
     const filters = calls.map((a) => a[a.indexOf('-filter_complex') + 1]);
+    // Every filter graph must name its output `[v]`, which is what `-map [v]` reads.
     assert.deepStrictEqual(filters, [
-      DELIVERY_FORMATS.square.filter,
-      DELIVERY_FORMATS.vertical.filter,
-      DELIVERY_FORMATS.horizontal.filter,
+      `${DELIVERY_FORMATS.square.filter}[v]`,
+      `${DELIVERY_FORMATS.vertical.filter}[v]`,
+      `${DELIVERY_FORMATS.horizontal.filter}[v]`,
     ]);
     for (const args of calls) {
+      assert.strictEqual(args[args.indexOf('-map') + 1], '[v]', 'the mapped stream exists in the graph');
       assert.ok(args.includes('libx264'));
       assert.ok(args.includes('-crf'));
       assert.ok(args.includes('18'));
@@ -122,7 +129,7 @@ async function runTests() {
     assert.deepStrictEqual(names, ['ep_1080x1080.mp4', 'ep_1080x1920_blur.mp4', 'ep_1920x1080_blur.mp4']);
     assert.match(calls[1][calls[1].indexOf('-filter_complex') + 1], /gblur/);
     assert.match(calls[2][calls[2].indexOf('-filter_complex') + 1], /gblur/);
-    assert.strictEqual(calls[0][calls[0].indexOf('-filter_complex') + 1], DELIVERY_FORMATS.square.filter);
+    assert.strictEqual(calls[0][calls[0].indexOf('-filter_complex') + 1], `${DELIVERY_FORMATS.square.filter}[v]`);
     fs.rmSync(dir, { recursive: true, force: true });
     console.log('OK blur is opt-in, suffixed and never applied to the square');
   }
@@ -172,6 +179,35 @@ async function runTests() {
     );
     fs.rmSync(dir, { recursive: true, force: true });
     console.log('OK a missing ffmpeg is a named error');
+  }
+
+  // 9. `--fill crop` is accepted by the CLI and equals the default.
+  {
+    const dir = tmpDir();
+    const master = makeFile(dir, 'ep_1920x1920.mp4');
+    const def = await renderFormats({ master, probe: probeAs(square), dryRun: true });
+    const crop = await renderFormats({ master, fill: 'crop', probe: probeAs(square), dryRun: true });
+    assert.deepStrictEqual(
+      crop.variants.map((v) => v.command),
+      def.variants.map((v) => v.command),
+      'an explicit crop derives exactly what the default derives',
+    );
+    assert.deepStrictEqual(
+      crop.variants.map((v) => path.basename(v.outputPath)),
+      ['ep_1080x1080.mp4', 'ep_1080x1920.mp4', 'ep_1920x1080.mp4'],
+    );
+
+    const cli = spawnSync(process.execPath, [cliPath, '--master', master, '--fill', 'crop', '--dry-run'], {
+      encoding: 'utf8',
+    });
+    assert.doesNotMatch(cli.stderr, /Unknown --fill/, 'a valid --fill value is accepted');
+    const bad = spawnSync(process.execPath, [cliPath, '--master', master, '--fill', 'nope', '--dry-run'], {
+      encoding: 'utf8',
+    });
+    assert.strictEqual(bad.status, 2);
+    assert.match(bad.stderr, /Unknown --fill "nope" \(known: crop, blur\)/);
+    fs.rmSync(dir, { recursive: true, force: true });
+    console.log('OK --fill crop is accepted by the CLI and equals the default');
   }
 
   console.log('\nAll render-formats tests passed!');

@@ -182,7 +182,7 @@ export async function renderFormats({
       '-y', '-v', 'error', '-i', masterAbs,
       '-filter_complex', blur
         ? buildBlurFillFilter(preset.width, preset.height, { sigma, brightness })
-        : preset.filter,
+        : `${preset.filter}[v]`,
       '-map', '[v]', '-map', '0:a?',
       ...DERIVATION_ARGS,
       outputPath,
@@ -218,8 +218,8 @@ async function main() {
   let parsed;
   try {
     parsed = parseArgs(process.argv.slice(2), {
-      value: ['master', 'out-dir', 'formats'],
-      boolean: ['dry-run'],
+      value: ['master', 'out-dir', 'formats', 'fill'],
+      boolean: ['dry-run', 'force'],
     });
   } catch (err) {
     console.error(`❌ [render-formats] ${err.message}`);
@@ -227,15 +227,20 @@ async function main() {
   }
   const master = parsed.flags.master;
   const dryRun = !!parsed.flags['dry-run'];
+  const fill = parsed.flags.fill ? String(parsed.flags.fill) : 'crop';
+  if (!['crop', 'blur'].includes(fill)) {
+    console.error(`❌ [render-formats] Unknown --fill "${fill}" (known: crop, blur).`);
+    process.exit(2);
+  }
   if (!master) {
-    console.error('Usage: node render-formats.mjs --master <square.mp4> [--out-dir <dir>] [--formats square,vertical,horizontal] [--dry-run]');
+    console.error('Usage: node render-formats.mjs --master <square.mp4> [--out-dir <dir>] [--formats square,vertical,horizontal] [--fill crop|blur] [--force] [--dry-run]');
     process.exit(2);
   }
   const formats = parsed.flags.formats
     ? String(parsed.flags.formats).split(',').map((s) => s.trim()).filter(Boolean)
     : undefined;
   try {
-    const res = await renderFormats({ master, outDir: parsed.flags['out-dir'], formats, dryRun });
+    const res = await renderFormats({ master, outDir: parsed.flags['out-dir'], formats, fill, force: !!parsed.flags.force, dryRun });
     if (res.dryRun) {
       for (const v of res.variants) console.log(`▶ [render-formats] ${v.command}`);
     } else {
