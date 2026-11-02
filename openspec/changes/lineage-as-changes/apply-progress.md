@@ -1,0 +1,106 @@
+# Apply progress: lineage-as-changes
+
+Appended per PR. Newest entries at the end. Nothing in this file replaces a
+previous entry.
+
+---
+
+## PR 1-3 — S0a / S0b / S0c (branch chain `lac/s0a` → `lac/s0b` → `lac/s0c`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PRs opened against the chain.
+
+### Slice decision (deviation, maintainer-approved)
+
+S0 was planned as one PR of ~300 changed lines. Measured after implementation it
+was ~1,376 hand-authored lines (1,417+/582- excluding the generated console
+mirror), 3.4x the budget, so it was stopped and reported. The maintainer chose to
+split it into three chained sub-PRs. `tasks.md` now carries S0a/S0b/S0c and the
+chain is renumbered 1..32 (every later PR moved by +2).
+
+### S0a — `changelog/` module and console rewire (PR 1, `lac/s0a`)
+
+Tasks: 0.1, 0.2, 0.3, 0.4, 0.5.
+
+- New `core/changelog/{order,load,index,node}.ts`: `compareChanges` (applied_at →
+  filename UTC stamp → filename → document index), `buildChangeLog(files)` plus
+  `buildChangeLogFromChangesets(records)` for the console transport,
+  `createChangeLog`, `history(unit)`, `origin(unit)`, `tombstones` (empty stub
+  until S2a), `unitOf` (`resolved_target` when stamped, else `target`).
+- `naming/contract.ts` gains `changesetStampOf(nameOrPath)` so the changeset stamp
+  has ONE definition (the NN Name Regex Guard rejected the local regexes).
+- Console: `provenance.ts` (`deriveValueHistory`, `deriveFieldOrigin`,
+  `detectUnrecordedEdits` over the log), `element-history.ts` (applied-only
+  per-field `provenance`, every-status element history, exact element-part
+  matching — `a-b` never matches `ab`), `payload-builder.ts` (element
+  `provenance` type), `console/index.ts` (exports the log builder for the
+  payload mirror), `scripts/export-console.mjs` (builds the log for the drift
+  warning).
+- Files touched: the above plus `core/index.ts`, `core/browser.ts`, tests
+  (`tests/changelog/{order,log}.test.ts`, `tests/console/provenance.test.ts`,
+  `tests/console-element-history.test.ts`) and the regenerated
+  `console-payload.generated.cjs`, `naming-contract.generated.cjs`,
+  `nn-core.generated.cjs` (generated, excluded from the budget).
+- Size: 1,204+/447- total, of which 623 lines are the three generated mirrors →
+  ~1,028 hand-authored (~390 of them tests). Declared in `tasks.md` and in the PR
+  body.
+- Verification: `vitest run tests/changelog tests/console
+  tests/console-element-history tests/mutate` → 43 files / 327 tests green;
+  `tsc --noEmit` (core) clean; `npm run verify:fast` green on the tip.
+
+### S0b — `sources` out of the change model (PR 2, `lac/s0b`)
+
+Tasks: 0.6, 0.7.
+
+- `core/mutate.ts`: `rewriteFieldCitation` deleted; the `add_element` `sources`
+  argument is no longer mapped into a field (it stays in the reserved-key set so
+  the generic copy cannot smuggle it in). `core/index.ts` drops the export.
+- `mcp/tools/propose-changeset.ts`: a `sources` key is rejected with
+  `INVALID_OPERATION` pointing at `evidence`; `evidence` stays a `STRING_KEYS`
+  entry. `mcp/server.ts` tool description corrected (no `sources`).
+- `skills/nn-sources/scripts/lib/convergence-delta.js`: the apply plan emits
+  `evidence`, never `sources` (and its two tests updated).
+- Size: 63+/135- (198 lines).
+- Verification: `vitest run tests/mutate` 19 passed; `src/tools/propose-changeset`
+  24 passed; `convergence-delta.test.js` and `convergence-cli.test.js` pass;
+  `npm run verify:fast` green on the tip.
+
+### S0c — `EVIDENCE_UNKNOWN` (PR 3, `lac/s0c`)
+
+Tasks: 0.8, 0.9, 0.10.
+
+- `mcp/tools/validate.ts`: `collectEvidenceDiagnostics(rootDir)` emits one
+  warning per APPLIED change whose evidence is absent or `unknown`, naming the
+  change, its author and its target, filed against the model document the change
+  targets. Wired into `collectWorkspaceDiagnostics`, so `validate_knowledge`
+  workspace mode and `check_domain`'s per-model validation both carry it.
+- `mcp/tools/check-workspace.ts`: `check_domain` also returns the flat
+  `evidence` list (renamed into `provenance` in S2b.2).
+- Size: 150+/0-.
+- Verification: `vitest run src/tools/validate` 15 passed (including the
+  130-change LC_programas-like case); `tsc --noEmit` (nn-mcp) clean;
+  `npm run verify:fast` green on the tip.
+
+### Deviations and open items
+
+1. S0 landed as three PRs instead of one (maintainer-approved split; see above).
+2. `buildChangeLogFromChangesets` exists next to `buildChangeLog(files)`: the
+   console payload builder receives parsed changesets, not file snapshots, and
+   re-reading the filesystem would break its browser-safety. Both funnel into the
+   same log and the same comparator.
+3. `unitOf` falls back to the change's own `target` because `resolved_target` is
+   only stamped from S1b.1 (PR 5). Once stamping lands, the stamped value wins.
+4. `detectUnrecordedEdits` (the console's drift warning) matches on the element
+   part of the address, not the full model-scoped unit: the domain console
+   aggregates models whose authored target model parts vary. The validator's
+   `checkProvenance` (S2a.2) replaces it with model-scoped drift.
+5. Environment: this session worktree had no `node_modules` at all and the primary
+   install has no `node_modules/.bin`. I linked per-entry junctions (root
+   `node_modules`, `@cognnitive/*` → this worktree's packages, `skills/nn-sources/
+   node_modules`) and run `vitest`/`tsc`/`tsup` through their package entry files.
+   `npm run verify:fast` works because it invokes node scripts and
+   `node_modules/typescript/bin/tsc` directly. `npm --workspace=… test` and the
+   pre-push hook's `npm run typecheck` cannot resolve bins; the maintainer
+   approved pushing with `--no-verify` for this chain while the shims are absent.
+   Typecheck is run explicitly and is green for both packages.
+6. A local `tsup` build rewrites the tracked `iNNfo/packages/nn-mcp/bin/
+   nn-mcp.bundle.js`; it was restored to the base bytes and is NOT part of any PR.
