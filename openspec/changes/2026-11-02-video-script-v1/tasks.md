@@ -75,11 +75,11 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 0a: Quick wins on the engine (V_0-14-x)
 
-- [ ] 0a.1 RED: test in `S/test` that the image cache key changes with cascade `image_model` and ignores display `title` (`lib/image-options.mjs`).
-- [ ] 0a.2 GREEN: fix the key in `S/scripts/lib/image-options.mjs`; note the one-time re-bill in the release note.
-- [ ] 0a.3 RED then GREEN: `render-formats.mjs --fill crop` produces a cropped output (test on a fixture clip).
-- [ ] 0a.4 RED then GREEN: render refuses missing avatar clips (`lib/avatar-jobs.mjs:164-181`), per "Render Refuses Missing Avatar Clips".
-- [ ] Verify: `node --test S/test` and `node scripts/verify.js`.
+- [x] 0a.1 RED: test in `S/test` that the image cache key changes with cascade `image_model` and ignores display `title` (`lib/image-options.mjs`).
+- [x] 0a.2 GREEN: fix the key in `S/scripts/lib/image-options.mjs`; note the one-time re-bill in the release note.
+- [x] 0a.3 RED then GREEN: `render-formats.mjs --fill crop` produces a cropped output (test on a fixture clip).
+- [x] 0a.4 RED then GREEN: render refuses missing avatar clips (`lib/avatar-jobs.mjs:164-181`), per "Render Refuses Missing Avatar Clips".
+- [x] Verify: `node --test S/test` and `node scripts/verify.js`.
 
 ## Slice 0b: Quick wins on console and guard
 

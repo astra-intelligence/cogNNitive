@@ -55,3 +55,16 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
   shims in the worktree's gitignored `temp/shim/` to run the workspace builds. No lockfile or source
   file was touched.
 - Open issues: none. No test code changes in this slice (docs-only), so no RED/GREEN cycle applies.
+
+## Slice 0a — Quick wins on the engine (V_0-14-x)
+
+- Branch: `feature/conntent-v1-0a` (base `feature/conntent-v1-d`)
+- PR: pending
+- TDD: RED first (`image-cache-key.test.mjs`, the new `render-formats` sections, `avatar-render-refusal.test.mjs`), then GREEN.
+- Changes:
+  - `lib/image-options.mjs`: the image key now carries the cascaded `image_model` as `model` and no longer the display `title`. Release note: the first run after this change re-bills images once.
+  - `video-engine-cli.mjs` passes the cascade-resolved `image_model` into `buildImageOptions`, so the compile key and the estimator key agree.
+  - `render-formats.mjs`: every non-blur filter graph names its output `[v]` (the `-map [v]` that follows had no labelled stream, so `--fill crop` could not produce output), and the CLI accepts `--fill crop|blur` and `--force`.
+  - `lib/avatar-jobs.mjs` + `renderVideo`: a render refuses when an `avatar` Layer has no cached lip-sync clip, naming every `scene/layer` and `synthesize-avatar.mjs`; there is no override flag.
+- Verification: `node --test "test/*.test.mjs"` in the skill → 413 tests, 413 pass. Full `node scripts/verify.js` run before the PR.
+- Deviations: none. Open issues: none.
