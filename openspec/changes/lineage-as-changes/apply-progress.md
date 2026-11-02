@@ -1773,3 +1773,58 @@ worktree.
 
 ---
 
+## PR 26 — S5b.2 (branch `lac/s5b2`, base `lac/s5b1`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 5b.3, 5b.8b.
+
+- Two new spec-integrity cases (authored RED first): the newest published workspace
+  spec declares no `Executions` concept nor `[[Executions]]` index entry, and the
+  `simulacro-refactorizacion` fixture's workspace spec does not either.
+- Rebuilt `tests/fixtures/simulacro-refactorizacion/bluepriNNts/workspace_spec_NN.md`
+  from the published `workspace_V_0-2-2` (no Executions), with a fixture-local
+  `spec_url` and the hosted-app NOTE lines dropped.
+- Size: ~30 hand-authored lines (two tests) plus the rebuilt fixture. Inside the budget.
+- Verification: nn-core 2.110 tests green; `test/no-retired-references.test.mjs` and
+  `scripts/spec-integrity.test.mjs` green; `npm run verify:fast` green.
+
+### Deviations
+
+77. No `workspace_V_0-2-3` was authored: the published `workspace_V_0-2-2` already IS
+    the version without `# NN Executions` (the task's premise that the published spec
+    still had it is stale). Creating an identical new version would be version churn
+    against the write-once rule; the real work was rebuilding the fixture that still
+    pinned the old V_0-2-1 shape, which is done.
+78. The fixture copy drops the `> [!NOTE]` hosted-app lines: they name a retired
+    surface (`cognnitive.com/innfo/app/`) and carry no schema meaning, and the
+    retired-references guard (rightly) flags them in a non-write-once path.
+
+---
+
+## Handoff — start here next session (after PR 26)
+
+Chain state: `lac/s5b2` is the tip (PR 26). Next branch:
+`git switch lac/s5b2 && git switch -c lac/s5b3`.
+
+**PR 27 — S5b.3 (sample versions)** — tasks 5b.4 [RED], 5b.5a [GREEN], 5b.8c.
+
+- Samples test: business-model `V_0-4-1`, metrics `V_0-5-0`, organization `V_0-4-0` are
+  superseded by new patch versions with no `sources::`/`type:: citation`, built through
+  changes; the old 3 files are deleted (samples are not domaiNN members, R-SV-02 passes
+  deletions); no remaining reference to the deleted files.
+- Create the three new sample versions, delete the three superseded files, update
+  references and catalogs.
+- Verification: `node scripts/verify.js`, `npm run verify:fast`.
+
+**Then:** PR 28 (corpora rebuild + drop the V_0-6-0 carve-out), PR 29 (release event:
+**ASK before cutting any tag**), PR 30-32 (skills/docs), S7.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+

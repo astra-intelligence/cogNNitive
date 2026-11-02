@@ -406,8 +406,8 @@ Goal: new workspace spec version; Executions concept removed.
 Depends on: PR 25.
 Rollback: revert; the published workspace spec is untouched.
 
-- [ ] 5b.3 [GREEN] [S] New workspace spec version without `# NN Executions` (Executions concept and execution-trace fields removed); the published workspace spec is not edited; rebuild the `simulacro-refactorizacion` fixture that used it. (wep) The guarding test for this task is the spec-integrity test 5b.1 (extended in this PR with a workspace-spec case, authored first as `[RED]` in the same work-unit commit).
-- [ ] 5b.8b [S] (was 5b.8) Standard PR gate, preflight fixtures with empty `HOME`/`USERPROFILE`. Open PR 26.
+- [x] 5b.3 [GREEN] [S] New workspace spec version without `# NN Executions` (Executions concept and execution-trace fields removed); the published workspace spec is not edited; rebuild the `simulacro-refactorizacion` fixture that used it. (wep) The guarding test for this task is the spec-integrity test 5b.1 (extended in this PR with a workspace-spec case, authored first as `[RED]` in the same work-unit commit).
+- [x] 5b.8b [S] (was 5b.8) Standard PR gate, preflight fixtures with empty `HOME`/`USERPROFILE`. Open PR 26.
 
 Files: `iNNfo/specs/workspace/**` (new version), `simulacro-refactorizacion` fixture, spec-integrity test.
 Verification: `node scripts/verify.js`, `npm run verify:fast`.
