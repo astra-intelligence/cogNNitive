@@ -443,9 +443,9 @@ Goal: the tracker tip is releasable: `templates-v*` cut and re-pinned, release r
 Depends on: PR 28.
 Rollback: before the tracker merge, revert this PR and delete the unmerged tag; after the merge, revert the merge commit and re-pin the previous `templates-v*`.
 
-- [ ] 5b.6 [S] Release steps at the tracker tip: bump `manifest/source.yaml` versions (`spec_version` axis for `version:`), `npm run sync:versions`; cut `templates-v*` at tracker HEAD (plus `skills-v*` and `innfo-mcp` tags if their versions moved); repin `channels.stable.refs`; regenerate `docs/use/manifest.md` in the same commit (the manifest render is byte-checked and must stay deterministic). Tags are created only after the maintainer confirms.
-- [ ] 5b.7 [S] Rehearsal in a detached worktree: `git worktree add --detach <tmp> <sha>`, then `node scripts/verify.js --release` and `node scripts/validate-manifest.mjs --channel stable` there (builds only, no `npm ci`; reuse the junctioned `node_modules`), then remove the temp worktree with `git worktree remove`. Also run `npm --prefix skills/nn-trannsform ci` ONLY on CI, never locally.
-- [ ] 5b.8e [S] (was 5b.8) Standard PR gate, preflight fixtures with empty `HOME`/`USERPROFILE`, mirrors. Open PR 29.
+- [x] 5b.6 [S] Release steps at the tracker tip: bump `manifest/source.yaml` versions (`spec_version` axis for `version:`), `npm run sync:versions`; cut `templates-v*` at tracker HEAD (plus `skills-v*` and `innfo-mcp` tags if their versions moved); repin `channels.stable.refs`; regenerate `docs/use/manifest.md` in the same commit (the manifest render is byte-checked and must stay deterministic). Tags are created only after the maintainer confirms.
+- [x] 5b.7 [S] Rehearsal in a detached worktree: `git worktree add --detach <tmp> <sha>`, then `node scripts/verify.js --release` and `node scripts/validate-manifest.mjs --channel stable` there (builds only, no `npm ci`; reuse the junctioned `node_modules`), then remove the temp worktree with `git worktree remove`. Also run `npm --prefix skills/nn-trannsform ci` ONLY on CI, never locally.
+- [x] 5b.8e [S] (was 5b.8) Standard PR gate, preflight fixtures with empty `HOME`/`USERPROFILE`, mirrors. Open PR 29.
 
 Files: `manifest/source.yaml`, `docs/use/manifest.md`, pins.
 Verification: `node scripts/verify.js --release` in the detached worktree, `node scripts/validate-manifest.mjs --channel stable`, `node scripts/check-integrity.mjs` (or the `nn-dev-check-integrity` skill).
