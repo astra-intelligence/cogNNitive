@@ -1063,3 +1063,80 @@ worktree.
 
 ---
 
+## PR 16 — S3a.2 (branch `lac/s3a2`, base `lac/s3a1`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 3a.5, 3a.6, 3a.7b.
+
+- `mcp/tools/read-lineage.ts` (new): `readLineageTool(rootDir, { focus?, scope? })`
+  returns `{sources, models, artifacts, changes, edges, diagnostics}` (the projection's
+  `knowledge`/`changesets` renamed to the tool contract). `focus` narrows every
+  section; `scope` selects live (default) or all-time evidence. Writes nothing.
+- `mcp/server.ts`: `read_lineage` registered (25 tools now), read-only, with the input
+  schema and handler. `server.spec.ts` canonical list updated; `sync_lineage` stays.
+- `check_domain.provenance` now also carries `ARTIFACT_WITHOUT_RECORD` (warning in both
+  modes) through `provenanceWithArtifacts`, which folds the projection diagnostics into
+  the report.
+- `core/validator/workspaceSources.ts`: `validateWorkspaceSources` takes an optional
+  4th argument of evidence citation sites; `core/lineage/project.ts` gains
+  `evidenceCitationSites(log, scope)` (keyword evidence skipped) and
+  `collectWorkspaceDiagnostics` passes it, so the evidence of applied changes is
+  validated as a citation today, before S5a bans `sources::`.
+- `core/lineage/index.ts` + `trannsformPrimitives.ts`: export `LineageEdge`,
+  `LineageChangeset`, `LineageView` and `evidenceCitationSites`.
+- New tests: `mcp/test/read-lineage.test.ts` (5: registration, six sections + no
+  writes, focus narrowing, scopes, `check_domain.provenance` artifact warning) and one
+  `evidenceCitationSites` case in the core projection suite.
+- Regenerated: mirrors (`nn-core`/`nn-preflight`/`nn-upgrade`), console payload
+  (generated).
+- Size: ~300 hand-authored lines (~190 source, ~110 tests) plus generated mirrors.
+  Inside the 400-line budget.
+- Verification: nn-core `vitest run` 206 files / 2.145 tests green; nn-mcp 58 files /
+  651 tests green; both typecheck; mirrors + their tests; `npm run verify:fast` fully
+  green (202 steps).
+
+### Deviations
+
+49. `read_lineage` maps `knowledge`->`models` and `changesets`->`changes` at the tool
+    boundary instead of renaming the projection fields: `render.ts` and `sync_lineage`
+    still consume the projection names until S4b deletes them.
+50. Evidence citation sites are ADDED to the file-declared sites (replacement before
+    deletion). A dangling evidence item is therefore a citation error today; keyword
+    evidence is skipped so `decision`/`unknown` never become MALFORMED citations.
+51. `ARTIFACT_WITHOUT_RECORD` is appended to `check_domain.provenance` as a warning even
+    in strict mode: it is advice about a missing production record, not body drift, and
+    the strict replay compares bodies only.
+
+---
+
+## Handoff — start here next session (after PR 16)
+
+Chain state: `lac/s3a2` is the tip (PR 16). Next branch:
+`git switch lac/s3a2 && git switch -c lac/s3b1`.
+
+**PR 17 — S3b.1 (impact-checker, gc, duplicate-guards over the evidence index)** —
+tasks 3b.1 [RED], 3b.2 [RED], 3b.3 [RED], 3b.4 [GREEN], 3b.7a.
+
+- CJS consumers read the evidence index through the regenerated mirror
+  (`changelog/` exports must be added to the mirror export list in
+  `scripts/build-core-mirrors.mjs` and its test).
+- `gc.citedPaths` = ALL-TIME evidence (superseded evidence still protects);
+  `isRegenerableView` shared (no local exemption list); gc never touches `changes/`.
+- `auditUncitedSources` searches the evidence index and reports
+  `UNCITED_SOURCE_IN_WORKSPACE`.
+- impact-checker compares evidence sites with `evidence_sha256`.
+- Verification: `npm --prefix skills/nn-sources test`,
+  `node --test scripts/build-core-mirrors.test.mjs`, `npm run verify:fast`.
+
+**Then:** PR 18 (S3b.2) producer payloads; S4a starts deleting the record (watch the
+record capabilities: the projection and `read_lineage` are the replacements).
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+

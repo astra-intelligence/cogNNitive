@@ -249,9 +249,9 @@ Goal: `read_lineage` exists and `check_domain.provenance` carries `ARTIFACT_WITH
 Depends on: PR 15.
 Rollback: revert; `sync_lineage` is still present.
 
-- [ ] 3a.5 [RED] [P] `mcp-tests/read-lineage.test.ts`: tool `read_lineage` input `{focus?, scope?}`, output `{sources, models, artifacts, changes, edges, diagnostics}`, writes nothing; tool list contains `read_lineage` (and `sync_lineage` is still present until S4b); `check_domain.provenance` includes `ARTIFACT_WITHOUT_RECORD`.
-- [ ] 3a.6 [GREEN] [S] Create `mcp/tools/read-lineage.ts`; register in `server.ts`; wire `trannsformPrimitives.ts`; `validator/workspaceSources.ts` takes the evidence of applied changes as its citation sites.
-- [ ] 3a.7b [S] (was 3a.7) Mirrors, standard PR gate. Open PR 16.
+- [x] 3a.5 [RED] [P] `mcp-tests/read-lineage.test.ts`: tool `read_lineage` input `{focus?, scope?}`, output `{sources, models, artifacts, changes, edges, diagnostics}`, writes nothing; tool list contains `read_lineage` (and `sync_lineage` is still present until S4b); `check_domain.provenance` includes `ARTIFACT_WITHOUT_RECORD`.
+- [x] 3a.6 [GREEN] [S] Create `mcp/tools/read-lineage.ts`; register in `server.ts`; wire `trannsformPrimitives.ts`; `validator/workspaceSources.ts` takes the evidence of applied changes as its citation sites.
+- [x] 3a.7b [S] (was 3a.7) Mirrors, standard PR gate. Open PR 16.
 
 Files: `mcp/tools/read-lineage.ts`, `mcp/server.ts`, `trannsformPrimitives.ts`, `core/validator/workspaceSources.ts`, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-mcp test -- read-lineage`, `npm --workspace=@cognnitive/nn-core test -- validator`, `npm run verify:fast`.
