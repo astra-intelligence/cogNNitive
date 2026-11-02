@@ -97,11 +97,11 @@ Goal: `add_matrix` supports `seed`; `produce_artifact` is applicable and allowed
 Depends on: PR 5.
 Rollback: revert; new ops unused by emitters yet.
 
-- [ ] 1b.7 [RED] [P] `add_matrix` `seed: {columns, rows}`: creates headers and empty cells, no cell units recorded, `seed` sealed, `seed` on any other op rejected. (cdm: Matrix seed)
-- [ ] 1b.8 [GREEN] [S] Implement `seed` in `core/mutate.ts` `addMatrix` and the parser/serializer round trip.
-- [ ] 1b.9 [RED] [P] `mcp-tests/produce-artifact.test.ts`: path-target branch (no model load, no `knowledge_version` bump, empty `models` map); target must be a safe, existing workspace path that is not a model, changeset or sidecar (`ARTIFACT_NOT_FOUND` leaves the changeset `proposed`; unsafe path rejected); evidence resolved at intake (`CITATION_UNRESOLVED`); second applied record for the same path is `status:: conflict` `ARTIFACT_ALREADY_RECORDED`; `resolved_target` = artifact path; `author` = procedure id; direct `apply_change` op allowlist includes `update_element_text`, `produce_artifact`, `add_matrix`. (apc; cae)
-- [ ] 1b.10 [GREEN] [S] Implement the `produce_artifact` branch in `apply-change.ts` (like the `comment` branch), `conflicts.ts`, and the allowlist in `server.ts`. (The allowlist entry for `update_element_text` is registered here as a no-op pass-through to the op validator; its behavior lands in S1b.4.)
-- [ ] 1b.13b [S] (was 1b.13) Regenerate mirrors, standard PR gate. Open PR 6.
+- [x] 1b.7 [RED] [P] `add_matrix` `seed: {columns, rows}`: creates headers and empty cells, no cell units recorded, `seed` sealed, `seed` on any other op rejected. (cdm: Matrix seed)
+- [x] 1b.8 [GREEN] [S] Implement `seed` in `core/mutate.ts` `addMatrix` and the parser/serializer round trip.
+- [x] 1b.9 [RED] [P] `mcp-tests/produce-artifact.test.ts`: path-target branch (no model load, no `knowledge_version` bump, empty `models` map); target must be a safe, existing workspace path that is not a model, changeset or sidecar (`ARTIFACT_NOT_FOUND` leaves the changeset `proposed`; unsafe path rejected); evidence resolved at intake (`CITATION_UNRESOLVED`); second applied record for the same path is `status:: conflict` `ARTIFACT_ALREADY_RECORDED`; `resolved_target` = artifact path; `author` = procedure id; direct `apply_change` op allowlist includes `update_element_text`, `produce_artifact`, `add_matrix`. (apc; cae)
+- [x] 1b.10 [GREEN] [S] Implement the `produce_artifact` branch in `apply-change.ts` (like the `comment` branch), `conflicts.ts`, and the allowlist in `server.ts`. (The allowlist entry for `update_element_text` is registered here as a no-op pass-through to the op validator; its behavior lands in S1b.4.)
+- [x] 1b.13b [S] (was 1b.13) Regenerate mirrors, standard PR gate. Open PR 6.
 
 Files: `core/mutate.ts`, `core/changeset/{parser,serializer,conflicts}.ts`, `mcp/tools/apply-change.ts`, `mcp/server.ts`, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-mcp test -- apply-change produce-artifact`, `npm --workspace=@cognnitive/nn-core test -- changeset`, `npm run verify:fast`.
