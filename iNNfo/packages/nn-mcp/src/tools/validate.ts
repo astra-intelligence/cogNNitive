@@ -321,8 +321,10 @@ export async function collectWorkspaceDiagnostics(
 ): Promise<ReferenceDiagnostic[]> {
   const resolveSchema: BlueprintSchemaResolver = buildBlueprintSchemaResolverFromCache(cache)
   const rootHandle = createNodeDirectoryHandle(rootDir, DEFAULT_WORKSPACE_IGNORE)
+  const snapshot = readLineageSnapshot(rootDir)
   const result = await recursiveParse(rootHandle, undefined, {
     resolveBlueprintSchema: resolveSchema,
+    changeLog: buildChangeLog(snapshot),
   })
   const index = buildWorkspaceIndex(result)
 
@@ -330,7 +332,6 @@ export async function collectWorkspaceDiagnostics(
   // the latter resolved against real files under the workspace root. One read
   // per file: content backs headings AND the unit checks (rows/columns/fields).
   const resolveSource: SourceResolver = createFsSourceResolver(rootDir)
-  const snapshot = readLineageSnapshot(rootDir)
   return [
     ...validateWorkspaceReferences(result, index),
     ...validateWorkspaceSources(result, resolveSource, snapshot),

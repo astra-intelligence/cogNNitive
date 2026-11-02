@@ -16,6 +16,9 @@ import {
 } from '../sourceRef.js'
 import type { ParseContext } from './types.js'
 import { addFieldAndMentionEdges } from './relationships.js'
+import type { ChangeLog } from '../changelog/index.js'
+import { splitEvidence } from '../changeset/evidence.js'
+import { slugifyHeading } from '../sourceRef.js'
 
 /**
  * Reads a node's `sources`/`source` field, parses every value as a
@@ -77,6 +80,41 @@ export function nowIso(): string {
   return new Date().toISOString()
 }
 
+/**
+ * Graph edges from the change log (change-provenance): the source edges of an
+ * element are the evidence of the LIVE units of that element — the last applied
+ * change of each unit after the epoch cut. A superseded change contributes no
+ * edge, and a removed element contributes none. Additive with the legacy
+ * `sources::` / citation-field paths (`attachSourceCitations`,
+ * `attachSchemaTypedCitations`); S5a removes those.
+ */
+export function attachLiveEvidence(node: KnowledgeNode, log: ChangeLog): void {
+  const slug = node.slug ?? slugifyHeading(node.name)
+  const refs: SourceRef[] = []
+  const seen = new Set<string>()
+
+  for (const unit of log.units()) {
+    const at = unit.key.indexOf('@')
+    if (at === -1) continue
+    const parts = unit.key.slice(at + 1).split('&')
+    if (parts[0] !== slug) continue
+    const origin = log.origin(unit.key)
+    if (!origin) continue
+
+    const label = parts.slice(1).join('&')
+    for (const item of origin.evidenceItems ?? splitEvidence(origin.evidence)) {
+      const keyword = item.toLowerCase()
+      if (keyword === 'decision' || keyword === 'unknown') continue
+      const ref = parseCitation(item)
+      if (!ref || seen.has(ref.filePath)) continue
+      seen.add(ref.filePath)
+      refs.push(ref)
+      node.relationships.push({ targetId: ref.filePath, label, origin: 'source' })
+    }
+  }
+
+  if (refs.length > 0) node.sources = [...(node.sources ?? []), ...refs]
+}
 /** Extracts a node's own locally-declared metamodel from its body-level
  *  `Concept Definition` / `Field Definition` / `Matrix Definition` elements
  *  (level-2 templates instantiate the root primitives of the Metaplantilla
@@ -268,6 +306,7 @@ export function normalizeElementsIntoGraph(
         source: { path: sourcePath },
       }
       attachSourceCitations(node)
+      if (ctx.changeLog) attachLiveEvidence(node, ctx.changeLog)
       ctx.nodes[qualifiedId] = node
       if (actualParentId && ctx.nodes[actualParentId] && !ctx.nodes[actualParentId].childIds.includes(qualifiedId)) {
         ctx.nodes[actualParentId].childIds.push(qualifiedId)

@@ -9925,6 +9925,29 @@ function sectionOwnLines(content, slug) {
   return owned;
 }
 
+// iNNfo/packages/nn-core/src/changeset/evidence.ts
+var EVIDENCE_KEYWORDS = ["decision", "unknown"];
+function isKeyword(value) {
+  return EVIDENCE_KEYWORDS.includes(value.toLowerCase());
+}
+function evidenceKeywordInList(value) {
+  const items = splitSourceFieldValue(value);
+  if (items.length < 2) return null;
+  for (const item of items) {
+    if (isKeyword(item)) return item.toLowerCase();
+  }
+  return null;
+}
+function splitEvidence(value) {
+  const keyword = evidenceKeywordInList(value);
+  if (keyword) {
+    throw new Error(
+      `EVIDENCE_KEYWORD_IN_LIST: "${keyword}" is only valid alone in evidence; cite the document, or use the keyword by itself`
+    );
+  }
+  return splitSourceFieldValue(value).map((item) => isKeyword(item) ? item.toLowerCase() : item);
+}
+
 // iNNfo/packages/nn-core/src/references.ts
 function updateReferenceString(text, oldName, newName) {
   if (!text || typeof text !== "string") return text;
@@ -9972,29 +9995,6 @@ function updateWikiLinks(text, oldName, newName) {
     }
     return match;
   });
-}
-
-// iNNfo/packages/nn-core/src/changeset/evidence.ts
-var EVIDENCE_KEYWORDS = ["decision", "unknown"];
-function isKeyword(value) {
-  return EVIDENCE_KEYWORDS.includes(value.toLowerCase());
-}
-function evidenceKeywordInList(value) {
-  const items = splitSourceFieldValue(value);
-  if (items.length < 2) return null;
-  for (const item of items) {
-    if (isKeyword(item)) return item.toLowerCase();
-  }
-  return null;
-}
-function splitEvidence(value) {
-  const keyword = evidenceKeywordInList(value);
-  if (keyword) {
-    throw new Error(
-      `EVIDENCE_KEYWORD_IN_LIST: "${keyword}" is only valid alone in evidence; cite the document, or use the keyword by itself`
-    );
-  }
-  return splitSourceFieldValue(value).map((item) => isKeyword(item) ? item.toLowerCase() : item);
 }
 
 // iNNfo/packages/nn-core/src/changelog/order.ts
@@ -11139,9 +11139,9 @@ function historyItem(change, resolveEvidence) {
     resolution: change.resolution
   };
 }
-function attachChangesetHistory(elements, changesets, resolveEvidence) {
+function attachChangesetHistory(elements, changesets, resolveEvidence, prebuiltLog) {
   if (!Array.isArray(changesets) || changesets.length === 0) return;
-  const log = buildChangeLogFromChangesets(changesets);
+  const log = prebuiltLog ?? buildChangeLogFromChangesets(changesets);
   if (log.all.length === 0) return;
   for (const el of elements) {
     const keys = new Set(
@@ -11344,6 +11344,16 @@ function buildConsolePayload(options) {
   const template = fm.target_blueprint || fm.blueprint || fm.template || void 0;
   const modelVersion = fm.knowledge_version || fm.version || "V_0-1-0";
   const modelId = normalizeModelId(modelPath, title);
+  const changeLog = Array.isArray(changesets) && changesets.length > 0 ? buildChangeLogFromChangesets(changesets) : void 0;
+  const cellUnitBySuffix = /* @__PURE__ */ new Map();
+  if (changeLog) {
+    for (const unit of changeLog.units()) {
+      const at = unit.key.indexOf("@");
+      if (at === -1) continue;
+      const suffix = unit.key.slice(at + 1);
+      if (!cellUnitBySuffix.has(suffix)) cellUnitBySuffix.set(suffix, unit.key);
+    }
+  }
   const rawElements = [];
   const elementsByName = /* @__PURE__ */ new Map();
   const elementsById = /* @__PURE__ */ new Map();
@@ -11470,6 +11480,24 @@ function buildConsolePayload(options) {
           slug: elementsByName.get(c.toLowerCase())?.slug || slugify(c)
         };
       }
+      let cellProvenance;
+      if (changeLog) {
+        const matrixSlug = slugify(mat.name);
+        for (const cell of mat.cells ?? []) {
+          if (String(cell.value ?? "").trim() === "") continue;
+          const suffix = `${matrixSlug}&${headRows[cell.row]?.slug}&${headCols[cell.col]?.slug}`;
+          const unitKey = cellUnitBySuffix.get(suffix);
+          if (!unitKey) continue;
+          const origin = changeLog.origin(unitKey);
+          if (!origin) continue;
+          cellProvenance ??= {};
+          cellProvenance[cell.row] ??= {};
+          cellProvenance[cell.row][cell.col] = {
+            history: deriveValueHistory(changeLog, unitKey),
+            origin: deriveFieldOrigin(changeLog, unitKey)
+          };
+        }
+      }
       matrices.push({
         name: mat.name,
         slug: slugify(mat.name),
@@ -11478,7 +11506,8 @@ function buildConsolePayload(options) {
         rows,
         cols,
         head: { rows: headRows, cols: headCols },
-        cells: cellsObj
+        cells: cellsObj,
+        ...cellProvenance ? { provenance: cellProvenance } : {}
       });
     }
   }
@@ -11491,7 +11520,8 @@ function buildConsolePayload(options) {
   attachChangesetHistory(
     elements,
     changesets,
-    resolver ? (evidence) => resolveEvidenceCitation(evidence, resolver, modelPath || "") : void 0
+    resolver ? (evidence) => resolveEvidenceCitation(evidence, resolver, modelPath || "") : void 0,
+    changeLog
   );
   const genTime = generated || (/* @__PURE__ */ new Date()).toISOString();
   const normalizedSource = modelPath ? modelPath.split("\\").join("/").replace(/^models\//i, "kNNowledge/").replace(/^.*?\/(kNNowledge\/)/i, "$1") : fm.title ? `kNNowledge/${slugify(fm.title)}_NN.md` : "kNNowledge/Model_NN.md";

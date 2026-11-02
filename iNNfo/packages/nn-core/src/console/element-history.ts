@@ -265,9 +265,10 @@ export function attachChangesetHistory(
   elements: HistoryBearingElement[],
   changesets: ChangesetRecord[] | undefined,
   resolveEvidence?: (evidence: string) => ResolvedCitation,
+  prebuiltLog?: ChangeLog,
 ): void {
   if (!Array.isArray(changesets) || changesets.length === 0) return
-  const log = buildChangeLogFromChangesets(changesets as unknown as ChangesetLike[])
+  const log = prebuiltLog ?? buildChangeLogFromChangesets(changesets as unknown as ChangesetLike[])
   if (log.all.length === 0) return
 
   for (const el of elements) {

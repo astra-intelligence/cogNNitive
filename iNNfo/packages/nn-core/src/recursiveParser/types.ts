@@ -1,6 +1,7 @@
 import type { KnowledgeNode } from '../types/index.js'
 import type { IdentityRegistry } from '../identity.js'
 import type { BlueprintSchema } from '../schema/index.js'
+import type { ChangeLog } from '../changelog/index.js'
 
 export interface ParseIssue {
   path: string
@@ -40,6 +41,8 @@ export interface ParseContext {
   identity: IdentityRegistry
   issues: ParseIssue[]
   visitedPaths?: Set<string>
+  /** Optional change log: source edges come from its live evidence (G13). */
+  changeLog?: ChangeLog
 }
 
 /**
@@ -59,5 +62,7 @@ export type BlueprintSchemaResolver = (node: {
 
 export interface RecursiveParseOptions {
   resolveBlueprintSchema?: BlueprintSchemaResolver
+  /** Change log whose live evidence supplies `origin: 'source'` edges (G13). */
+  changeLog?: ChangeLog
 }
 

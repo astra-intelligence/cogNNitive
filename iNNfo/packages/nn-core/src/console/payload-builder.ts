@@ -26,6 +26,8 @@ import type { ConsoleSchemaSlot, ConsoleProcedureSlot } from './slot.js'
 import { inheritConceptValues } from '../schema/field-values.js'
 import { resolveBlueprintSchema } from '../schema/compose.js'
 import { attachChangesetHistory } from './element-history.js'
+import { deriveFieldOrigin, deriveValueHistory } from './element-history.js'
+import { buildChangeLogFromChangesets, type ChangesetLike } from '../changelog/load.js'
 import type { ChangesetRecord, ElementHistoryItem } from './element-history.js'
 import type { UnitProvenance } from './element-history.js'
 
@@ -79,6 +81,8 @@ export interface ConsolePayloadMatrix {
   }
   values?: string[]
   cells: Record<string, Record<string, unknown>>
+  /** Per row label -> column label -> the cell unit's applied history and origin. */
+  provenance?: Record<string, Record<string, UnitProvenance>>
   widget?: string
   description?: string
 }
@@ -168,6 +172,22 @@ export function buildConsolePayload(options: BuildConsolePayloadOptions): Consol
   const template = fm.target_blueprint || fm.blueprint || fm.template || undefined
   const modelVersion = fm.knowledge_version || fm.version || 'V_0-1-0'
   const modelId = normalizeModelId(modelPath, title)
+
+  // One log for the whole payload: element history, per-field origin and cell
+  // origin all read it (built once, never per element).
+  const changeLog =
+    Array.isArray(changesets) && changesets.length > 0
+      ? buildChangeLogFromChangesets(changesets as unknown as ChangesetLike[])
+      : undefined
+  const cellUnitBySuffix = new Map<string, string>()
+  if (changeLog) {
+    for (const unit of changeLog.units()) {
+      const at = unit.key.indexOf('@')
+      if (at === -1) continue
+      const suffix = unit.key.slice(at + 1)
+      if (!cellUnitBySuffix.has(suffix)) cellUnitBySuffix.set(suffix, unit.key)
+    }
+  }
 
   // Elements (Pass 1: instantiate elements and compute hashes)
   const rawElements: {
@@ -334,6 +354,27 @@ export function buildConsolePayload(options: BuildConsolePayloadOptions): Consol
           slug: elementsByName.get(c.toLowerCase())?.slug || slugify(c),
         }
       }
+      // Cell units are `model@<matrix-slug>&<row-slug>&<col-slug>`. The console
+      // aggregates models, and the payload `modelId` is a path, so the unit is
+      // looked up by its suffix (matrix + axis slugs), first live match wins.
+      let cellProvenance: Record<string, Record<string, UnitProvenance>> | undefined
+      if (changeLog) {
+        const matrixSlug = slugify(mat.name)
+        for (const cell of mat.cells ?? []) {
+          if (String(cell.value ?? '').trim() === '') continue
+          const suffix = `${matrixSlug}&${headRows[cell.row]?.slug}&${headCols[cell.col]?.slug}`
+          const unitKey = cellUnitBySuffix.get(suffix)
+          if (!unitKey) continue
+          const origin = changeLog.origin(unitKey)
+          if (!origin) continue
+          cellProvenance ??= {}
+          cellProvenance[cell.row] ??= {}
+          cellProvenance[cell.row][cell.col] = {
+            history: deriveValueHistory(changeLog, unitKey),
+            origin: deriveFieldOrigin(changeLog, unitKey),
+          }
+        }
+      }
       matrices.push({
         name: mat.name,
         slug: slugify(mat.name),
@@ -343,6 +384,7 @@ export function buildConsolePayload(options: BuildConsolePayloadOptions): Consol
         cols,
         head: { rows: headRows, cols: headCols },
         cells: cellsObj,
+        ...(cellProvenance ? { provenance: cellProvenance } : {}),
       })
     }
   }
@@ -361,6 +403,7 @@ export function buildConsolePayload(options: BuildConsolePayloadOptions): Consol
     resolver
       ? (evidence: string) => resolveEvidenceCitation(evidence, resolver, modelPath || '')
       : undefined,
+    changeLog,
   )
   const genTime = generated || new Date().toISOString()
 

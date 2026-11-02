@@ -699,6 +699,11 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
             type: 'string',
             description: 'Optional: restrict resolution to this single field',
           },
+          target: {
+            type: 'string',
+            description:
+              'Optional unit address (`model@element&field`, `model@element&#body`, `model@matrix&row&col`). Returns the evidence of the last applied change of that unit, each entry with its changeId; superseded evidence is never returned.',
+          },
           domain: {
             type: 'string',
             description: 'Optional domain root directory override (default: server root)',
@@ -1114,6 +1119,7 @@ async function handleResolveSources(args: Record<string, unknown>): Promise<Call
     model: knowledgeId,
     elementId,
     fieldName: args.fieldName as string | undefined,
+    target: args.target as string | undefined,
   })
   return textResult(
     JSON.stringify(envelopeList('innfo-resolve-sources', 'citations', results), null, 2),

@@ -14,6 +14,9 @@ import {
   CHANGE_CONCEPT,
   KNOWN_AGENT_TOOL_IDS,
   createFsSourceResolver,
+  buildChangeLog,
+  readLineageSnapshot,
+  splitEvidence,
 } from '@cognnitive/nn-core'
 import type {
   ParsedKnowledge,
@@ -39,8 +42,13 @@ export type { CitationOrigin, ResolvedCitation }
  */
 export async function resolveSources(
   rootDir: string,
-  input: { model: string; elementId: string; fieldName?: string },
+  input: { model: string; elementId: string; fieldName?: string; target?: string },
 ): Promise<ResolvedCitation[]> {
+  // A unit address answers "where did THIS value come from?" through the change
+  // log: the evidence of the last applied change of that unit (change-provenance,
+  // consumers read the log). Superseded evidence never wins.
+  if (input.target) return resolveTargetEvidence(rootDir, input.model, input.target)
+
   let modelPath: string | null = null
   try {
     modelPath = await findKnowledgeFile(rootDir, input.model)
@@ -103,6 +111,49 @@ interface FoundElement {
   fields: Record<string, unknown>
 }
 
+/** The unit part of a target address (`owner`, `#body`, `row&col`). */
+function unitLabelOf(target: string): string {
+  const at = target.indexOf('@')
+  if (at === -1) return ''
+  const rest = target.slice(at + 1)
+  const amp = rest.indexOf('&')
+  return amp === -1 ? '' : rest.slice(amp + 1)
+}
+
+/**
+ * The evidence of the origin change of a unit address, resolved to citations.
+ * Keyword evidence (`decision`, `unknown`) is not a source and yields nothing;
+ * a unit with no applied change yields nothing.
+ */
+async function resolveTargetEvidence(
+  rootDir: string,
+  model: string,
+  target: string,
+): Promise<ResolvedCitation[]> {
+  const log = buildChangeLog(readLineageSnapshot(rootDir))
+  const origin = log.origin(target)
+  if (!origin) return []
+
+  let modelPath: string | null = null
+  try {
+    modelPath = await findKnowledgeFile(rootDir, model)
+  } catch {
+    modelPath = null
+  }
+
+  const resolver = createFsSourceResolver(rootDir)
+  const label = unitLabelOf(target)
+  const citations: ResolvedCitation[] = []
+  for (const item of origin.evidenceItems ?? splitEvidence(origin.evidence)) {
+    const keyword = item.toLowerCase()
+    if (keyword === 'decision' || keyword === 'unknown') continue
+    citations.push({
+      ...resolveCitation(item, label, resolver, modelPath ?? ''),
+      changeId: origin.id,
+    })
+  }
+  return citations
+}
 function findElement(model: ParsedKnowledge, elementId: string): FoundElement | undefined {
   for (const [concept, nodes] of model.elements.entries()) {
     const match = nodes.find((n) => n.name.toLowerCase() === elementId.toLowerCase())

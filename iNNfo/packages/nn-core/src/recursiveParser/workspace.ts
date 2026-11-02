@@ -306,6 +306,7 @@ export async function recursiveParse(
     identity: new IdentityRegistry(),
     issues: [],
     visitedPaths,
+    changeLog: options?.changeLog,
   }
   const elementNameToModel = new Map<string, string>()
 

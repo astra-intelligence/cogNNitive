@@ -45,6 +45,8 @@ export interface ResolvedCitation {
   /** Derivative hash of a normalized source's companion media (`media_sha256`). */
   media_sha256?: string
   version?: string
+  /** The applied change the citation derives from (evidence index / target lookup). */
+  changeId?: string
   error?: 'MALFORMED' | 'DANGLING_FILE' | 'UNKNOWN_ANCHOR' | 'ELEMENT_NOT_FOUND' | 'MODEL_NOT_FOUND'
 }
 
