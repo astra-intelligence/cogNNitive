@@ -210,6 +210,27 @@ describe('proposal validation before write', () => {
     expect((await propose('nope')).success).toBe(false)
   })
 
+  it('rejects a `sources` key loudly and points at evidence', async () => {
+    const result = await propose([{ ...UPDATE, sources: 'sources/import/a.md@## X' }])
+    expect(result.success).toBe(false)
+    expect(
+      result.errors?.some(
+        (e) => e.code === 'INVALID_OPERATION' && /sources/.test(e.message) && /evidence/.test(e.message),
+      ),
+    ).toBe(true)
+    await nothingWritten()
+  })
+
+  it('carries evidence as a recognised change key', async () => {
+    const sourcesDir = join(root, 'sources', 'import')
+    await mkdir(sourcesDir, { recursive: true })
+    await writeFile(join(sourcesDir, 'a.md'), '# X\n', 'utf-8')
+    const ok = await propose([{ ...UPDATE, evidence: 'sources/import/a.md' }])
+    expect(ok.success).toBe(true)
+    const doc = parseChangeset(await readFile(join(root, ok.changeset!), 'utf-8'))
+    expect(doc.changes[0].evidence).toBe('sources/import/a.md')
+  })
+
   it('add_model then add_element on the new id is written, and a later add_model is ordered', async () => {
     const add = { op: 'add_model', target: 'acme', blueprint_name: 'strategy_V_0-2-0', blueprint_url: 'specs/strategy_V_0-2-0_NN.md' }
     const element = { op: 'add_element', target: 'acme@Work', concept: 'Work', name: 'Pillar' }

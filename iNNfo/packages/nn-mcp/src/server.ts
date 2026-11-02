@@ -372,7 +372,7 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
           operations: {
             type: 'array',
             description:
-              'Change objects using the changeset keys: op, target, from, to, concept, name, slug, fields, notes, sources (evidence citation), base_hash, author. add_model also takes blueprint_name, blueprint_url and optional knowledge_version; initial content is add_element changes that follow it and target the new id. freeze_slugs and bump_version target a bare model id; bump_version carries its level (patch, minor or major) in to. sources is a single citation string, not an array.',
+              'Change objects using the changeset keys: op, target, from, to, concept, name, slug, fields, notes, evidence, base_hash, author. add_model also takes blueprint_name, blueprint_url and optional knowledge_version; initial content is add_element changes that follow it and target the new id. freeze_slugs and bump_version target a bare model id; bump_version carries its level (patch, minor or major) in to. evidence is the change\'s provenance: one citation string, or the literal decision / unknown. There is no sources key.',
             items: { type: 'object' },
           },
           title: { type: 'string', description: 'Title of the changeset.' },

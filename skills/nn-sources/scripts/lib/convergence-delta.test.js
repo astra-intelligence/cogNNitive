@@ -142,11 +142,15 @@ function testBuildApplyPlan() {
       concept: 'VideoMetric',
       name: 'jkl',
       fields: { views: '400', title: 'Delta' },
-      sources: 'b.csv',
+      evidence: 'b.csv',
     },
-    { op: 'update_field', target: 'youtube@abc&views', from: '100', to: '150', sources: 'b.csv' },
+    { op: 'update_field', target: 'youtube@abc&views', from: '100', to: '150', evidence: 'b.csv' },
     { op: 'bump_version', target: 'youtube', to: 'patch' },
   ]);
+  assert.ok(
+    replacePlan.operations.every((op) => !('sources' in op)),
+    'the plan carries evidence, never sources',
+  );
   assert.strictEqual(replacePlan.operations.filter((o) => o.op === 'bump_version').length, 1);
   assert.strictEqual(replacePlan.review.length, 0);
 

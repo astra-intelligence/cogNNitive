@@ -168,7 +168,6 @@ export {
   freeze_slugs,
   updateReferenceString,
   updateWikiLinks,
-  rewriteFieldCitation,
 } from './mutate.js'
 export type { MutationResult } from './mutate.js'
 export { envelope, envelopeList, envelopeVersion, ENVELOPE_MAJOR } from './envelope.js'

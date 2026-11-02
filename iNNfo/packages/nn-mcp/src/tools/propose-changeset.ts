@@ -390,6 +390,16 @@ export function normalizeOperations(raw: unknown): { operations: ChangeItem[]; e
       return
     }
     const source = entry as Record<string, unknown>
+    if (source['sources'] !== undefined) {
+      errors.push({
+        path: `operations[${index}]`,
+        code: 'INVALID_OPERATION',
+        message:
+          `operations[${index}].sources is not a change key: a change derives from its "evidence" ` +
+          `(a citation, or the literal "decision" / "unknown"), never from a "sources" list`,
+      })
+      return
+    }
     const item: Record<string, unknown> = { id: `c-${String(index + 1).padStart(2, '0')}` }
     for (const key of STRING_KEYS) {
       const value = source[key]

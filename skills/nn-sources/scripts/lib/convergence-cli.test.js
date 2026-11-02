@@ -78,7 +78,7 @@ function testConvergeProposal() {
         concept: 'VideoMetric',
         name: 'jkl',
         fields: { views: '400' },
-        sources: 'sources/import/youtube_monthly_20260201T000000Z.csv',
+        evidence: 'sources/import/youtube_monthly_20260201T000000Z.csv',
       },
       { op: 'bump_version', target: 'youtube', to: 'patch' },
     ]);

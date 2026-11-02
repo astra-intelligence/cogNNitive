@@ -9,7 +9,7 @@ import {
 import { slugify } from './parser/slug.js'
 import { parsePropertyValue } from './parser/sections.js'
 import { RESERVED_CONCEPT_NAMES, WIDGET_CONFIG_KEYS } from './validator/constants.js'
-import { levenshteinDistance, slugifyHeading, splitSourceFieldValue } from './sourceRef.js'
+import { levenshteinDistance, slugifyHeading } from './sourceRef.js'
 import { validateFieldValue } from './schema/field-values.js'
 
 export interface MutationResult {
@@ -512,6 +512,8 @@ function addElement(
     'slug',
     'description',
     'fields',
+    // Not a field: a change derives from `evidence`. Accepted here only so the
+    // generic copy below does not smuggle it into the element's fields.
     'sources',
     'rationale',
     'approved_by',
@@ -529,9 +531,6 @@ function addElement(
   }
   if (args.fields && typeof args.fields === 'object') {
     Object.assign(fields, args.fields)
-  }
-  if (args.sources !== undefined) {
-    fields['sources'] = args.sources
   }
 
   if (existingElements.length > 0) {
@@ -1540,75 +1539,4 @@ function generateIndex(model: ParsedKnowledge, args: Record<string, unknown>): M
   return { success: true }
 }
 
-/**
- * Rewrites the field-level citation for a specific touched field on an element per D20.
- * Updates the companion citation field (e.g. `<fieldName>_source` or `<fieldName>_sources`),
- * preserves untouched fields on the element, and records the citation in element sources.
- */
-export function rewriteFieldCitation(
-  element: ElementNode,
-  fieldName: string,
-  citationRef: string,
-): string | undefined {
-  if (!element.fields) {
-    element.fields = {}
-  }
-
-  const isSourcesField = fieldName.toLowerCase() === 'sources' || fieldName.toLowerCase() === 'source'
-  let targetCitationField: string
-  let oldCitation: string | undefined
-
-  if (isSourcesField) {
-    targetCitationField = fieldName
-  } else if (element.fields[`${fieldName}_sources`] !== undefined) {
-    targetCitationField = `${fieldName}_sources`
-    oldCitation = typeof element.fields[targetCitationField] === 'string'
-      ? (element.fields[targetCitationField] as string)
-      : Array.isArray(element.fields[targetCitationField])
-        ? (element.fields[targetCitationField] as string[])[0]
-        : undefined
-  } else if (element.fields[`${fieldName}_source`] !== undefined) {
-    targetCitationField = `${fieldName}_source`
-    oldCitation = typeof element.fields[targetCitationField] === 'string'
-      ? (element.fields[targetCitationField] as string)
-      : undefined
-  } else {
-    targetCitationField = `${fieldName}_source`
-  }
-
-  if (Array.isArray(element.fields[targetCitationField])) {
-    element.fields[targetCitationField] = [citationRef]
-  } else {
-    element.fields[targetCitationField] = citationRef
-  }
-
-  const sourcesKey = element.fields['source'] !== undefined && element.fields['sources'] === undefined
-    ? 'source'
-    : 'sources'
-
-  const existingSources = splitSourceFieldValue(element.fields[sourcesKey] ?? [])
-  let newSources: string[]
-
-  if (existingSources.length === 0) {
-    newSources = [citationRef]
-  } else if (oldCitation && existingSources.includes(oldCitation)) {
-    newSources = existingSources.map((s) => (s === oldCitation ? citationRef : s))
-  } else if (!existingSources.includes(citationRef)) {
-    newSources = [...existingSources, citationRef]
-  } else {
-    newSources = existingSources
-  }
-
-  element.fields[sourcesKey] = newSources
-
-  if (element.rawFields) {
-    delete element.rawFields[targetCitationField]
-    delete element.rawFields[sourcesKey]
-  }
-
-  // The citation this rewrite replaced (the field's previous origin), or `undefined`
-  // when the field had no prior citation (e.g. an added element). The apply engine no
-  // longer writes any companion citation (D20 removed): the change is the only provenance.
-  return oldCitation
-}
 
