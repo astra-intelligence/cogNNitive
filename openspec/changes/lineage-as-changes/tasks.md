@@ -215,11 +215,11 @@ Goal: consumers read evidence from the log.
 Depends on: PR 13.
 Rollback: revert; consumers fall back to previous sources.
 
-- [ ] 2b.8 [RED] [P] `resolve_sources`: optional `target` address (cells, bodies), returns `ResolvedCitation[]` of the origin change's evidence items each with `changeId`; follows the last change; cell origin in the console payload. (clv: Consumers)
-- [ ] 2b.9 [GREEN] [S] Edit `mcp/tools/resolve-sources.ts`, `core/console/payload-builder.ts` (cells).
-- [ ] 2b.10 [RED] [P] Graph: `origin: "source"` edges and `node.sources` built from live evidence; superseded evidence has no edge. File: `core-tests/recursiveParser/*.test.ts`.
-- [ ] 2b.11 [GREEN] [S] Edit `core/recursiveParser/normalize.ts` (G13 edges).
-- [ ] 2b.12c [S] (was 2b.12) Mirrors, standard PR gate. Open PR 14.
+- [x] 2b.8 [RED] [P] `resolve_sources`: optional `target` address (cells, bodies), returns `ResolvedCitation[]` of the origin change's evidence items each with `changeId`; follows the last change; cell origin in the console payload. (clv: Consumers)
+- [x] 2b.9 [GREEN] [S] Edit `mcp/tools/resolve-sources.ts`, `core/console/payload-builder.ts` (cells).
+- [x] 2b.10 [RED] [P] Graph: `origin: "source"` edges and `node.sources` built from live evidence; superseded evidence has no edge. File: `core-tests/recursiveParser/*.test.ts`.
+- [x] 2b.11 [GREEN] [S] Edit `core/recursiveParser/normalize.ts` (G13 edges).
+- [x] 2b.12c [S] (was 2b.12) Mirrors, standard PR gate. Open PR 14.
 
 Files: `mcp/tools/resolve-sources.ts`, `core/console/payload-builder.ts`, `core/recursiveParser/normalize.ts`, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-mcp test -- resolve-sources`, `npm --workspace=@cognnitive/nn-core test -- recursiveParser console`, `npm run verify:fast`.

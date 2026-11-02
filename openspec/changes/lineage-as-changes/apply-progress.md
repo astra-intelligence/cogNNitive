@@ -889,3 +889,90 @@ worktree.
 
 ---
 
+## PR 14 — S2b.3 (branch `lac/s2b3`, base `lac/s2b2`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 2b.8, 2b.9, 2b.10, 2b.11, 2b.12c.
+
+- `mcp/tools/resolve-sources.ts`: `resolveSources` accepts an optional `target` unit
+  address (`model@element&field`, `model@element&#body`, `model@matrix&row&col`). With a
+  target it asks the log for `origin(target)` — the LAST applied change — and returns
+  one citation per evidence item of that change, each carrying `changeId`. Keyword
+  evidence (`decision`/`unknown`) is not a source; a unit with no applied change yields
+  `[]`. The field-less path is unchanged.
+- `core/console/citations.ts`: `ResolvedCitation.changeId?: string`.
+- `core/console/payload-builder.ts`: every non-empty matrix cell carries `provenance`
+  (`{history, origin}`) on `matrices[].provenance[<row label>][<col label>]`, resolved
+  through the log by the cell's unit suffix (`matrix-slug&row-slug&col-slug`; the
+  console aggregates models, so the model part is not matched). The payload now builds
+  ONE log and shares it with `attachChangesetHistory` (new optional 4th parameter).
+- `core/recursiveParser/normalize.ts`: `attachLiveEvidence(node, log)` adds
+  `origin: 'source'` relationships and `node.sources` from the live units of the
+  element (the origin change of each unit, keyword evidence skipped, deduped by file).
+  Superseded evidence contributes no edge and a removed element contributes none. It is
+  additive with the legacy field-based paths until S5a.
+- `core/recursiveParser/{types,workspace}.ts`: `RecursiveParseOptions.changeLog` and
+  `ParseContext.changeLog`, so `recursiveParse` threads the log; `validate.ts` passes
+  `buildChangeLog(readLineageSnapshot(rootDir))` in `collectWorkspaceDiagnostics`.
+- `mcp/server.ts`: `resolve_sources` documents and forwards `target`.
+- New tests: `core-tests/live-evidence-graph.test.ts` (4),
+  `core-tests/console/cell-provenance.test.ts` (2),
+  `mcp/test/resolve-sources-target.test.ts` (3).
+- Regenerated: `console/console-payload.generated.cjs` and the two
+  `nn-core.generated.cjs` mirrors (generated, excluded from the budget).
+- Size: ~430 hand-authored changed lines (~230 source, ~200 tests), plus generated
+  mirrors. Declared slightly over the 400-line budget (the forecast was ~200).
+- Verification: nn-core `vitest run` 205 files / 2,132 tests green; nn-mcp `vitest run`
+  57 files / 646 tests green; `tsc -p` (core) and `tsc --noEmit` (nn-mcp) clean; all 40
+  `test/console-*.test.mjs` suites green; mirrors + their test green;
+  `npm run verify:fast` fully green (202 steps).
+
+### Deviations
+
+41. `resolve_sources` resolves the target's evidence from the RAW evidence items of the
+    origin change; it does not verify that the item's field part matches the unit. The
+    unit's origin change is by construction the one that set it.
+42. The console cell lookup matches the unit by suffix (matrix + axis slugs) instead of
+    the model-scoped key: the payload `modelId` is a workspace path and a domain console
+    aggregates models. A cell value is never edited through a second model's change, so
+    the first live match is the right one.
+43. `attachLiveEvidence` appends to `node.sources`/relationships; the legacy `sources::`
+    and citation-field edges still exist until S5a deletes them. Dedupe is by file path,
+    so a unit whose live evidence repeats a file adds no second edge.
+44. `recursiveParse` takes the log as an option instead of building one: the parser must
+    stay free of filesystem reads for the browser/mirror path.
+
+---
+
+## Handoff — start here next session (after PR 14)
+
+Chain state: `lac/s2b3` is the tip (PR 14). Next branch:
+`git switch lac/s2b3 && git switch -c lac/s3a1`.
+
+**PR 15 — S3a.1 (`isRegenerableView` and `projectLineage`)** — tasks 3a.1 [RED],
+3a.2 [GREEN], 3a.3 [RED], 3a.4 [GREEN], 3a.7a.
+
+- `core/naming/contract.ts`: `isRegenerableView(path)` true for `artifacts/*_console/**`
+  and `artifacts/Impact_Audit_report*.md`, false for timestamped family artifacts,
+  sidecars and sources.
+- `core/lineage/project.ts`: rewrite `projectLineage(files, log = buildChangeLog(files)):
+  LineageView` as a pure projection — inventory from the filesystem, edges from live
+  evidence (default) or all-time (`scope`), frontmatter `sources` ignored, loose
+  markdown excluded, `staging/` invisible, `ARTIFACT_WITHOUT_RECORD` warning for
+  unrecorded non-regenerable artifacts, changeset nodes, G5/G6/G7 diagnostics. Nothing
+  written.
+- Verification: `vitest run lineage naming` (nn-core) + `npm run verify:fast`.
+
+**Then:** PR 16 (S3a.2) adds the `read_lineage` tool; PR 17 (S3b.1) moves the CJS
+consumers (impact-checker, gc, duplicate-guards) onto the evidence index; PR 18 (S3b.2)
+is the producer payloads.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
