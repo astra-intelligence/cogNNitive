@@ -9927,6 +9927,55 @@ function sectionOwnLines(content, slug) {
   return owned;
 }
 
+// iNNfo/packages/nn-core/src/references.ts
+function updateReferenceString(text, oldName, newName) {
+  if (!text || typeof text !== "string") return text;
+  const oldSlug = slugify(oldName);
+  if (!text.trim().startsWith("[[") && !text.trim().endsWith("]]")) {
+    if (slugify(text.trim()) === oldSlug) {
+      const leadingSpaces = text.match(/^\s*/)?.[0] || "";
+      const trailingSpaces = text.match(/\s*$/)?.[0] || "";
+      return `${leadingSpaces}${newName}${trailingSpaces}`;
+    }
+  }
+  if (!text.trim().startsWith("[[") && !text.trim().endsWith("]]")) {
+    const qualifiedBracketRegex = new RegExp(`^(\\s*\\[[^\\]]+\\]\\s*)(.+)$`, "i");
+    const matchBracket = text.match(qualifiedBracketRegex);
+    if (matchBracket && slugify(matchBracket[2].trim()) === oldSlug) {
+      const trailingSpaces = matchBracket[2].match(/\s*$/)?.[0] || "";
+      return `${matchBracket[1]}${newName}${trailingSpaces}`;
+    }
+    const qualifiedColonRegex = new RegExp(`^(\\s*[^:]+::\\s*)(.+)$`, "i");
+    const matchColon = text.match(qualifiedColonRegex);
+    if (matchColon && slugify(matchColon[2].trim()) === oldSlug) {
+      const trailingSpaces = matchColon[2].match(/\s*$/)?.[0] || "";
+      return `${matchColon[1]}${newName}${trailingSpaces}`;
+    }
+  }
+  return updateWikiLinks(text, oldName, newName);
+}
+function updateWikiLinks(text, oldName, newName) {
+  if (!text || typeof text !== "string") return text;
+  const oldSlug = slugify(oldName);
+  return text.replace(/\[\[\s*([^\|]+?)(\s*\|[^\]]+)?\s*\]\]/gi, (match, target, alias) => {
+    const trimmedTarget = target.trim();
+    if (slugify(trimmedTarget) === oldSlug) {
+      return `[[${newName}${alias ?? ""}]]`;
+    }
+    const qBracket = new RegExp(`^(\\[[^\\]]+\\]\\s*)(.+)$`, "i");
+    const mBracket = trimmedTarget.match(qBracket);
+    if (mBracket && slugify(mBracket[2]) === oldSlug) {
+      return `[[${mBracket[1]}${newName}${alias ?? ""}]]`;
+    }
+    const qColon = new RegExp(`^(.*::\\s*)(.+)$`, "i");
+    const mColon = trimmedTarget.match(qColon);
+    if (mColon && slugify(mColon[2]) === oldSlug) {
+      return `[[${mColon[1]}${newName}${alias ?? ""}]]`;
+    }
+    return match;
+  });
+}
+
 // iNNfo/packages/nn-core/src/changelog/order.ts
 function changeStamp(changeset) {
   return changesetStampOf(String(changeset ?? ""))?.stamp ?? "";
@@ -9944,6 +9993,168 @@ function compareChanges(a, b) {
   return a.index - b.index;
 }
 
+// iNNfo/packages/nn-core/src/changelog/fold.ts
+function canonicalValue2(raw) {
+  if (raw === void 0 || raw === null) return "";
+  const parsed = parsePropertyValue(String(raw));
+  if (parsed === null || parsed === void 0) return "";
+  if (typeof parsed === "string") return parsed;
+  if (Array.isArray(parsed)) {
+    return `[${parsed.map((v) => typeof v === "string" ? v : String(v)).join(", ")}]`;
+  }
+  if (typeof parsed === "number" || typeof parsed === "boolean") return String(parsed);
+  return JSON.stringify(parsed);
+}
+function splitUnitKey(key) {
+  const at = key.indexOf("@");
+  if (at === -1) return { model: "", parts: [] };
+  return {
+    model: key.slice(0, at),
+    parts: key.slice(at + 1).split("&").map((p) => p.trim())
+  };
+}
+function elementKeyOf(unitKey) {
+  const amp = unitKey.indexOf("&");
+  return amp === -1 ? unitKey : unitKey.slice(0, amp);
+}
+function setUnit(units, key, kind, raw, origin, order) {
+  const value = canonicalValue2(raw);
+  if (value === "") {
+    units.delete(key);
+    return;
+  }
+  units.set(key, { key, kind, value, origin, setOrder: order });
+}
+function foldChanges(changes) {
+  const units = /* @__PURE__ */ new Map();
+  const tombstones = [];
+  const epochs = /* @__PURE__ */ new Map();
+  const elements = /* @__PURE__ */ new Map();
+  const relinks = /* @__PURE__ */ new Map();
+  const addRelink = (model, from, to, order) => {
+    if (!from || !to) return;
+    const bucket = relinks.get(model);
+    if (bucket) bucket.push({ model, from, to, order });
+    else relinks.set(model, [{ model, from, to, order }]);
+  };
+  changes.forEach((change, order) => {
+    if (!change.applied) return;
+    const address = change.resolvedTarget ?? change.target;
+    switch (change.op) {
+      case "add_element": {
+        const { model, parts } = splitUnitKey(address);
+        const key = change.resolvedTarget ? address : model ? `${model}@${slugifyHeading(change.name ?? change.slug ?? parts[0] ?? "")}` : address;
+        epochs.set(key, order);
+        elements.set(key, change);
+        for (const unitKey of [...units.keys()]) {
+          if (unitKey.startsWith(`${key}&`)) units.delete(unitKey);
+        }
+        return;
+      }
+      case "update_field":
+        setUnit(units, address, "field", change.to, change, order);
+        return;
+      case "update_element_text":
+        setUnit(units, address, "body", change.to, change, order);
+        return;
+      case "update_concept_text":
+      case "update_concept_field":
+        setUnit(units, address, "concept", change.to, change, order);
+        return;
+      case "update_matrix_cell":
+        setUnit(units, address, "cell", change.to, change, order);
+        return;
+      case "rename_element": {
+        const { model, parts } = splitUnitKey(address);
+        addRelink(model, change.from ?? parts[0] ?? "", change.name ?? change.to ?? "", order);
+        return;
+      }
+      case "rename_concept": {
+        const { model, parts } = splitUnitKey(address);
+        const oldName = parts[0]?.startsWith("concept:") ? parts[0].slice("concept:".length) : change.from ?? parts[0] ?? "";
+        const newName = change.name ?? change.to ?? "";
+        if (!oldName || !newName) return;
+        const oldPrefix = `${model}@concept:${oldName}`;
+        const newPrefix = `${model}@concept:${newName}`;
+        for (const key of [...units.keys()]) {
+          if (key !== oldPrefix && !key.startsWith(`${oldPrefix}&`)) continue;
+          const unit = units.get(key);
+          units.delete(key);
+          units.set(`${newPrefix}${key.slice(oldPrefix.length)}`, { ...unit, key: `${newPrefix}${key.slice(oldPrefix.length)}` });
+        }
+        addRelink(model, oldName, newName, order);
+        return;
+      }
+      case "remove_element": {
+        const { model, parts } = splitUnitKey(address);
+        const key = elementKeyOf(address) || (parts[0] ? `${model}@${parts[0]}` : address);
+        elements.set(key, change);
+        tombstones.push(change);
+        const slug = key.slice(key.indexOf("@") + 1);
+        for (const unitKey of [...units.keys()]) {
+          if (unitKey.startsWith(`${key}&`)) {
+            units.delete(unitKey);
+            continue;
+          }
+          const cell = splitUnitKey(unitKey);
+          if (cell.parts.length >= 3 && cell.model === model && (cell.parts[1] === slug || cell.parts[2] === slug)) {
+            units.delete(unitKey);
+          }
+        }
+        return;
+      }
+      case "remove_matrix": {
+        const { model, parts } = splitUnitKey(address);
+        const raw = parts[0] ?? "";
+        const matrixSlug = raw.startsWith("matrix:") ? raw.slice("matrix:".length) : raw;
+        const key = `${model}@${matrixSlug}`;
+        tombstones.push(change);
+        for (const unitKey of [...units.keys()]) {
+          if (unitKey.startsWith(`${key}&`)) units.delete(unitKey);
+        }
+        return;
+      }
+      case "produce_artifact":
+        setUnit(units, address, "artifact", address, change, order);
+        return;
+      default:
+        return;
+    }
+  });
+  return { units, tombstones, epochs, elements, relinks };
+}
+function applyRelinks(unit, relinks) {
+  if (unit.kind === "cell" || unit.kind === "artifact") return unit.value;
+  const later = relinks.filter((r) => r.order > unit.setOrder);
+  if (later.length === 0) return unit.value;
+  let value = unit.value;
+  for (const relink of later) {
+    value = unit.kind === "field" ? updateReferenceString(value, relink.from, relink.to) : updateWikiLinks(value, relink.from, relink.to);
+  }
+  return value;
+}
+
+// iNNfo/packages/nn-core/src/changelog/units.ts
+function unitsFromFold(fold, model) {
+  const out = [];
+  for (const unit of fold.units.values()) {
+    if (model) {
+      const { model: unitModel2 } = splitUnitKey(unit.key);
+      if (unitModel2 !== model) continue;
+    }
+    const { model: unitModel } = splitUnitKey(unit.key);
+    const relinks = fold.relinks.get(unitModel) ?? [];
+    out.push({
+      key: unit.key,
+      kind: unit.kind,
+      value: applyRelinks(unit, relinks),
+      origin: unit.origin,
+      relinks
+    });
+  }
+  return out;
+}
+
 // iNNfo/packages/nn-core/src/changelog/index.ts
 function unitOf(change) {
   return change.resolvedTarget ?? change.target;
@@ -9951,6 +10162,7 @@ function unitOf(change) {
 var ChangeLogImpl = class {
   all;
   byUnit = /* @__PURE__ */ new Map();
+  fold;
   constructor(changes) {
     this.all = [...changes].sort(compareChanges);
     for (const change of this.all) {
@@ -9960,17 +10172,40 @@ var ChangeLogImpl = class {
       if (bucket) bucket.push(change);
       else this.byUnit.set(unit, [change]);
     }
+    this.fold = foldChanges(this.all);
   }
+  /** Applied changes of a unit, cut at the latest add_element of its element. */
   history(unit) {
-    return this.byUnit.get(unit) ?? [];
+    const bucket = this.byUnit.get(unit) ?? [];
+    const epoch = this.fold.epochs.get(elementKeyOf(unit));
+    if (epoch === void 0) return bucket;
+    return bucket.filter((change) => this.orderOf(change) > epoch);
   }
   origin(unit) {
-    const bucket = this.byUnit.get(unit);
-    return bucket && bucket.length > 0 ? bucket[bucket.length - 1] : void 0;
+    if (!this.fold.units.has(unit)) return void 0;
+    const bucket = this.history(unit);
+    return bucket.length > 0 ? bucket[bucket.length - 1] : void 0;
+  }
+  units(model) {
+    return unitsFromFold(this.fold, model);
+  }
+  elementOrigin(elementKey) {
+    return this.fold.elements.get(elementKey);
   }
   get tombstones() {
-    return [];
+    return this.fold.tombstones;
   }
+  /** Canonical position of a change: its index in the sorted `all` list. */
+  orderOf(change) {
+    return this.orderIndex.get(change) ?? -1;
+  }
+  get orderIndex() {
+    if (!this.orderCache) {
+      this.orderCache = new Map(this.all.map((change, index) => [change, index]));
+    }
+    return this.orderCache;
+  }
+  orderCache;
 };
 function createChangeLog(changes) {
   return new ChangeLogImpl(changes);

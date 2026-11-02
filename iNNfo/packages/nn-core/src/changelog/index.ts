@@ -12,6 +12,8 @@
  */
 import type { ChangeItem, ChangeOp, ChangeStatus } from '../changeset/types.js'
 import { compareChanges } from './order.js'
+import { elementKeyOf, foldChanges, type FoldResult } from './fold.js'
+import { unitsFromFold, type UnitState } from './units.js'
 
 /** One change as the log exposes it: the change plus its changeset context. */
 export interface LoggedChange {
@@ -56,11 +58,15 @@ export interface LoggedChange {
 export interface ChangeLog {
   /** Every change, every status, in canonical order (the review UI lists this). */
   readonly all: readonly LoggedChange[]
-  /** Applied changes whose unit is `unit`, canonical order. */
+  /** Applied changes whose unit is `unit`, canonical order, after the epoch cut. */
   history(unit: string): readonly LoggedChange[]
   /** The last applied change of `unit`, or `undefined` when it has no history. */
   origin(unit: string): LoggedChange | undefined
-  /** Removal changes kept as tombstones (filled by the fold). */
+  /** Live units after the epoch cut (optionally scoped to one model id). */
+  units(model?: string): Iterable<UnitState>
+  /** The change that created or removed the element at `elementKey`, if any. */
+  elementOrigin(elementKey: string): LoggedChange | undefined
+  /** Removal changes kept as tombstones. */
   readonly tombstones: readonly LoggedChange[]
 }
 
@@ -76,6 +82,7 @@ export function unitOf(change: LoggedChange): string {
 class ChangeLogImpl implements ChangeLog {
   readonly all: readonly LoggedChange[]
   private readonly byUnit = new Map<string, LoggedChange[]>()
+  private readonly fold: FoldResult
 
   constructor(changes: readonly LoggedChange[]) {
     this.all = [...changes].sort(compareChanges)
@@ -86,20 +93,49 @@ class ChangeLogImpl implements ChangeLog {
       if (bucket) bucket.push(change)
       else this.byUnit.set(unit, [change])
     }
+    this.fold = foldChanges(this.all)
   }
 
+  /** Applied changes of a unit, cut at the latest add_element of its element. */
   history(unit: string): readonly LoggedChange[] {
-    return this.byUnit.get(unit) ?? []
+    const bucket = this.byUnit.get(unit) ?? []
+    const epoch = this.fold.epochs.get(elementKeyOf(unit))
+    if (epoch === undefined) return bucket
+    return bucket.filter((change) => this.orderOf(change) > epoch)
   }
 
   origin(unit: string): LoggedChange | undefined {
-    const bucket = this.byUnit.get(unit)
-    return bucket && bucket.length > 0 ? bucket[bucket.length - 1] : undefined
+    // A cleared field/body/cell has no live value, so it has no origin.
+    if (!this.fold.units.has(unit)) return undefined
+    const bucket = this.history(unit)
+    return bucket.length > 0 ? bucket[bucket.length - 1] : undefined
+  }
+
+  units(model?: string): Iterable<UnitState> {
+    return unitsFromFold(this.fold, model)
+  }
+
+  elementOrigin(elementKey: string): LoggedChange | undefined {
+    return this.fold.elements.get(elementKey)
   }
 
   get tombstones(): readonly LoggedChange[] {
-    return []
+    return this.fold.tombstones
   }
+
+  /** Canonical position of a change: its index in the sorted `all` list. */
+  private orderOf(change: LoggedChange): number {
+    return this.orderIndex.get(change) ?? -1
+  }
+
+  private get orderIndex(): Map<LoggedChange, number> {
+    if (!this.orderCache) {
+      this.orderCache = new Map(this.all.map((change, index) => [change, index]))
+    }
+    return this.orderCache
+  }
+
+  private orderCache?: Map<LoggedChange, number>
 }
 
 /** Builds the log from changes already parsed into their changeset context. */
@@ -108,3 +144,17 @@ export function createChangeLog(changes: readonly LoggedChange[]): ChangeLog {
 }
 
 export type { ChangeItem }
+
+export {
+  applyRelinks,
+  canonicalValue,
+  elementKeyOf,
+  foldChanges,
+  splitUnitKey,
+  unitKindOf,
+  type FoldedUnit,
+  type FoldResult,
+  type FoldUnitKind,
+  type Relink,
+} from './fold.js'
+export { unitsFromFold, type UnitState } from './units.js'
