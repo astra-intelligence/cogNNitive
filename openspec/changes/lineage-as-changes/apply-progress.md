@@ -1643,3 +1643,69 @@ worktree.
 
 ---
 
+## PR 24 — S5a.3 (branch `lac/s5a3`, base `lac/s5a2`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 5a.1, 5a.2, 5a.7c.
+
+- `core/validator/knowledge-checks.ts`: `checkProvenanceBan(model, schema, d)` reports
+  `SOURCES_FIELD_BANNED` (a field named `sources`/`source`) and
+  `CITATION_FIELD_BANNED` (any other schema-declared `type:: citation` field) as
+  ERRORS on L3. The one allowed citation is `changes.evidence`, identified by the
+  parent blueprint name — no exemption list. `conflicts::` is skipped by the ban (it is
+  an address pointer, validated as a citation site by the workspace validator).
+- **Contingency applied (as the task allows):** the ban is opt-in by L1 version —
+  it only fires for a document whose `parent_spec` (name or url) pins `V_0-6-0`, the
+  L1 that S5b.1 publishes and S5b.4 rebuilds the corpora for. Without the gate the
+  ban turned 115 existing tests red because every fixture and shipped sample still
+  writes `sources::`; the carve-out is removed in S5b.4.
+- Wired into `validateKnowledge` after `checkSchemaConformance`, with the composed
+  schema (not the raw template).
+- New `core-tests/validator/knowledge-checks.test.ts` (5: sources ban, citation ban,
+  `changes.evidence` allowed, `conflicts::` accepted, non-L3 silent).
+- Regenerated: mirrors, console payload/bundle and the testlab fixture.
+- Size: ~180 hand-authored lines added (ban + tests). Inside the budget.
+- Verification: nn-core 2.110 tests green; nn-mcp 648 green; both typecheck;
+  `npm --prefix skills/nn-sources test` 564 green; `npm run verify:fast` green.
+
+### Deviations
+
+72. The version gate (V_0-6-0 only) is the task's documented contingency, not a design
+    change: the corpus rebuild is S5b.4, and turning the ban on globally now would
+    require rewriting every fixture in this PR.
+73. `conflicts::` is NOT validated as a banned citation: it is an address pointer whose
+    target the workspace validator checks with the same citation grammar (A13).
+
+---
+
+## Handoff — start here next session (after PR 24)
+
+Chain state: `lac/s5a3` is the tip (PR 24). Next branch:
+`git switch lac/s5a3 && git switch -c lac/s5b1`.
+
+**PR 25 — S5b.1 (`iNNfo_V_0-6-0` and bumped blueprints)** — tasks 5b.1 [RED],
+5b.2 [GREEN], 5b.8a.
+
+- Spec-integrity tests: `iNNfo/specs/iNNfo/iNNfo_V_0-6-0_NN.md` exists, defines
+  `citation` only as change `evidence` and the reserved `sources::` as banned;
+  `iNNfo_V_0-5-0` is byte-identical (write-once); only `changes`, `sidecar`,
+  `visual-catalog` pin V_0-6-0; `visual-catalog` `source` fields are not `citation`;
+  `check:spec-urls` passes.
+- Create the L1, bump `sidecar` (no `sources`) and `visual-catalog`, repin them, set
+  `spec_version` vs `template_version` per the two-axes rule, `npm run sync:versions`.
+  **Do not cut a tag.**
+- Verification: `node scripts/verify.js`, `npm run check:spec-urls`,
+  `npm run sync:versions` leaves a clean diff.
+
+**Then:** S5b.2 (workspace spec without Executions), S5b.3 (sample versions), S5b.4
+(corpora rebuild + drop the ban carve-out), S5b.5 (release event: ASK before tagging).
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+

@@ -374,9 +374,9 @@ Goal: `SOURCES_FIELD_BANNED` and `CITATION_FIELD_BANNED` are errors on L3.
 Depends on: PR 23.
 Rollback: revert; samples untouched.
 
-- [ ] 5a.1 [RED] [S] `core-tests/validator/knowledge-checks.test.ts`: `SOURCES_FIELD_BANNED` and `CITATION_FIELD_BANNED` are errors on L3 for any L1 version; the single allowed `citation` is `changes.evidence`, identified by the parent blueprint (no exemption list); `conflicts::` is `type:: address`; `type:: address` pointers accepted. (ban; A13)
-- [ ] 5a.2 [GREEN] [S] Implement the ban in `core/validator/knowledge-checks.ts`.
-- [ ] 5a.7c [S] (was 5a.7) Mirrors, standard PR gate. Open PR 24. Contingency: if `npm run verify:fast` is red because shipped samples or fixture corpora still carry `sources::`, keep the ban behind the validator's existing version gate for this PR (error only for kNNowledge outside `samples/` and test fixtures) and drop that carve-out in S5b.4 when the corpora are rebuilt. Record the choice in the PR body.
+- [x] 5a.1 [RED] [S] `core-tests/validator/knowledge-checks.test.ts`: `SOURCES_FIELD_BANNED` and `CITATION_FIELD_BANNED` are errors on L3 for any L1 version; the single allowed `citation` is `changes.evidence`, identified by the parent blueprint (no exemption list); `conflicts::` is `type:: address`; `type:: address` pointers accepted. (ban; A13)
+- [x] 5a.2 [GREEN] [S] Implement the ban in `core/validator/knowledge-checks.ts`.
+- [x] 5a.7c [S] (was 5a.7) Mirrors, standard PR gate. Open PR 24. Contingency: if `npm run verify:fast` is red because shipped samples or fixture corpora still carry `sources::`, keep the ban behind the validator's existing version gate for this PR (error only for kNNowledge outside `samples/` and test fixtures) and drop that carve-out in S5b.4 when the corpora are rebuilt. Record the choice in the PR body.
 
 Files: `core/validator/knowledge-checks.ts`, `core-tests/validator/knowledge-checks.test.ts`.
 Verification: `npm --workspace=@cognnitive/nn-core test -- validator`, `npm run verify:fast`.
