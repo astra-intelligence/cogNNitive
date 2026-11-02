@@ -90,11 +90,11 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 1: Core mirror target
 
-- [ ] 1.1 RED: `build-core-mirrors.mjs --check` test expects target `video-script` and `lib/nn-core.generated.cjs` exports (scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply`, `writeProposedChangeset`).
-- [ ] 1.2 GREEN: create `scripts/core-mirrors/video-script.ts`; edit `scripts/build-core-mirrors.mjs` (replaces `scope` target); regenerate.
-- [ ] 1.3 Replace `S/scripts/lib/knowledge-model.mjs` imports; its tests stay green.
-- [ ] 1.4 Measure bundle size and record it (design A10).
-- [ ] Verify: `node scripts/build-core-mirrors.mjs --check`, `node scripts/verify.js`.
+- [x] 1.1 RED: `build-core-mirrors.mjs --check` test expects target `video-script` and `lib/nn-core.generated.cjs` exports (scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply`, `writeProposedChangeset`).
+- [x] 1.2 GREEN: create `scripts/core-mirrors/video-script.ts`; edit `scripts/build-core-mirrors.mjs` (replaces `scope` target); regenerate.
+- [x] 1.3 Replace `S/scripts/lib/knowledge-model.mjs` imports; its tests stay green.
+- [x] 1.4 Measure bundle size and record it (design A10).
+- [x] Verify: `node scripts/build-core-mirrors.mjs --check`, `node scripts/verify.js`.
 
 ## Slice 2a: Spec V_1-0-0 text
 

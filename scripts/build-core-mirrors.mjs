@@ -10,15 +10,15 @@
  *   1. trannsform (nn-sources):
  *      input : iNNfo/packages/nn-core/src/trannsformPrimitives.ts
  *      output: skills/nn-sources/scripts/lib/nn-core.generated.cjs
- *   2. scope (nn-video-script):
- *      input : iNNfo/packages/nn-core/src/scope/index.ts
+ *   2. video-script (nn-video-script):
+ *      input : scripts/core-mirrors/video-script.ts
  *      output: iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script/scripts/lib/nn-core.generated.cjs
  *
  * Usage:
  *   node scripts/build-core-mirrors.mjs [--check] [--target <name>] [--out <file>]
  *
  *   --check   render targets and compare to committed files; exit 1 on drift.
- *   --target  render only one target ('trannsform' | 'scope').
+ *   --target  render only one target ('trannsform' | 'video-script').
  *   --out     override output file (single-target mode only).
  */
 
@@ -46,8 +46,8 @@ const TARGETS = [
       ' */\n// @ts-nocheck',
   },
   {
-    name: 'scope',
-    entry: path.join(REPO_ROOT, 'iNNfo', 'packages', 'nn-core', 'src', 'scope', 'index.ts'),
+    name: 'video-script',
+    entry: path.join(REPO_ROOT, 'scripts', 'core-mirrors', 'video-script.ts'),
     out: path.join(
       REPO_ROOT,
       'iNNfo',
@@ -63,7 +63,7 @@ const TARGETS = [
     banner:
       '/**\n' +
       ' * GENERATED FILE — DO NOT EDIT.\n' +
-      ' * Source: iNNfo/packages/nn-core/src/scope/index.ts\n' +
+      ' * Source: scripts/core-mirrors/video-script.ts (nn-core scope, parser, changeset and apply)\n' +
       ' * Regenerate: node scripts/build-core-mirrors.mjs\n' +
       ' * Drift-guarded by scripts/verify.js (core-mirror --check).\n' +
       ' */\n// @ts-nocheck',

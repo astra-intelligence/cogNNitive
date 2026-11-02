@@ -1,17 +1,24 @@
 /**
  * GENERATED FILE — DO NOT EDIT.
- * Source: iNNfo/packages/nn-core/src/scope/index.ts
+ * Source: scripts/core-mirrors/video-script.ts (nn-core scope, parser, changeset and apply)
  * Regenerate: node scripts/build-core-mirrors.mjs
  * Drift-guarded by scripts/verify.js (core-mirror --check).
  */
 // @ts-nocheck
-"use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
+};
 var __commonJS = (cb, mod) => function __require() {
   try {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -988,13 +995,13 @@ var require_Collection = __commonJS({
 var require_stringifyComment = __commonJS({
   "node_modules/yaml/dist/stringify/stringifyComment.js"(exports2) {
     "use strict";
-    var stringifyComment = (str2) => str2.replace(/^(?!$)(?: $)?/gm, "#");
+    var stringifyComment = (str3) => str3.replace(/^(?!$)(?: $)?/gm, "#");
     function indentComment(comment, indent) {
       if (/^\n+$/.test(comment))
         return comment.substring(1);
       return indent ? comment.replace(/^(?! *$)/gm, indent) : comment;
     }
-    var lineComment = (str2, indent, comment) => str2.endsWith("\n") ? indentComment(comment, indent) : comment.includes("\n") ? "\n" + indentComment(comment, indent) : (str2.endsWith(" ") ? "" : " ") + comment;
+    var lineComment = (str3, indent, comment) => str3.endsWith("\n") ? indentComment(comment, indent) : comment.includes("\n") ? "\n" + indentComment(comment, indent) : (str3.endsWith(" ") ? "" : " ") + comment;
     exports2.indentComment = indentComment;
     exports2.lineComment = lineComment;
     exports2.stringifyComment = stringifyComment;
@@ -1148,16 +1155,16 @@ var require_stringifyString = __commonJS({
       lineWidth: ctx.options.lineWidth,
       minContentWidth: ctx.options.minContentWidth
     });
-    var containsDocumentMarker = (str2) => /^(%|---|\.\.\.)/m.test(str2);
-    function lineLengthOverLimit(str2, lineWidth, indentLength) {
+    var containsDocumentMarker = (str3) => /^(%|---|\.\.\.)/m.test(str3);
+    function lineLengthOverLimit(str3, lineWidth, indentLength) {
       if (!lineWidth || lineWidth < 0)
         return false;
       const limit = lineWidth - indentLength;
-      const strLen = str2.length;
+      const strLen = str3.length;
       if (strLen <= limit)
         return false;
       for (let i = 0, start = 0; i < strLen; ++i) {
-        if (str2[i] === "\n") {
+        if (str3[i] === "\n") {
           if (i - start > limit)
             return true;
           start = i + 1;
@@ -1174,11 +1181,11 @@ var require_stringifyString = __commonJS({
       const { implicitKey } = ctx;
       const minMultiLineLength = ctx.options.doubleQuotedMinMultiLineLength;
       const indent = ctx.indent || (containsDocumentMarker(value) ? "  " : "");
-      let str2 = "";
+      let str3 = "";
       let start = 0;
       for (let i = 0, ch = json[i]; ch; ch = json[++i]) {
         if (ch === " " && json[i + 1] === "\\" && json[i + 2] === "n") {
-          str2 += json.slice(start, i) + "\\ ";
+          str3 += json.slice(start, i) + "\\ ";
           i += 1;
           start = i;
           ch = "\\";
@@ -1187,38 +1194,38 @@ var require_stringifyString = __commonJS({
           switch (json[i + 1]) {
             case "u":
               {
-                str2 += json.slice(start, i);
+                str3 += json.slice(start, i);
                 const code = json.substr(i + 2, 4);
                 switch (code) {
                   case "0000":
-                    str2 += "\\0";
+                    str3 += "\\0";
                     break;
                   case "0007":
-                    str2 += "\\a";
+                    str3 += "\\a";
                     break;
                   case "000b":
-                    str2 += "\\v";
+                    str3 += "\\v";
                     break;
                   case "001b":
-                    str2 += "\\e";
+                    str3 += "\\e";
                     break;
                   case "0085":
-                    str2 += "\\N";
+                    str3 += "\\N";
                     break;
                   case "00a0":
-                    str2 += "\\_";
+                    str3 += "\\_";
                     break;
                   case "2028":
-                    str2 += "\\L";
+                    str3 += "\\L";
                     break;
                   case "2029":
-                    str2 += "\\P";
+                    str3 += "\\P";
                     break;
                   default:
                     if (code.substr(0, 2) === "00")
-                      str2 += "\\x" + code.substr(2);
+                      str3 += "\\x" + code.substr(2);
                     else
-                      str2 += json.substr(i, 6);
+                      str3 += json.substr(i, 6);
                 }
                 i += 5;
                 start = i + 1;
@@ -1228,14 +1235,14 @@ var require_stringifyString = __commonJS({
               if (implicitKey || json[i + 2] === '"' || json.length < minMultiLineLength) {
                 i += 1;
               } else {
-                str2 += json.slice(start, i) + "\n\n";
+                str3 += json.slice(start, i) + "\n\n";
                 while (json[i + 2] === "\\" && json[i + 3] === "n" && json[i + 4] !== '"') {
-                  str2 += "\n";
+                  str3 += "\n";
                   i += 2;
                 }
-                str2 += indent;
+                str3 += indent;
                 if (json[i + 2] === " ")
-                  str2 += "\\";
+                  str3 += "\\";
                 i += 1;
                 start = i + 1;
               }
@@ -1244,8 +1251,8 @@ var require_stringifyString = __commonJS({
               i += 1;
           }
       }
-      str2 = start ? str2 + json.slice(start) : json;
-      return implicitKey ? str2 : foldFlowLines.foldFlowLines(str2, indent, foldFlowLines.FOLD_QUOTED, getFoldOptions(ctx, false));
+      str3 = start ? str3 + json.slice(start) : json;
+      return implicitKey ? str3 : foldFlowLines.foldFlowLines(str3, indent, foldFlowLines.FOLD_QUOTED, getFoldOptions(ctx, false));
     }
     function singleQuotedString(value, ctx) {
       if (ctx.options.singleQuote === false || ctx.implicitKey && value.includes("\n") || /[ \t]\n|\n[ \t]/.test(value))
@@ -1373,15 +1380,15 @@ ${indent}${start}${value}${end}`;
           return quotedString(value, ctx);
         }
       }
-      const str2 = value.replace(/\n+/g, `$&
+      const str3 = value.replace(/\n+/g, `$&
 ${indent}`);
       if (actualString) {
-        const test = (tag) => tag.default && tag.tag !== "tag:yaml.org,2002:str" && tag.test?.test(str2);
+        const test = (tag) => tag.default && tag.tag !== "tag:yaml.org,2002:str" && tag.test?.test(str3);
         const { compat, tags } = ctx.doc.schema;
         if (tags.some(test) || compat?.some(test))
           return quotedString(value, ctx);
       }
-      return implicitKey ? str2 : foldFlowLines.foldFlowLines(str2, indent, foldFlowLines.FOLD_FLOW, getFoldOptions(ctx, false));
+      return implicitKey ? str3 : foldFlowLines.foldFlowLines(str3, indent, foldFlowLines.FOLD_FLOW, getFoldOptions(ctx, false));
     }
     function stringifyString(item, ctx, onComment, onChompKeep) {
       const { implicitKey, inFlow } = ctx;
@@ -1533,11 +1540,11 @@ var require_stringify = __commonJS({
       const props = stringifyProps(node, tagObj, ctx);
       if (props.length > 0)
         ctx.indentAtStart = (ctx.indentAtStart ?? 0) + props.length + 1;
-      const str2 = typeof tagObj.stringify === "function" ? tagObj.stringify(node, ctx, onComment, onChompKeep) : identity.isScalar(node) ? stringifyString.stringifyString(node, ctx, onComment, onChompKeep) : node.toString(ctx, onComment, onChompKeep);
+      const str3 = typeof tagObj.stringify === "function" ? tagObj.stringify(node, ctx, onComment, onChompKeep) : identity.isScalar(node) ? stringifyString.stringifyString(node, ctx, onComment, onChompKeep) : node.toString(ctx, onComment, onChompKeep);
       if (!props)
-        return str2;
-      return identity.isScalar(node) || str2[0] === "{" || str2[0] === "[" ? `${props} ${str2}` : `${props}
-${ctx.indent}${str2}`;
+        return str3;
+      return identity.isScalar(node) || str3[0] === "{" || str3[0] === "[" ? `${props} ${str3}` : `${props}
+${ctx.indent}${str3}`;
     }
     exports2.createStringifyContext = createStringifyContext;
     exports2.stringify = stringify;
@@ -1572,8 +1579,8 @@ var require_stringifyPair = __commonJS({
       });
       let keyCommentDone = false;
       let chompKeep = false;
-      let str2 = stringify.stringify(key, ctx, () => keyCommentDone = true, () => chompKeep = true);
-      if (!explicitKey && !ctx.inFlow && str2.length > 1024) {
+      let str3 = stringify.stringify(key, ctx, () => keyCommentDone = true, () => chompKeep = true);
+      if (!explicitKey && !ctx.inFlow && str3.length > 1024) {
         if (simpleKeys)
           throw new Error("With simple keys, single line scalar must not span more than 1024 characters");
         explicitKey = true;
@@ -1582,27 +1589,27 @@ var require_stringifyPair = __commonJS({
         if (allNullValues || value == null) {
           if (keyCommentDone && onComment)
             onComment();
-          return str2 === "" ? "?" : explicitKey ? `? ${str2}` : str2;
+          return str3 === "" ? "?" : explicitKey ? `? ${str3}` : str3;
         }
       } else if (allNullValues && !simpleKeys || value == null && explicitKey) {
-        str2 = `? ${str2}`;
+        str3 = `? ${str3}`;
         if (keyComment && !keyCommentDone) {
-          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
+          str3 += stringifyComment.lineComment(str3, ctx.indent, commentString(keyComment));
         } else if (chompKeep && onChompKeep)
           onChompKeep();
-        return str2;
+        return str3;
       }
       if (keyCommentDone)
         keyComment = null;
       if (explicitKey) {
         if (keyComment)
-          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
-        str2 = `? ${str2}
+          str3 += stringifyComment.lineComment(str3, ctx.indent, commentString(keyComment));
+        str3 = `? ${str3}
 ${indent}:`;
       } else {
-        str2 = `${str2}:`;
+        str3 = `${str3}:`;
         if (keyComment)
-          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
+          str3 += stringifyComment.lineComment(str3, ctx.indent, commentString(keyComment));
       }
       let vsb, vcb, valueComment;
       if (identity.isNode(value)) {
@@ -1618,7 +1625,7 @@ ${indent}:`;
       }
       ctx.implicitKey = false;
       if (!explicitKey && !keyComment && identity.isScalar(value))
-        ctx.indentAtStart = str2.length + 1;
+        ctx.indentAtStart = str3.length + 1;
       chompKeep = false;
       if (!indentSeq && indentStep.length >= 2 && !ctx.inFlow && !explicitKey && identity.isSeq(value) && !value.flow && !value.tag && !value.anchor) {
         ctx.indent = ctx.indent.substring(2);
@@ -1662,16 +1669,16 @@ ${ctx.indent}`;
       } else if (valueStr === "" || valueStr[0] === "\n") {
         ws = "";
       }
-      str2 += ws + valueStr;
+      str3 += ws + valueStr;
       if (ctx.inFlow) {
         if (valueCommentDone && onComment)
           onComment();
       } else if (valueComment && !valueCommentDone) {
-        str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(valueComment));
+        str3 += stringifyComment.lineComment(str3, ctx.indent, commentString(valueComment));
       } else if (chompKeep && onChompKeep) {
         onChompKeep();
       }
-      return str2;
+      return str3;
     }
     exports2.stringifyPair = stringifyPair;
   }
@@ -1898,31 +1905,31 @@ var require_stringifyCollection = __commonJS({
           }
         }
         chompKeep = false;
-        let str3 = stringify.stringify(item, itemCtx, () => comment2 = null, () => chompKeep = true);
+        let str4 = stringify.stringify(item, itemCtx, () => comment2 = null, () => chompKeep = true);
         if (comment2)
-          str3 += stringifyComment.lineComment(str3, itemIndent, commentString(comment2));
+          str4 += stringifyComment.lineComment(str4, itemIndent, commentString(comment2));
         if (chompKeep && comment2)
           chompKeep = false;
-        lines.push(blockItemPrefix + str3);
+        lines.push(blockItemPrefix + str4);
       }
-      let str2;
+      let str3;
       if (lines.length === 0) {
-        str2 = flowChars.start + flowChars.end;
+        str3 = flowChars.start + flowChars.end;
       } else {
-        str2 = lines[0];
+        str3 = lines[0];
         for (let i = 1; i < lines.length; ++i) {
           const line = lines[i];
-          str2 += line ? `
+          str3 += line ? `
 ${indent}${line}` : "\n";
         }
       }
       if (comment) {
-        str2 += "\n" + stringifyComment.indentComment(commentString(comment), indent);
+        str3 += "\n" + stringifyComment.indentComment(commentString(comment), indent);
         if (onComment)
           onComment();
       } else if (chompKeep && onChompKeep)
         onChompKeep();
-      return str2;
+      return str3;
     }
     function stringifyFlowCollection({ items }, ctx, { flowChars, itemIndent }) {
       const { indent, indentStep, flowCollectionPadding: fcPadding, options: { commentString } } = ctx;
@@ -1965,21 +1972,21 @@ ${indent}${line}` : "\n";
         }
         if (comment)
           reqNewline = true;
-        let str2 = stringify.stringify(item, itemCtx, () => comment = null);
-        reqNewline || (reqNewline = lines.length > linesAtValue || str2.includes("\n"));
+        let str3 = stringify.stringify(item, itemCtx, () => comment = null);
+        reqNewline || (reqNewline = lines.length > linesAtValue || str3.includes("\n"));
         if (i < items.length - 1) {
-          str2 += ",";
+          str3 += ",";
         } else if (ctx.options.trailingComma) {
           if (ctx.options.lineWidth > 0) {
-            reqNewline || (reqNewline = lines.reduce((sum, line) => sum + line.length + 2, 2) + (str2.length + 2) > ctx.options.lineWidth);
+            reqNewline || (reqNewline = lines.reduce((sum, line) => sum + line.length + 2, 2) + (str3.length + 2) > ctx.options.lineWidth);
           }
           if (reqNewline) {
-            str2 += ",";
+            str3 += ",";
           }
         }
         if (comment)
-          str2 += stringifyComment.lineComment(str2, itemIndent, commentString(comment));
-        lines.push(str2);
+          str3 += stringifyComment.lineComment(str3, itemIndent, commentString(comment));
+        lines.push(str3);
         linesAtValue = lines.length;
       }
       const { start, end } = flowChars;
@@ -1991,11 +1998,11 @@ ${indent}${line}` : "\n";
           reqNewline = ctx.options.lineWidth > 0 && len > ctx.options.lineWidth;
         }
         if (reqNewline) {
-          let str2 = start;
+          let str3 = start;
           for (const line of lines)
-            str2 += line ? `
+            str3 += line ? `
 ${indentStep}${indent}${line}` : "\n";
-          return `${str2}
+          return `${str3}
 ${indent}${end}`;
         } else {
           return `${start}${fcPadding}${lines.join(" ")}${fcPadding}${end}`;
@@ -2327,7 +2334,7 @@ var require_string = __commonJS({
       identify: (value) => typeof value === "string",
       default: true,
       tag: "tag:yaml.org,2002:str",
-      resolve: (str2) => str2,
+      resolve: (str3) => str3,
       stringify(item, ctx, onComment, onChompKeep) {
         ctx = Object.assign({ actualString: true }, ctx);
         return stringifyString.stringifyString(item, ctx, onComment, onChompKeep);
@@ -2365,7 +2372,7 @@ var require_bool = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:bool",
       test: /^(?:[Tt]rue|TRUE|[Ff]alse|FALSE)$/,
-      resolve: (str2) => new Scalar.Scalar(str2[0] === "t" || str2[0] === "T"),
+      resolve: (str3) => new Scalar.Scalar(str3[0] === "t" || str3[0] === "T"),
       stringify({ source, value }, ctx) {
         if (source && boolTag.test.test(source)) {
           const sv = source[0] === "t" || source[0] === "T";
@@ -2417,7 +2424,7 @@ var require_float = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:float",
       test: /^(?:[-+]?\.(?:inf|Inf|INF)|\.nan|\.NaN|\.NAN)$/,
-      resolve: (str2) => str2.slice(-3).toLowerCase() === "nan" ? NaN : str2[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
+      resolve: (str3) => str3.slice(-3).toLowerCase() === "nan" ? NaN : str3[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
       stringify: stringifyNumber.stringifyNumber
     };
     var floatExp = {
@@ -2426,7 +2433,7 @@ var require_float = __commonJS({
       tag: "tag:yaml.org,2002:float",
       format: "EXP",
       test: /^[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)[eE][-+]?[0-9]+$/,
-      resolve: (str2) => parseFloat(str2),
+      resolve: (str3) => parseFloat(str3),
       stringify(node) {
         const num = Number(node.value);
         return isFinite(num) ? num.toExponential() : stringifyNumber.stringifyNumber(node);
@@ -2437,11 +2444,11 @@ var require_float = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:float",
       test: /^[-+]?(?:\.[0-9]+|[0-9]+\.[0-9]*)$/,
-      resolve(str2) {
-        const node = new Scalar.Scalar(parseFloat(str2));
-        const dot = str2.indexOf(".");
-        if (dot !== -1 && str2[str2.length - 1] === "0")
-          node.minFractionDigits = str2.length - dot - 1;
+      resolve(str3) {
+        const node = new Scalar.Scalar(parseFloat(str3));
+        const dot = str3.indexOf(".");
+        if (dot !== -1 && str3[str3.length - 1] === "0")
+          node.minFractionDigits = str3.length - dot - 1;
         return node;
       },
       stringify: stringifyNumber.stringifyNumber
@@ -2458,7 +2465,7 @@ var require_int = __commonJS({
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
-    var intResolve = (str2, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str2) : parseInt(str2.substring(offset), radix);
+    var intResolve = (str3, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str3) : parseInt(str3.substring(offset), radix);
     function intStringify(node, radix, prefix) {
       const { value } = node;
       if (intIdentify(value) && value >= 0)
@@ -2471,7 +2478,7 @@ var require_int = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "OCT",
       test: /^0o[0-7]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 2, 8, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 2, 8, opt),
       stringify: (node) => intStringify(node, 8, "0o")
     };
     var int = {
@@ -2479,7 +2486,7 @@ var require_int = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:int",
       test: /^[-+]?[0-9]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 0, 10, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 0, 10, opt),
       stringify: stringifyNumber.stringifyNumber
     };
     var intHex = {
@@ -2488,7 +2495,7 @@ var require_int = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "HEX",
       test: /^0x[0-9a-fA-F]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 2, 16, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 2, 16, opt),
       stringify: (node) => intStringify(node, 16, "0x")
     };
     exports2.int = int;
@@ -2541,7 +2548,7 @@ var require_schema2 = __commonJS({
         identify: (value) => typeof value === "string",
         default: true,
         tag: "tag:yaml.org,2002:str",
-        resolve: (str2) => str2,
+        resolve: (str3) => str3,
         stringify: stringifyJSON
       },
       {
@@ -2558,7 +2565,7 @@ var require_schema2 = __commonJS({
         default: true,
         tag: "tag:yaml.org,2002:bool",
         test: /^true$|^false$/,
-        resolve: (str2) => str2 === "true",
+        resolve: (str3) => str3 === "true",
         stringify: stringifyJSON
       },
       {
@@ -2566,7 +2573,7 @@ var require_schema2 = __commonJS({
         default: true,
         tag: "tag:yaml.org,2002:int",
         test: /^-?(?:0|[1-9][0-9]*)$/,
-        resolve: (str2, _onError, { intAsBigInt }) => intAsBigInt ? BigInt(str2) : parseInt(str2, 10),
+        resolve: (str3, _onError, { intAsBigInt }) => intAsBigInt ? BigInt(str3) : parseInt(str3, 10),
         stringify: ({ value }) => intIdentify(value) ? value.toString() : JSON.stringify(value)
       },
       {
@@ -2574,7 +2581,7 @@ var require_schema2 = __commonJS({
         default: true,
         tag: "tag:yaml.org,2002:float",
         test: /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]*)?(?:[eE][-+]?[0-9]+)?$/,
-        resolve: (str2) => parseFloat(str2),
+        resolve: (str3) => parseFloat(str3),
         stringify: stringifyJSON
       }
     ];
@@ -2582,9 +2589,9 @@ var require_schema2 = __commonJS({
       default: true,
       tag: "",
       test: /^/,
-      resolve(str2, onError) {
-        onError(`Unresolved plain scalar ${JSON.stringify(str2)}`);
-        return str2;
+      resolve(str3, onError) {
+        onError(`Unresolved plain scalar ${JSON.stringify(str3)}`);
+        return str3;
       }
     };
     var schema = [map.map, seq.seq].concat(jsonScalars, jsonError);
@@ -2616,10 +2623,10 @@ var require_binary = __commonJS({
         if (typeof node_buffer.Buffer === "function") {
           return node_buffer.Buffer.from(src, "base64");
         } else if (typeof atob === "function") {
-          const str2 = atob(src.replace(/[\n\r]/g, ""));
-          const buffer = new Uint8Array(str2.length);
-          for (let i = 0; i < str2.length; ++i)
-            buffer[i] = str2.charCodeAt(i);
+          const str3 = atob(src.replace(/[\n\r]/g, ""));
+          const buffer = new Uint8Array(str3.length);
+          for (let i = 0; i < str3.length; ++i)
+            buffer[i] = str3.charCodeAt(i);
           return buffer;
         } else {
           onError("This environment does not support reading binary tags; either Buffer or atob is required");
@@ -2630,28 +2637,28 @@ var require_binary = __commonJS({
         if (!value)
           return "";
         const buf = value;
-        let str2;
+        let str3;
         if (typeof node_buffer.Buffer === "function") {
-          str2 = buf instanceof node_buffer.Buffer ? buf.toString("base64") : node_buffer.Buffer.from(buf.buffer).toString("base64");
+          str3 = buf instanceof node_buffer.Buffer ? buf.toString("base64") : node_buffer.Buffer.from(buf.buffer).toString("base64");
         } else if (typeof btoa === "function") {
           let s = "";
           for (let i = 0; i < buf.length; ++i)
             s += String.fromCharCode(buf[i]);
-          str2 = btoa(s);
+          str3 = btoa(s);
         } else {
           throw new Error("This environment does not support writing binary tags; either Buffer or btoa is required");
         }
         type ?? (type = Scalar.Scalar.BLOCK_LITERAL);
         if (type !== Scalar.Scalar.QUOTE_DOUBLE) {
           const lineWidth = Math.max(ctx.options.lineWidth - ctx.indent.length, ctx.options.minContentWidth);
-          const n = Math.ceil(str2.length / lineWidth);
+          const n = Math.ceil(str3.length / lineWidth);
           const lines = new Array(n);
           for (let i = 0, o = 0; i < n; ++i, o += lineWidth) {
-            lines[i] = str2.substr(o, lineWidth);
+            lines[i] = str3.substr(o, lineWidth);
           }
-          str2 = lines.join(type === Scalar.Scalar.BLOCK_LITERAL ? "\n" : " ");
+          str3 = lines.join(type === Scalar.Scalar.BLOCK_LITERAL ? "\n" : " ");
         }
-        return stringifyString.stringifyString({ comment, type, value: str2 }, ctx, onComment, onChompKeep);
+        return stringifyString.stringifyString({ comment, type, value: str3 }, ctx, onComment, onChompKeep);
       }
     };
     exports2.binary = binary;
@@ -2857,7 +2864,7 @@ var require_float2 = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:float",
       test: /^(?:[-+]?\.(?:inf|Inf|INF)|\.nan|\.NaN|\.NAN)$/,
-      resolve: (str2) => str2.slice(-3).toLowerCase() === "nan" ? NaN : str2[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
+      resolve: (str3) => str3.slice(-3).toLowerCase() === "nan" ? NaN : str3[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
       stringify: stringifyNumber.stringifyNumber
     };
     var floatExp = {
@@ -2866,7 +2873,7 @@ var require_float2 = __commonJS({
       tag: "tag:yaml.org,2002:float",
       format: "EXP",
       test: /^[-+]?(?:[0-9][0-9_]*)?(?:\.[0-9_]*)?[eE][-+]?[0-9]+$/,
-      resolve: (str2) => parseFloat(str2.replace(/_/g, "")),
+      resolve: (str3) => parseFloat(str3.replace(/_/g, "")),
       stringify(node) {
         const num = Number(node.value);
         return isFinite(num) ? num.toExponential() : stringifyNumber.stringifyNumber(node);
@@ -2877,11 +2884,11 @@ var require_float2 = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:float",
       test: /^[-+]?(?:[0-9][0-9_]*)?\.[0-9_]*$/,
-      resolve(str2) {
-        const node = new Scalar.Scalar(parseFloat(str2.replace(/_/g, "")));
-        const dot = str2.indexOf(".");
+      resolve(str3) {
+        const node = new Scalar.Scalar(parseFloat(str3.replace(/_/g, "")));
+        const dot = str3.indexOf(".");
         if (dot !== -1) {
-          const f = str2.substring(dot + 1).replace(/_/g, "");
+          const f = str3.substring(dot + 1).replace(/_/g, "");
           if (f[f.length - 1] === "0")
             node.minFractionDigits = f.length;
         }
@@ -2901,34 +2908,34 @@ var require_int2 = __commonJS({
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
-    function intResolve(str2, offset, radix, { intAsBigInt }) {
-      const sign = str2[0];
+    function intResolve(str3, offset, radix, { intAsBigInt }) {
+      const sign = str3[0];
       if (sign === "-" || sign === "+")
         offset += 1;
-      str2 = str2.substring(offset).replace(/_/g, "");
+      str3 = str3.substring(offset).replace(/_/g, "");
       if (intAsBigInt) {
         switch (radix) {
           case 2:
-            str2 = `0b${str2}`;
+            str3 = `0b${str3}`;
             break;
           case 8:
-            str2 = `0o${str2}`;
+            str3 = `0o${str3}`;
             break;
           case 16:
-            str2 = `0x${str2}`;
+            str3 = `0x${str3}`;
             break;
         }
-        const n2 = BigInt(str2);
+        const n2 = BigInt(str3);
         return sign === "-" ? BigInt(-1) * n2 : n2;
       }
-      const n = parseInt(str2, radix);
+      const n = parseInt(str3, radix);
       return sign === "-" ? -1 * n : n;
     }
     function intStringify(node, radix, prefix) {
       const { value } = node;
       if (intIdentify(value)) {
-        const str2 = value.toString(radix);
-        return value < 0 ? "-" + prefix + str2.substr(1) : prefix + str2;
+        const str3 = value.toString(radix);
+        return value < 0 ? "-" + prefix + str3.substr(1) : prefix + str3;
       }
       return stringifyNumber.stringifyNumber(node);
     }
@@ -2938,7 +2945,7 @@ var require_int2 = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "BIN",
       test: /^[-+]?0b[0-1_]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 2, 2, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 2, 2, opt),
       stringify: (node) => intStringify(node, 2, "0b")
     };
     var intOct = {
@@ -2947,7 +2954,7 @@ var require_int2 = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "OCT",
       test: /^[-+]?0[0-7_]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 1, 8, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 1, 8, opt),
       stringify: (node) => intStringify(node, 8, "0")
     };
     var int = {
@@ -2955,7 +2962,7 @@ var require_int2 = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:int",
       test: /^[-+]?[0-9][0-9_]*$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 0, 10, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 0, 10, opt),
       stringify: stringifyNumber.stringifyNumber
     };
     var intHex = {
@@ -2964,7 +2971,7 @@ var require_int2 = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "HEX",
       test: /^[-+]?0x[0-9a-fA-F_]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 2, 16, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 2, 16, opt),
       stringify: (node) => intStringify(node, 16, "0x")
     };
     exports2.int = int;
@@ -3068,9 +3075,9 @@ var require_timestamp = __commonJS({
   "node_modules/yaml/dist/schema/yaml-1.1/timestamp.js"(exports2) {
     "use strict";
     var stringifyNumber = require_stringifyNumber();
-    function parseSexagesimal(str2, asBigInt) {
-      const sign = str2[0];
-      const parts = sign === "-" || sign === "+" ? str2.substring(1) : str2;
+    function parseSexagesimal(str3, asBigInt) {
+      const sign = str3[0];
+      const parts = sign === "-" || sign === "+" ? str3.substring(1) : str3;
       const num = (n) => asBigInt ? BigInt(n) : Number(n);
       const res = parts.replace(/_/g, "").split(":").reduce((res2, p) => res2 * num(60) + num(p), num(0));
       return sign === "-" ? num(-1) * res : res;
@@ -3107,7 +3114,7 @@ var require_timestamp = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "TIME",
       test: /^[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+$/,
-      resolve: (str2, _onError, { intAsBigInt }) => parseSexagesimal(str2, intAsBigInt),
+      resolve: (str3, _onError, { intAsBigInt }) => parseSexagesimal(str3, intAsBigInt),
       stringify: stringifySexagesimal
     };
     var floatTime = {
@@ -3116,7 +3123,7 @@ var require_timestamp = __commonJS({
       tag: "tag:yaml.org,2002:float",
       format: "TIME",
       test: /^[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\.[0-9_]*$/,
-      resolve: (str2) => parseSexagesimal(str2, false),
+      resolve: (str3) => parseSexagesimal(str3, false),
       stringify: stringifySexagesimal
     };
     var timestamp = {
@@ -3127,8 +3134,8 @@ var require_timestamp = __commonJS({
       // may be omitted altogether, resulting in a date format. In such a case, the time part is
       // assumed to be 00:00:00Z (start of day, UTC).
       test: RegExp("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})(?:(?:t|T|[ \\t]+)([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2}(\\.[0-9]+)?)(?:[ \\t]*(Z|[-+][012]?[0-9](?::[0-9]{2})?))?)?$"),
-      resolve(str2) {
-        const match = str2.match(timestamp.test);
+      resolve(str3) {
+        const match = str3.match(timestamp.test);
         if (!match)
           throw new Error("!!timestamp expects a date, starting with yyyy-mm-dd");
         const [, year, month, day, hour, minute, second] = match.map(Number);
@@ -7371,13 +7378,8897 @@ var require_dist = __commonJS({
   }
 });
 
-// iNNfo/packages/nn-core/src/scope/index.ts
-var index_exports = {};
-__export(index_exports, {
+// ../cogNNitive/iNNfo/packages/nn-core/dist/types/parser.js
+function normalizeConceptType(type) {
+  if (type === "model")
+    return "knowledge";
+  return type;
+}
+function normalizeFieldType(type) {
+  if (type === "model")
+    return "knowledge";
+  return type;
+}
+var ElementsMap2;
+var init_parser = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/types/parser.js"() {
+    "use strict";
+    ElementsMap2 = class {
+      _map = /* @__PURE__ */ new Map();
+      set(key, nodes) {
+        this._map.set(key.toLowerCase(), { key, nodes });
+      }
+      delete(key) {
+        return this._map.delete(key.toLowerCase());
+      }
+      has(key) {
+        return this._map.has(key.toLowerCase());
+      }
+      get(key) {
+        return this._map.get(key.toLowerCase())?.nodes;
+      }
+      keys() {
+        return Array.from(this._map.values()).map((e) => e.key);
+      }
+      entries() {
+        return Array.from(this._map.values()).map((e) => [e.key, e.nodes]);
+      }
+      forEach(fn) {
+        for (const { key, nodes } of this._map.values()) {
+          fn(nodes, key);
+        }
+      }
+      get size() {
+        return this._map.size;
+      }
+      [Symbol.iterator]() {
+        return this.entries()[Symbol.iterator]();
+      }
+      /** JSON serialization support — serializes as a plain record */
+      toJSON() {
+        const obj = {};
+        for (const [key, nodes] of this.entries()) {
+          obj[key] = nodes;
+        }
+        return obj;
+      }
+    };
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/types/validation.js
+var init_validation = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/types/validation.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/types/io.js
+var init_io = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/types/io.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/types/graph.js
+var init_graph = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/types/graph.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/types/index.js
+var init_types = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/types/index.js"() {
+    "use strict";
+    init_parser();
+    init_validation();
+    init_io();
+    init_graph();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/layout.js
+var init_layout = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/layout.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/parser/slug.js
+function nfc2(text) {
+  return text.normalize("NFC");
+}
+function stripCombiningMarks2(text) {
+  return text.normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+function slugify2(name) {
+  return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+}
+var init_slug = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/parser/slug.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/parser/markdown.js
+function normalizeSource2(text) {
+  const withoutBom = text.charCodeAt(0) === 65279 ? text.replace(/^\uFEFF+/, "") : text;
+  return withoutBom.replace(/\r\n?/g, "\n");
+}
+function parseMarkdownTable2(md) {
+  const lines = normalizeSource2(md).split("\n").filter((l) => /(^|[^\\])\|/.test(l.trim()));
+  if (lines.length < 2)
+    return [];
+  const header = parseTableRow2(lines[0]);
+  if (lines.length < 3)
+    return [];
+  return lines.slice(2).map((line) => {
+    const cells = parseTableRow2(line);
+    const row = {};
+    header.forEach((h, i) => {
+      row[h] = cells[i] ?? "";
+    });
+    return row;
+  });
+}
+function parseTableRow2(line) {
+  const trimmed = line.trim();
+  const hasLeading = trimmed.startsWith("|");
+  const hasTrailing = /(^|[^\\])\|$/.test(trimmed);
+  const parts = line.split("|");
+  const start = hasLeading ? 1 : 0;
+  const end = hasTrailing ? parts.length - 1 : parts.length;
+  return parts.slice(start, end).map((c) => c.trim());
+}
+var YAML_BLOCK_RE2, BOM_CHAR2;
+var init_markdown = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/parser/markdown.js"() {
+    "use strict";
+    YAML_BLOCK_RE2 = /^---\r?\n([\s\S]*?)\r?\n---/;
+    BOM_CHAR2 = String.fromCharCode(65279);
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/parser/yaml.js
+function parseYaml3(yamlStr, onError) {
+  const sanitized = yamlStr.charCodeAt(0) === 65279 ? yamlStr.replace(/^\uFEFF+/, "") : yamlStr;
+  try {
+    return (0, import_yaml8.parse)(sanitized) || {};
+  } catch (err) {
+    onError?.(`Frontmatter YAML failed to parse: ${err instanceof Error ? err.message : String(err)}`);
+    return {};
+  }
+}
+function asRecord2(v) {
+  return v && typeof v === "object" && !Array.isArray(v) ? v : void 0;
+}
+function str2(v) {
+  return String(v ?? "");
+}
+function coerceList2(value, mapEntry) {
+  if (!Array.isArray(value))
+    return void 0;
+  return value.map(mapEntry).filter((x) => x !== null);
+}
+function normalizeAliasMap2(raw) {
+  const obj = asRecord2(raw);
+  const aliasMap = {};
+  if (obj) {
+    if (obj.concepts && typeof obj.concepts === "object")
+      aliasMap.concepts = obj.concepts;
+    if (obj.fields && typeof obj.fields === "object")
+      aliasMap.fields = obj.fields;
+  }
+  return aliasMap;
+}
+function normalizeParentSpec2(fm) {
+  if (!fm.parent || fm.parent_spec)
+    return;
+  if (typeof fm.parent === "string") {
+    const url = fm.parent;
+    const name = url.split(/[/\\]/).pop()?.replace(/\.(md|markdown)$/i, "").replace(/_(NN|FORMAT|F)$/i, "") || "";
+    fm.parent_spec = { url, name };
+  } else {
+    fm.parent_spec = fm.parent;
+  }
+  delete fm.parent;
+}
+function normalizeLegacyFieldNames2(fm) {
+  if (fm.specification_version && !fm.spec_version)
+    fm.spec_version = fm.specification_version;
+  if (fm.specification_url && !fm.spec_url)
+    fm.spec_url = fm.specification_url;
+}
+function normalizeIncludes2(fm) {
+  const out = coerceList2(fm.includes, (entry) => {
+    if (typeof entry === "string") {
+      const name2 = entry.replace(/\.(md|markdown)$/i, "").replace(/_(NN|FORMAT|F)$/i, "");
+      return name2 ? { name: name2, url: "" } : null;
+    }
+    const obj = asRecord2(entry);
+    if (!obj)
+      return null;
+    const name = str2(obj.name);
+    if (!name)
+      return null;
+    const res = { name, url: str2(obj.url) };
+    if (obj.alias && typeof obj.alias === "object")
+      res.alias = normalizeAliasMap2(obj.alias);
+    return res;
+  });
+  if (out !== void 0)
+    fm.includes = out;
+}
+function normalizeProcedures2(fm) {
+  const out = coerceList2(fm.procedures, (p) => {
+    const obj = asRecord2(p);
+    if (!obj)
+      return null;
+    const id = str2(obj.id);
+    if (!id)
+      return null;
+    return {
+      id,
+      name: str2(obj.name),
+      path: str2(obj.path),
+      ...obj.source_template ? { source_template: str2(obj.source_template) } : {}
+    };
+  });
+  if (out !== void 0)
+    fm.procedures = out;
+}
+function normalizeSkills2(fm) {
+  const out = coerceList2(fm.skills, (s) => {
+    const obj = asRecord2(s);
+    if (!obj)
+      return null;
+    const name = str2(obj.name);
+    if (!name)
+      return null;
+    return {
+      name,
+      repo: str2(obj.repo),
+      path: str2(obj.path),
+      ...obj.commit ? { commit: str2(obj.commit) } : {},
+      ...obj.sha256 ? { sha256: str2(obj.sha256) } : {},
+      ...obj.license ? { license: str2(obj.license) } : {},
+      ...obj.source_template ? { source_template: str2(obj.source_template) } : {}
+    };
+  });
+  if (out !== void 0)
+    fm.skills = out;
+}
+function normalizeTopLevelAlias2(fm) {
+  if (fm.alias && typeof fm.alias === "object")
+    fm.alias = normalizeAliasMap2(fm.alias);
+}
+function normalizeMatrices2(fm) {
+  if (!Array.isArray(fm.matrices))
+    return;
+  for (const raw of fm.matrices) {
+    const m = asRecord2(raw);
+    if (!m)
+      continue;
+    if (m.params && typeof m.params === "string" && !m.values) {
+      m.values = m.params.split(";").map((s) => s.trim());
+    }
+    if (m.widget && !m.widgetType) {
+      m.widgetType = m.widget;
+      delete m.widget;
+    }
+  }
+}
+function normalizeLevel2(fm) {
+  if (typeof fm.level !== "string")
+    return;
+  const trimmed = fm.level.trim();
+  if (trimmed === "" || !Number.isInteger(Number(trimmed)))
+    return;
+  fm.level = Number(trimmed);
+}
+function parseFrontmatter2(content, onError) {
+  const match = normalizeSource2(content).match(YAML_BLOCK_RE2);
+  if (!match)
+    return null;
+  const fm = parseYaml3(match[1], onError);
+  for (const normalize of NORMALIZERS2)
+    normalize(fm);
+  return fm;
+}
+var import_yaml8, NORMALIZERS2;
+var init_yaml = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/parser/yaml.js"() {
+    "use strict";
+    import_yaml8 = __toESM(require_dist(), 1);
+    init_markdown();
+    NORMALIZERS2 = [
+      normalizeParentSpec2,
+      normalizeLegacyFieldNames2,
+      normalizeIncludes2,
+      normalizeProcedures2,
+      normalizeSkills2,
+      normalizeTopLevelAlias2,
+      normalizeMatrices2,
+      normalizeLevel2
+    ];
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/parser/taxonomy.js
+function parseIndexBlock2(content) {
+  const edges = [];
+  const lines = normalizeSource2(content).split("\n");
+  const stack = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("*") && !trimmed.startsWith("-"))
+      continue;
+    const indent = line.search(/\S/);
+    const wikiMatch = /\[\[([^\]]+)\]\]/.exec(trimmed);
+    if (!wikiMatch)
+      continue;
+    const name = wikiMatch[1].trim();
+    while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
+      stack.pop();
+    }
+    if (stack.length > 0 && indent > stack[stack.length - 1].indent) {
+      edges.push({ parent: stack[stack.length - 1].name, child: name });
+    } else {
+      edges.push({ parent: "", child: name });
+    }
+    stack.push({ name, indent });
+  }
+  return edges;
+}
+function printTaxonomyNode2(name, allEdges, lines, depth, ancestors = /* @__PURE__ */ new Set()) {
+  if (name !== "") {
+    if (ancestors.has(name))
+      return;
+    const indent = "  ".repeat(depth);
+    lines.push(`${indent}* [[${name}]]`);
+  }
+  const nextAncestors = name === "" ? ancestors : /* @__PURE__ */ new Set([...ancestors, name]);
+  const children = allEdges.filter((e) => e.parent === name);
+  for (const child of children) {
+    printTaxonomyNode2(child.child, allEdges, lines, depth + 1, nextAncestors);
+  }
+}
+var init_taxonomy = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/parser/taxonomy.js"() {
+    "use strict";
+    init_markdown();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/parser/sections.js
+function sectionName2(rawTitle) {
+  const fm = rawTitle.match(SECTION_RE2);
+  if (fm) {
+    if (fm[1])
+      return fm[1];
+    if (fm[3] != null)
+      return "concepts";
+  }
+  return null;
+}
+function sectionTitle2(rawTitle) {
+  const fm = rawTitle.match(SECTION_RE2);
+  if (fm) {
+    if (fm[2])
+      return fm[2].trim();
+    if (fm[3] != null)
+      return fm[3].trim();
+  }
+  return rawTitle;
+}
+function parseElementHeadingFull2(line) {
+  const match = line.match(UNIFIED_ELEMENT_RE2);
+  if (!match)
+    return null;
+  return {
+    depth: match[1].length,
+    concept: match[2].trim(),
+    name: match[3].trim()
+  };
+}
+function parsePropertyLine2(line) {
+  const match = line.match(PROPERTY_RE2);
+  if (!match)
+    return null;
+  return [match[1], match[2].trim()];
+}
+function parsePropertyValue2(raw) {
+  const value = raw.trim();
+  if (value === "")
+    return "";
+  if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === "string")
+        return parsed;
+    } catch {
+    }
+    return value.slice(1, -1);
+  }
+  if (value.startsWith("'") && value.endsWith("'") && value.length >= 2) {
+    return value.slice(1, -1);
+  }
+  if (value.startsWith("[[") && value.endsWith("]]")) {
+    return value;
+  }
+  if (value.startsWith("[") && value.endsWith("]")) {
+    const inner = value.slice(1, -1).trim();
+    if (inner === "")
+      return [];
+    return inner.split(",").map((part) => parsePropertyValue2(part.trim()));
+  }
+  if (value.startsWith("{") && value.endsWith("}")) {
+    try {
+      return JSON.parse(value);
+    } catch (err) {
+    }
+  }
+  if (value.toLowerCase() === "true")
+    return true;
+  if (value.toLowerCase() === "false")
+    return false;
+  if (value.toLowerCase() === "null")
+    return null;
+  if (/^-?\d+$/.test(value))
+    return parseInt(value, 10);
+  if (/^-?\d+\.\d+$/.test(value))
+    return parseFloat(value);
+  return value;
+}
+function parseConceptSection2(conceptName, content) {
+  const nodes = [];
+  const lines = content.split("\n");
+  let current = null;
+  let descriptionLines = [];
+  const leadingLines = [];
+  let seenElement = false;
+  const headingStack = [];
+  const finishElement = (node) => {
+    node.trailingBlankLine = descriptionLines.length > 0 && descriptionLines[descriptionLines.length - 1] === "";
+    const firstProseIndex = descriptionLines.findIndex((l) => l.trim() !== "");
+    node.descriptionBlankLine = firstProseIndex > 0;
+    node.description = descriptionLines.join("\n").trim();
+    nodes.push(node);
+  };
+  const startElement = (heading) => {
+    if (current) {
+      finishElement(current);
+    }
+    while (headingStack.length > 0 && headingStack[headingStack.length - 1].depth >= heading.depth) {
+      headingStack.pop();
+    }
+    const parent = headingStack.length > 0 ? headingStack[headingStack.length - 1] : void 0;
+    const node = {
+      type: heading.concept,
+      name: heading.name,
+      description: "",
+      fields: {},
+      markers: {},
+      headingDepth: heading.depth,
+      sectionConcept: conceptName,
+      ...parent ? {
+        parentElement: {
+          concept: parent.concept,
+          name: parent.name,
+          ...parent.slug ? { slug: parent.slug } : {}
+        }
+      } : {}
+    };
+    headingStack.push({
+      depth: heading.depth,
+      concept: heading.concept,
+      name: heading.name,
+      slug: node.slug
+    });
+    descriptionLines = [];
+    seenElement = true;
+    return node;
+  };
+  const conceptFields = {};
+  const rawConceptFields = {};
+  let inConceptPrologueProperties = true;
+  const warnings = [];
+  for (const line of lines) {
+    const heading = parseElementHeadingFull2(line);
+    if (heading !== null) {
+      current = startElement(heading);
+      continue;
+    }
+    if (current) {
+      const prop = parsePropertyLine2(line);
+      if (prop !== null) {
+        if (prop[0] === "slug") {
+          current.slug = String(prop[1]);
+          current.slugExplicit = true;
+          if (headingStack.length > 0 && headingStack[headingStack.length - 1].name === current.name) {
+            headingStack[headingStack.length - 1].slug = current.slug;
+          }
+        } else {
+          current.fields[prop[0]] = parsePropertyValue2(prop[1]);
+          current.rawFields = current.rawFields ?? {};
+          current.rawFields[prop[0]] = prop[1];
+        }
+        continue;
+      }
+    } else {
+      if (inConceptPrologueProperties) {
+        if (line.trim() === "" && Object.keys(conceptFields).length === 0) {
+          continue;
+        }
+        const prop = parsePropertyLine2(line);
+        if (prop !== null) {
+          const [key, rawVal] = prop;
+          conceptFields[key] = parsePropertyValue2(rawVal);
+          rawConceptFields[key] = String(rawVal);
+          continue;
+        } else {
+          inConceptPrologueProperties = false;
+        }
+      } else {
+        const prop = parsePropertyLine2(line);
+        if (prop !== null) {
+          warnings.push(`CONCEPT_FIELD_AFTER_PROSE: Concept "${conceptName}" contains property line "${prop[0]}::" after prose before first element`);
+        }
+      }
+    }
+    if (seenElement) {
+      descriptionLines.push(line.replace(/^[ \t]+/, ""));
+    } else {
+      leadingLines.push(line);
+    }
+  }
+  if (current) {
+    finishElement(current);
+  }
+  return {
+    elements: nodes,
+    content: leadingLines.join("\n").trim(),
+    fields: Object.keys(conceptFields).length > 0 ? conceptFields : void 0,
+    rawFields: Object.keys(rawConceptFields).length > 0 ? rawConceptFields : void 0,
+    warnings: warnings.length > 0 ? warnings : void 0
+  };
+}
+function parseMatrixSection2(content, _matrixName) {
+  const rows = parseMarkdownTable2(content);
+  if (rows.length === 0)
+    return [];
+  const colNames = Object.keys(rows[0] || {});
+  const cells = [];
+  for (const row of rows) {
+    const rowName = colNames.length > 0 ? row[colNames[0]] || "" : "";
+    for (let i = 1; i < colNames.length; i++) {
+      if (row[colNames[i]]) {
+        cells.push({ row: rowName, col: colNames[i], value: row[colNames[i]] });
+      }
+    }
+  }
+  return cells;
+}
+function parseMatrixHeaderAxis2(content) {
+  const headerLine = normalizeSource2(content).split("\n").find((l) => /(^|[^\\])\|/.test(l.trim()));
+  if (!headerLine)
+    return null;
+  const [firstCell] = parseTableRow2(headerLine);
+  if (!firstCell)
+    return null;
+  const sepIndex = firstCell.indexOf("\\");
+  if (sepIndex === -1)
+    return null;
+  return {
+    source: firstCell.slice(0, sepIndex).trim(),
+    target: firstCell.slice(sepIndex + 1).trim()
+  };
+}
+function getSectionType2(rawTitle) {
+  const sn = sectionName2(rawTitle);
+  if (!sn)
+    return "other";
+  const s = sn.toLowerCase();
+  if (s === "concepts") {
+    const name = sectionTitle2(rawTitle).toLowerCase();
+    if (name === "index")
+      return "index";
+    return "concept";
+  }
+  if (s === "matrices")
+    return "matrix";
+  return "other";
+}
+var UNIFIED_ELEMENT_RE2, PROPERTY_RE2, SECTION_RE2;
+var init_sections = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/parser/sections.js"() {
+    "use strict";
+    init_markdown();
+    UNIFIED_ELEMENT_RE2 = /^\s*(#{2,6})\s+NN\s+([^:\n]+?):\s+(.*)$/;
+    PROPERTY_RE2 = /^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*::\s*(.*)$/;
+    SECTION_RE2 = /^NN\s+(?:(matrices):\s*(.*)|(.*))/;
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/assertNever.js
+function assertNever2(value, context = "value") {
+  throw new Error(`Unhandled ${context}: ${JSON.stringify(value)}`);
+}
+var init_assertNever = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/assertNever.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/jsonPointer.js
+function isJsonPointer2(pointer) {
+  return POINTER_RE2.test(pointer);
+}
+function resolveJsonPointer(content, pointer) {
+  let current;
+  try {
+    current = JSON.parse(content);
+  } catch {
+    return { ok: false, reason: "invalid-json" };
+  }
+  if (!isJsonPointer2(pointer))
+    return { ok: false, reason: "unknown-pointer" };
+  if (pointer === "")
+    return { ok: true, value: current };
+  for (const raw of pointer.slice(1).split("/")) {
+    const token = unescapeToken(raw);
+    if (Array.isArray(current)) {
+      if (!ARRAY_INDEX_RE.test(token) || Number(token) >= current.length) {
+        return { ok: false, reason: "unknown-pointer" };
+      }
+      current = current[Number(token)];
+    } else if (current !== null && typeof current === "object" && Object.hasOwn(current, token)) {
+      current = current[token];
+    } else {
+      return { ok: false, reason: "unknown-pointer" };
+    }
+  }
+  return { ok: true, value: current };
+}
+var POINTER_RE2, ARRAY_INDEX_RE, unescapeToken;
+var init_jsonPointer = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/jsonPointer.js"() {
+    "use strict";
+    POINTER_RE2 = /^(?:\/(?:[^~/]|~[01])*)*$/;
+    ARRAY_INDEX_RE = /^(?:0|[1-9]\d*)$/;
+    unescapeToken = (token) => token.replace(/~1/g, "/").replace(/~0/g, "~");
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/schema/nature.js
+var init_nature = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/schema/nature.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/naming/contract.js
+function baseOf2(path) {
+  const i = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
+  return i < 0 ? path : path.slice(i + 1);
+}
+function parseName2(basename9) {
+  if (NN_SUFFIX_RE2.test(basename9)) {
+    const stem2 = basename9.replace(NN_SUFFIX_RE2, "");
+    const sidecar = SIDECAR_PATH_RE2.exec(basename9);
+    return sidecar ? { kind: "nn", basename: basename9, stem: stem2, sidecarOf: sidecar[1] } : { kind: "nn", basename: basename9, stem: stem2 };
+  }
+  const dot = basename9.lastIndexOf(".");
+  const hasExt = dot > 0;
+  const stem = hasExt ? basename9.slice(0, dot) : basename9;
+  const ext = hasExt ? basename9.slice(dot + 1) : "";
+  const m = STAMP_SUFFIX_RE2.exec(stem);
+  if (!m)
+    return { kind: "file", basename: basename9, key: stem, ext };
+  return {
+    kind: "file",
+    basename: basename9,
+    key: m[1],
+    ext,
+    stamp: { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 }
+  };
+}
+function formatNNName(stem, blueprint) {
+  const s = stem.toLowerCase();
+  const bp = blueprint.toLowerCase();
+  const conforms = s === bp || s.endsWith(`_${bp}`);
+  return conforms ? `${stem}_NN.md` : `${stem}_${blueprint}_NN.md`;
+}
+function displayStem2(basename9) {
+  if (NN_SUFFIX_RE2.test(basename9))
+    return basename9.replace(NN_SUFFIX_RE2, "");
+  return basename9.replace(/\.md$/i, "");
+}
+function coreBlueprintKey2(parentSpecName) {
+  return (parentSpecName ?? "").trim().toLowerCase().split("_")[0];
+}
+function segmentsOf(path) {
+  return path.replace(/\\/g, "/").split("/").filter((s) => s && s !== ".");
+}
+function roleOf2(i) {
+  const base = baseOf2(i.path);
+  const parsed = parseName2(base);
+  if (parsed.kind === "file")
+    return i.hasSidecar ? "source" : "artifact";
+  if (parsed.sidecarOf !== void 0)
+    return "sidecar";
+  const lower = base.toLowerCase();
+  if (lower === ENTRYPOINT_FILENAME2.toLowerCase())
+    return "entrypoint";
+  if (lower === SPEC_FILENAME2.toLowerCase())
+    return "spec";
+  const bp = coreBlueprintKey2(i.parentSpecName);
+  if (bp === "procedures") {
+    return parsed.stem.toLowerCase() === "procedures" ? "catalog" : "procedure";
+  }
+  return CORE_BLUEPRINT_ROLE2[bp] ?? "knowledge";
+}
+function isExcludedPath(path) {
+  const segs = segmentsOf(path);
+  if (segs.length > 0 && IGNORED_DIRECTORIES.has(segs[0]))
+    return true;
+  return segs.some((s) => s === "archive" || s === "staging" || s.startsWith(".") && s !== "..");
+}
+function formatUtcStamp(at) {
+  return `${pad(at.getUTCFullYear(), 4)}${pad(at.getUTCMonth() + 1)}${pad(at.getUTCDate())}T${pad(at.getUTCHours())}${pad(at.getUTCMinutes())}${pad(at.getUTCSeconds())}Z`;
+}
+function blueprintNameOf(parentSpecName) {
+  return parentSpecName.trim().replace(/_V_\d+-\d+-\d+$/i, "");
+}
+function checkNameInvariant(path, bp) {
+  const base = baseOf2(path);
+  const parsed = parseName2(base);
+  if (parsed.kind !== "nn")
+    return null;
+  const lower = base.toLowerCase();
+  if (lower === ENTRYPOINT_FILENAME2.toLowerCase() || lower === SPEC_FILENAME2.toLowerCase())
+    return null;
+  if (STRUCTURAL_STEM_RE.test(parsed.stem))
+    return null;
+  const hasVersion = VERSION_TOKEN_RE.test(parsed.stem);
+  const stem = parsed.stem.replace(VERSION_TOKEN_RE, "");
+  const blueprint = bp?.trim();
+  if (!blueprint)
+    return hasVersion ? { expected: `${stem}_NN.md` } : null;
+  const s = stem.toLowerCase();
+  const b = blueprint.toLowerCase();
+  const conforms = !hasVersion && (s === b || s.endsWith(`_${b}`));
+  return conforms ? null : { expected: formatNNName(stem, blueprint) };
+}
+function canonicalModelId(id, blueprint) {
+  const bp = blueprintNameOf(blueprint);
+  const probe = `${id.trim()}_NN.md`;
+  const verdict = checkNameInvariant(probe, bp);
+  if (!verdict)
+    return id.trim();
+  return verdict.expected.replace(/_NN\.md$/i, "");
+}
+function isNNName(nameOrPath) {
+  return NN_SUFFIX_RE2.test(baseOf2(nameOrPath));
+}
+var ENTRYPOINT_FILENAME2, SPEC_FILENAME2, SIDECAR_BLUEPRINT, NN_SUFFIX_RE2, SIDECAR_PATH_RE2, STAMP_SUFFIX_RE2, IGNORED_DIRECTORIES, CORE_BLUEPRINT_ROLE2, pad, VERSION_TOKEN_RE, STRUCTURAL_STEM_RE;
+var init_contract = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/naming/contract.js"() {
+    "use strict";
+    init_nature();
+    ENTRYPOINT_FILENAME2 = "domaiNN_NN.md";
+    SPEC_FILENAME2 = "spec_NN.md";
+    SIDECAR_BLUEPRINT = "sidecar";
+    NN_SUFFIX_RE2 = /_NN\.md$/i;
+    SIDECAR_PATH_RE2 = /^(.*\.[^./\\]+)_sidecar_NN\.md$/i;
+    STAMP_SUFFIX_RE2 = /^(.+)_(\d{8}T\d{6}Z)(?:-(\d+))?$/;
+    IGNORED_DIRECTORIES = /* @__PURE__ */ new Set(["backups", "archive", "specs"]);
+    CORE_BLUEPRINT_ROLE2 = {
+      cognnitive: "lineage-record",
+      sidecar: "sidecar",
+      changes: "changeset",
+      workspace: "catalog",
+      sources: "catalog",
+      artifacts: "catalog"
+    };
+    pad = (n, width = 2) => String(n).padStart(width, "0");
+    VERSION_TOKEN_RE = /_V_\d+-\d+-\d+/i;
+    STRUCTURAL_STEM_RE = /^(?:iNNfo|defiNNition|defiNNe|meta-bluepriNNt)(?:_V_\d+-\d+-\d+)?$/i;
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/naming/index.js
+var init_naming = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/naming/index.js"() {
+    "use strict";
+    init_contract();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/sourceRef.js
+function parseSourceRef2(input) {
+  if (!input || typeof input !== "string")
+    return null;
+  const clean = input.trim();
+  if (/#L\d+(-L\d+)?$/i.test(clean))
+    return null;
+  if (/^src-\d+/i.test(clean))
+    return null;
+  const legacy = clean.match(new RegExp(`^([^#:]+?)(?:#(${SLUG2}))?$`));
+  if (!legacy)
+    return null;
+  const resolved = resolveUnitPath2(legacy[1]);
+  if (!resolved)
+    return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename3(resolved.filePath),
+    slug: legacy[2] || void 0,
+    kind: resolved.kind,
+    raw: clean
+  };
+}
+function parseCitation2(input) {
+  if (!input || typeof input !== "string")
+    return null;
+  const clean = input.trim();
+  if (!clean)
+    return null;
+  if (/[#@]L\d+(-L\d+)?$/i.test(clean))
+    return null;
+  if (/^src-\d+/i.test(clean))
+    return null;
+  if (clean.includes("@")) {
+    return parseKnowledgeUnitRef2(clean);
+  }
+  if (clean.includes("#")) {
+    const ref = parseSourceRef2(clean);
+    if (ref && ref.slug) {
+      return { ...ref, legacyHash: true };
+    }
+    return null;
+  }
+  const resolved = resolveUnitPath2(clean);
+  if (!resolved)
+    return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename3(resolved.filePath),
+    kind: resolved.kind,
+    raw: clean
+  };
+}
+function basename3(p) {
+  return p.split(/[/\\]/).pop() || p;
+}
+function levenshteinDistance(a, b) {
+  const an = a.length;
+  const bn = b.length;
+  if (an === 0)
+    return bn;
+  if (bn === 0)
+    return an;
+  const matrix = Array.from({ length: bn + 1 }, () => new Array(an + 1).fill(0));
+  for (let i = 0; i <= an; i++)
+    matrix[0][i] = i;
+  for (let j = 0; j <= bn; j++)
+    matrix[j][0] = j;
+  for (let j = 1; j <= bn; j++) {
+    for (let i = 1; i <= an; i++) {
+      const cost = a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1;
+      matrix[j][i] = Math.min(matrix[j - 1][i] + 1, matrix[j][i - 1] + 1, matrix[j - 1][i - 1] + cost);
+    }
+  }
+  return matrix[bn][an];
+}
+function slugifyHeading2(text) {
+  const stripped = nfc2(text).replace(/^\s*#{1,6}\s*/, "").replace(/[*_`]/g, "");
+  return stripped.split(/(?<=[\p{L}\p{N}])--(?=[\p{L}\p{N}])/gu).map(slugifyFlat2).join("--");
+}
+function slugifyFlat2(part) {
+  const transliterated = stripCombiningMarks2(part);
+  const dashed = transliterated.trim().toLowerCase().replace(/\s+/g, "-");
+  const filtered = dashed.replace(/[^\p{L}\p{N}-]+/gu, "");
+  return filtered.replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+}
+function extractHeadings(markdown) {
+  const lines = markdown.split("\n");
+  const seen = /* @__PURE__ */ new Map();
+  const headings = [];
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/^(#{1,6})\s+(.+?)\s*$/);
+    if (!match)
+      continue;
+    const level = match[1].length;
+    const text = match[2].replace(/[*_`]/g, "").trim();
+    const { concept, element, slug: baseSlug } = headingSlugParts2(text);
+    const occurrence = seen.get(baseSlug) ?? 0;
+    seen.set(baseSlug, occurrence + 1);
+    const slug = occurrence === 0 ? baseSlug : `${baseSlug}-${occurrence}`;
+    headings.push({ level, text, slug, line: i, concept, element });
+  }
+  return headings;
+}
+function resolveHeadingSection(markdown, slug) {
+  const headings = extractHeadings(markdown);
+  const index = headings.findIndex((h) => h.slug === slug);
+  if (index === -1)
+    return null;
+  const heading = headings[index];
+  const lines = markdown.split("\n");
+  let endLine = lines.length;
+  for (let j = index + 1; j < headings.length; j++) {
+    if (headings[j].level <= heading.level) {
+      endLine = headings[j].line;
+      break;
+    }
+  }
+  return { heading, startLine: heading.line, endLine };
+}
+function headingSlugParts2(text) {
+  const clean = text.trim();
+  const boundary = clean.indexOf(":");
+  if (boundary > 0) {
+    const concept = clean.slice(0, boundary).trim();
+    const element = clean.slice(boundary + 1).trim();
+    if (concept && element) {
+      return {
+        slug: `${slugifyHeading2(concept)}--${slugifyHeading2(element)}`,
+        concept,
+        element
+      };
+    }
+  }
+  return { slug: slugifyHeading2(clean) };
+}
+function slugifyUnitHeading2(level, text) {
+  const clean = text.trim();
+  const { slug } = headingSlugParts2(clean);
+  const clamped = Math.min(6, Math.max(1, Math.floor(level) || 1));
+  return { level: clamped, text: clean, slug };
+}
+function normalizeName2(name) {
+  return nfc2(name).trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_\-\p{L}\p{N}]+/gu, "");
+}
+function resolveUnitPath2(rawPath) {
+  const trimmed = rawPath.trim();
+  if (!trimmed || /^https?:\/\//i.test(trimmed))
+    return null;
+  const segments = trimmed.split(/[/\\]/);
+  if (segments.some((s) => s === ".."))
+    return null;
+  const forward = segments.join("/");
+  const isMd = /\.md$/i.test(forward);
+  const isCsv = /\.csv$/i.test(forward);
+  const isJson = /\.json$/i.test(forward);
+  if (!isMd && !isCsv && !isJson) {
+    if (new RegExp(`^${MODEL_ID2}$`).test(trimmed)) {
+      return { filePath: trimmed, kind: "model" };
+    }
+    return null;
+  }
+  if (/^[a-zA-Z]:[/\\]/.test(trimmed) || trimmed.startsWith("/"))
+    return null;
+  return { filePath: forward, kind: roleOf2({ path: forward }) === "knowledge" ? "model" : "source" };
+}
+function decodeSegment2(segment) {
+  try {
+    return decodeURIComponent(segment);
+  } catch (err) {
+    return null;
+  }
+}
+function parsePointerRef2(resolved, rawPointer, raw) {
+  if (rawPointer.includes("&"))
+    return null;
+  const pointer = decodeSegment2(rawPointer);
+  if (pointer === null || !isJsonPointer2(pointer))
+    return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename3(resolved.filePath),
+    kind: resolved.kind,
+    unit: { kind: "pointer", pointer },
+    subunits: [],
+    raw
+  };
+}
+function parseKnowledgeUnitRef2(input) {
+  if (!input || typeof input !== "string")
+    return null;
+  const clean = input.trim();
+  const at = clean.indexOf("@");
+  if (at === -1)
+    return null;
+  const resolved = resolveUnitPath2(clean.slice(0, at));
+  if (!resolved)
+    return null;
+  if (/\.json$/i.test(resolved.filePath))
+    return parsePointerRef2(resolved, clean.slice(at + 1), clean);
+  const rawSegments = clean.slice(at + 1).split("&");
+  if (rawSegments.some((s) => s.trim() === ""))
+    return null;
+  const decoded = [];
+  for (const part of rawSegments) {
+    const text = decodeSegment2(part.trim());
+    if (text === null || text.trim() === "")
+      return null;
+    decoded.push(text.trim());
+  }
+  const [unitRaw, ...subunits] = decoded;
+  if (!/\.(md|csv|json)$/i.test(resolved.filePath)) {
+    if (unitRaw.startsWith("concept:")) {
+      const slug = unitRaw.slice("concept:".length);
+      if (!new RegExp(`^${SLUG2}$`).test(slug))
+        return null;
+      const unit3 = {
+        kind: "header",
+        level: 1,
+        text: slug,
+        slug
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename3(resolved.filePath),
+        slug,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    if (unitRaw.startsWith("matrix:")) {
+      const slug = unitRaw.slice("matrix:".length);
+      if (!new RegExp(`^${SLUG2}$`).test(slug))
+        return null;
+      const unit3 = {
+        kind: "matrix",
+        matrixSlug: slug,
+        ...subunits.length === 2 ? { rowSlug: subunits[0], colSlug: subunits[1] } : {}
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename3(resolved.filePath),
+        slug,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    if (!new RegExp(`^${SLUG2}$`).test(unitRaw))
+      return null;
+    if (subunits.length === 2) {
+      const unit3 = {
+        kind: "matrix",
+        matrixSlug: unitRaw,
+        rowSlug: subunits[0],
+        colSlug: subunits[1]
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename3(resolved.filePath),
+        slug: unitRaw,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    const unit2 = {
+      kind: "element",
+      slug: unitRaw
+    };
+    return {
+      filePath: resolved.filePath,
+      fileName: basename3(resolved.filePath),
+      slug: unitRaw,
+      kind: "model",
+      unit: unit2,
+      subunits,
+      raw: clean
+    };
+  }
+  const isCsv = /\.csv$/i.test(resolved.filePath);
+  if (isCsv) {
+    if (resolved.kind === "model")
+      return null;
+    return {
+      filePath: resolved.filePath,
+      fileName: basename3(resolved.filePath),
+      kind: "source",
+      unit: { kind: "row", id: unitRaw },
+      subunits,
+      raw: clean
+    };
+  }
+  const heading = unitRaw.match(HEADER_UNIT2);
+  if (!heading)
+    return null;
+  const headed = slugifyUnitHeading2(heading[1].length, heading[2]);
+  if (!headed.text || !headed.slug)
+    return null;
+  const unit = {
+    kind: "header",
+    level: headed.level,
+    text: headed.text,
+    slug: headed.slug
+  };
+  return {
+    filePath: resolved.filePath,
+    fileName: basename3(resolved.filePath),
+    slug: headed.slug,
+    kind: resolved.kind,
+    unit,
+    subunits,
+    raw: clean
+  };
+}
+function serializeKnowledgeUnitRef2(filePath, unit, subunits = []) {
+  let head;
+  switch (unit.kind) {
+    case "header":
+      head = `${"#".repeat(unit.level)} ${unit.text}`;
+      break;
+    case "row":
+      head = unit.id;
+      break;
+    case "pointer":
+      return `${filePath}@${unit.pointer.replace(/%/g, "%25").replace(/&/g, "%26")}`;
+    case "element":
+      head = unit.slug;
+      break;
+    case "matrix": {
+      const row = unit.rowSlug ?? subunits[0];
+      const col = unit.colSlug ?? subunits[1];
+      if (row && col) {
+        return `${filePath}@${unit.matrixSlug}&${normalizeName2(row)}&${normalizeName2(col)}`;
+      }
+      return `${filePath}@${unit.matrixSlug}`;
+    }
+    default:
+      return assertNever2(unit, "knowledge unit kind");
+  }
+  const tail = subunits.map((s) => normalizeName2(s)).filter((s) => s !== "");
+  return tail.length > 0 ? `${filePath}@${head}&${tail.join("&")}` : `${filePath}@${head}`;
+}
+var SLUG2, MODEL_ID2, SOURCE_FIELD_NAMES2, HEADER_UNIT2;
+var init_sourceRef = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/sourceRef.js"() {
+    "use strict";
+    init_slug();
+    init_assertNever();
+    init_jsonPointer();
+    init_naming();
+    SLUG2 = "[a-z0-9]+(?:-[a-z0-9]+)*";
+    MODEL_ID2 = "[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*";
+    SOURCE_FIELD_NAMES2 = /* @__PURE__ */ new Set(["sources", "source"]);
+    HEADER_UNIT2 = /^(#{1,6})\s*(.+?)\s*$/;
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/parser/serializer.js
+function serializePropertyValue2(value, rawText) {
+  if (rawText !== void 0 && rawTextStillMatches2(rawText, value)) {
+    return rawText;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.startsWith("[[") && trimmed.endsWith("]]")) {
+      return trimmed;
+    }
+    return serializeScalarString2(value);
+  }
+  if (Array.isArray(value)) {
+    const hasWikiLink = value.some((v) => typeof v === "string" && v.trim().startsWith("[[") && v.trim().endsWith("]]"));
+    if (hasWikiLink) {
+      return `[${value.map((v) => serializePropertyValue2(v)).join(", ")}]`;
+    }
+    const list = serializeListValue2(value);
+    if (list !== null)
+      return list;
+  }
+  return JSON.stringify(value);
+}
+function rawTextStillMatches2(rawText, value) {
+  try {
+    return JSON.stringify(parsePropertyValue2(rawText)) === JSON.stringify(value);
+  } catch {
+    return false;
+  }
+}
+function serializeScalarString2(value) {
+  if (needsQuoting2(value))
+    return JSON.stringify(value);
+  return value;
+}
+function needsQuoting2(value) {
+  if (value === "")
+    return true;
+  if (value !== value.trim())
+    return true;
+  if (/\n/.test(value))
+    return true;
+  if (/^[[{"']/.test(value))
+    return true;
+  const lower = value.toLowerCase();
+  if (lower === "true" || lower === "false" || lower === "null")
+    return true;
+  if (/^-?\d+$/.test(value) || /^-?\d+\.\d+$/.test(value))
+    return true;
+  return false;
+}
+function serializeListValue2(value) {
+  if (value.length === 0)
+    return "[]";
+  if (!value.every(isSafeListItem2))
+    return null;
+  return `[${value.map(String).join(", ")}]`;
+}
+function dedupeCitationList2(value) {
+  if (!Array.isArray(value))
+    return value;
+  const seen = /* @__PURE__ */ new Set();
+  const kept = [];
+  for (const item of value) {
+    const text = String(item).trim();
+    const parsed = parseCitation2(text);
+    const key = parsed?.unit ? serializeKnowledgeUnitRef2(parsed.filePath, parsed.unit, parsed.subunits ?? []) : parsed?.filePath ? parsed.slug ? `${parsed.filePath}#${parsed.slug}` : parsed.filePath : text.toLowerCase();
+    if (seen.has(key))
+      continue;
+    seen.add(key);
+    kept.push(item);
+  }
+  return kept.length === value.length ? value : kept;
+}
+function isSafeListItem2(v) {
+  if (typeof v === "number" || typeof v === "boolean")
+    return true;
+  return typeof v === "string" && !/[,[\]]/.test(v);
+}
+function rawFrontmatterStillMatches2(rawFrontmatter, fm) {
+  try {
+    const reparsed = parseFrontmatter2(rawFrontmatter, () => {
+    });
+    return JSON.stringify(reparsed) === JSON.stringify(fm);
+  } catch {
+    return false;
+  }
+}
+function serializeKnowledge2(model) {
+  const lines = [];
+  const fm = model.frontmatter;
+  const useRawFrontmatter = model.rawFrontmatter !== void 0 && rawFrontmatterStillMatches2(model.rawFrontmatter, fm);
+  if (useRawFrontmatter) {
+    lines.push(...model.rawFrontmatter.split("\n"));
+  } else {
+    lines.push("---");
+    if (fm.level !== 3 || fm.spec_version) {
+      lines.push(`spec_version: "${fm.spec_version || "V_0-5-0"}"`);
+    }
+    if (fm.spec_url) {
+      lines.push(`spec_url: "${fm.spec_url}"`);
+    }
+    if (fm.knowledge_slug) {
+      lines.push(`knowledge_slug: "${fm.knowledge_slug}"`);
+    }
+    if (fm.workspace_id) {
+      lines.push(`workspace_id: "${fm.workspace_id}"`);
+    }
+    if (fm.level !== void 0)
+      lines.push(`level: ${fm.level}`);
+    if (fm.parent_spec) {
+      lines.push("parent_spec:");
+      lines.push(`  name: "${fm.parent_spec.name}"`);
+      lines.push(`  url: "${fm.parent_spec.url}"`);
+    } else if (fm.parent !== void 0) {
+      const val = fm.parent;
+      if (typeof val === "string") {
+        lines.push(`parent: "${val}"`);
+      } else {
+        lines.push((0, import_yaml10.stringify)({ parent: val }).trim());
+      }
+    }
+    if (fm.knowledge_version) {
+      lines.push(`knowledge_version: "${fm.knowledge_version}"`);
+    }
+    if (fm.blueprint_version)
+      lines.push(`blueprint_version: "${fm.blueprint_version}"`);
+    if (fm.blueprint_name)
+      lines.push(`blueprint_name: "${fm.blueprint_name}"`);
+    if (fm.knowledge_dir)
+      lines.push(`knowledge_dir: "${fm.knowledge_dir}"`);
+    if (fm.blueprints_dir)
+      lines.push(`blueprints_dir: "${fm.blueprints_dir}"`);
+    if (fm.title)
+      lines.push(`title: "${fm.title}"`);
+    if (fm.mode)
+      lines.push(`mode: "${fm.mode}"`);
+    if (fm.template !== void 0) {
+      const val = fm.template;
+      lines.push((0, import_yaml10.stringify)({ template: val }).trim());
+    }
+    if (fm.last_saved !== void 0) {
+      lines.push(`last_saved: "${fm.last_saved}"`);
+    }
+    if (fm.last_updated !== void 0) {
+      lines.push(`last_updated: "${fm.last_updated}"`);
+    }
+    const matrices = fm.matrices;
+    if (matrices && matrices.length > 0) {
+      lines.push("matrices:");
+      for (const m of matrices) {
+        lines.push(`  - name: "${m.name}"`);
+        if (m.slug)
+          lines.push(`    slug: "${m.slug}"`);
+        lines.push(`    source: "${m.source}"`);
+        lines.push(`    target: "${m.target}"`);
+        if (m.values && m.values.length > 0) {
+          lines.push(`    values: [${m.values.join(", ")}]`);
+        } else if (m.params) {
+          lines.push(`    params: "${m.params}"`);
+        }
+        if (m.widgetType)
+          lines.push(`    widget: "${m.widgetType}"`);
+        if (m.description)
+          lines.push(`    description: "${m.description}"`);
+        if (m.label)
+          lines.push(`    label: "${m.label}"`);
+        if (m.min_color)
+          lines.push(`    min_color: "${m.min_color}"`);
+        if (m.max_color)
+          lines.push(`    max_color: "${m.max_color}"`);
+      }
+    }
+    if (fm.concepts && fm.concepts.length > 0) {
+      lines.push("concepts:");
+      for (const c of fm.concepts) {
+        lines.push(`  - name: "${c.name}"`);
+        if (c.slug)
+          lines.push(`    slug: "${c.slug}"`);
+        if (c.icon)
+          lines.push(`    icon: "${c.icon}"`);
+        if (c.type)
+          lines.push(`    type: "${c.type}"`);
+        if (c.color)
+          lines.push(`    color: "${c.color}"`);
+        if (c.weight !== void 0)
+          lines.push(`    weight: ${c.weight}`);
+      }
+    }
+    for (const [key, value] of Object.entries(fm)) {
+      if (CONSTRUCTED_FRONTMATTER_KEYS2.has(key) || value === void 0)
+        continue;
+      lines.push((0, import_yaml10.stringify)({ [key]: value }).trim());
+    }
+    lines.push("---");
+  }
+  lines.push("");
+  if (model.rawPreamble) {
+    lines.push(...model.rawPreamble.split("\n"));
+    lines.push("");
+  }
+  const headingBlankLine = (sectionKey, fallback) => model.sectionBlankLine?.[sectionKey.toLowerCase()] ?? fallback;
+  let indexEmitted = false;
+  const emitIndex = () => {
+    if (indexEmitted)
+      return;
+    indexEmitted = true;
+    if (model.taxonomy.length === 0)
+      return;
+    lines.push("# NN index");
+    if (headingBlankLine("index", false))
+      lines.push("");
+    const hasEmptyParent = model.taxonomy.some((e) => e.parent === "");
+    if (hasEmptyParent) {
+      printTaxonomyNode2("", model.taxonomy, lines, -1);
+    } else {
+      const allParents = new Set(model.taxonomy.map((e) => e.parent));
+      const allChildren = new Set(model.taxonomy.map((e) => e.child));
+      const rootNames = [...allParents].filter((p) => !allChildren.has(p));
+      for (const rootName of rootNames) {
+        printTaxonomyNode2(rootName, model.taxonomy, lines, 0);
+      }
+    }
+    lines.push("");
+  };
+  const emittedConcepts = /* @__PURE__ */ new Set();
+  const emittedElements = /* @__PURE__ */ new Set();
+  const allElements = [];
+  for (const [, list] of model.elements.entries()) {
+    allElements.push(...list);
+  }
+  const emitElement = (node, depth, isLast) => {
+    emittedElements.add(node);
+    const hDepth = node.headingDepth || depth;
+    const hashes = "#".repeat(hDepth);
+    lines.push(`${hashes} NN ${node.type}: ${node.name}`);
+    if (node.slugExplicit && node.slug)
+      lines.push(`slug:: ${node.slug}`);
+    for (const [k, v] of Object.entries(node.fields)) {
+      const value = SOURCE_FIELD_NAMES2.has(k.toLowerCase()) ? dedupeCitationList2(v) : v;
+      const raw = value === v ? node.rawFields?.[k] : void 0;
+      lines.push(`${k}:: ${serializePropertyValue2(value, raw)}`);
+    }
+    if (node.description) {
+      if (node.descriptionBlankLine)
+        lines.push("");
+      for (const descLine of node.description.split("\n")) {
+        lines.push(descLine);
+      }
+    }
+    const children = allElements.filter((ch) => !emittedElements.has(ch) && (ch.parentSlug && node.slug && ch.parentSlug.toLowerCase() === node.slug.toLowerCase() || ch.parentElement && ch.parentElement.concept.toLowerCase() === node.type.toLowerCase() && (ch.parentElement.name.toLowerCase() === node.name.toLowerCase() || ch.parentElement.slug && node.slug && ch.parentElement.slug.toLowerCase() === node.slug.toLowerCase())));
+    if (children.length > 0) {
+      if (lines.length > 0 && lines[lines.length - 1] !== "") {
+        lines.push("");
+      }
+      children.forEach((child, cIdx) => {
+        const isChildLast = cIdx === children.length - 1;
+        emitElement(child, hDepth + 1, isChildLast);
+      });
+    }
+    if (isLast || node.trailingBlankLine !== false) {
+      if (lines.length > 0 && lines[lines.length - 1] !== "") {
+        lines.push("");
+      }
+    }
+  };
+  const emitConceptSection = (conceptName) => {
+    const key = conceptName.toLowerCase();
+    if (emittedConcepts.has(key))
+      return;
+    emittedConcepts.add(key);
+    const elementNodes = model.elements.get(conceptName);
+    const rawBody = model.rawSections?.[conceptName];
+    const unEmitted = elementNodes?.filter((n) => !emittedElements.has(n)) ?? [];
+    const hasUnEmitted = unEmitted.length > 0;
+    const cFields = model.conceptFields?.[conceptName];
+    const hasConceptFields = cFields && Object.keys(cFields).length > 0;
+    if (!hasUnEmitted && (!rawBody || !rawBody.trim()) && !hasConceptFields)
+      return;
+    lines.push(`# NN ${conceptName}`);
+    const hasProperties = Boolean(hasConceptFields);
+    if (headingBlankLine(conceptName, true) && !hasProperties) {
+      lines.push("");
+    }
+    if (hasConceptFields) {
+      for (const [k, v] of Object.entries(cFields)) {
+        const raw = model.rawConceptFields?.[conceptName]?.[k];
+        lines.push(`${k}:: ${serializePropertyValue2(v, raw)}`);
+      }
+    }
+    if (hasProperties && (hasUnEmitted || rawBody && rawBody.trim())) {
+      lines.push("");
+    }
+    if (hasUnEmitted) {
+      unEmitted.forEach((node, idx) => {
+        const isLast = idx === unEmitted.length - 1;
+        emitElement(node, 2, isLast);
+      });
+    } else if (rawBody) {
+      lines.push(rawBody);
+      lines.push("");
+    } else {
+      lines.push("");
+    }
+  };
+  const matrixBlankLine = (name) => headingBlankLine(`matrices: ${name}`, false);
+  const emitMatrixTable = (matrix) => {
+    lines.push(`# NN matrices: ${matrix.name}`);
+    if (matrixBlankLine(matrix.name))
+      lines.push("");
+    const colSet = new Set(matrix.cells.map((c) => c.col));
+    const rowSet = new Set(matrix.cells.map((c) => c.row));
+    const cols = Array.from(colSet);
+    const rows = Array.from(rowSet);
+    const cellMap = new Map(matrix.cells.map((c) => [`${c.row}||${c.col}`, c.value]));
+    const headerLine = `| ${matrix.source} \\ ${matrix.target} | ${cols.join(" | ")} |`;
+    const sepLine = `| :--- | ${cols.map(() => ":---:").join(" | ")} |`;
+    lines.push(headerLine);
+    lines.push(sepLine);
+    for (const row of rows) {
+      const vals = cols.map((c) => cellMap.get(`${row}||${c}`) || "-");
+      lines.push(`| ${row} | ${vals.join(" | ")} |`);
+    }
+    lines.push("");
+  };
+  const emittedMatrices = /* @__PURE__ */ new Set();
+  const emitMatrixSection = (matrixName) => {
+    const key = matrixName.toLowerCase();
+    if (emittedMatrices.has(key))
+      return;
+    emittedMatrices.add(key);
+    const matrix = model.matrices.find((m) => m.name.toLowerCase() === key);
+    if (matrix)
+      emitMatrixTable(matrix);
+  };
+  const emittedOpaque = /* @__PURE__ */ new Set();
+  const emitOpaqueSection = (title) => {
+    if (emittedOpaque.has(title))
+      return;
+    emittedOpaque.add(title);
+    const text = model.rawOtherSections?.[title];
+    if (!text || !text.trim())
+      return;
+    for (const line of text.split("\n"))
+      lines.push(line);
+    lines.push("");
+  };
+  const isOpaque = (entry) => model.rawOtherSections !== void 0 && Object.prototype.hasOwnProperty.call(model.rawOtherSections, entry);
+  for (const entry of model.sectionOrder ?? []) {
+    if (entry === "index")
+      emitIndex();
+    else if (entry.startsWith("matrices: "))
+      emitMatrixSection(entry.slice("matrices: ".length));
+    else if (isOpaque(entry))
+      emitOpaqueSection(entry);
+    else
+      emitConceptSection(entry);
+  }
+  emitIndex();
+  for (const [conceptName] of model.elements.entries())
+    emitConceptSection(conceptName);
+  if (model.conceptFields) {
+    for (const conceptName of Object.keys(model.conceptFields))
+      emitConceptSection(conceptName);
+  }
+  if (model.rawSections) {
+    for (const conceptName of Object.keys(model.rawSections))
+      emitConceptSection(conceptName);
+  }
+  for (const matrix of model.matrices)
+    emitMatrixSection(matrix.name);
+  if (model.rawOtherSections) {
+    for (const title of Object.keys(model.rawOtherSections))
+      emitOpaqueSection(title);
+  }
+  return lines.join("\n");
+}
+var import_yaml10, CONSTRUCTED_FRONTMATTER_KEYS2;
+var init_serializer = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/parser/serializer.js"() {
+    "use strict";
+    init_yaml();
+    import_yaml10 = __toESM(require_dist(), 1);
+    init_taxonomy();
+    init_sections();
+    init_sourceRef();
+    CONSTRUCTED_FRONTMATTER_KEYS2 = /* @__PURE__ */ new Set([
+      "spec_version",
+      "spec_url",
+      "knowledge_slug",
+      "workspace_id",
+      "level",
+      "parent_spec",
+      "parent",
+      "knowledge_version",
+      "blueprint_version",
+      "blueprint_name",
+      "knowledge_dir",
+      "blueprints_dir",
+      "title",
+      "mode",
+      "template",
+      "last_saved",
+      "last_updated",
+      "matrices",
+      "concepts"
+    ]);
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/parser/core.js
+function deriveElementSlugs2(elements) {
+  const usedSlugs = /* @__PURE__ */ new Map();
+  const colliding = /* @__PURE__ */ new Map();
+  for (const [conceptName, elementNodes] of elements.entries()) {
+    for (const el of elementNodes) {
+      if (el.slug === void 0) {
+        const ownerConcept = typeof el.fields["concept"] === "string" && el.fields["concept"].trim() !== "" ? el.fields["concept"].trim() : void 0;
+        el.slug = ownerConcept ? slugify2(`${ownerConcept}.${el.name}`) : slugify2(el.name);
+      }
+      const existing = usedSlugs.get(el.slug);
+      if (existing) {
+        if (!colliding.has(el.slug)) {
+          const set = /* @__PURE__ */ new Set([existing.name, el.name]);
+          colliding.set(el.slug, { elements: set, concept: conceptName });
+        } else {
+          colliding.get(el.slug).elements.add(el.name);
+        }
+      } else {
+        usedSlugs.set(el.slug, { name: el.name, concept: conceptName });
+      }
+    }
+  }
+  for (const [, elementNodes] of elements.entries()) {
+    for (const el of elementNodes) {
+      if (el.parentElement) {
+        if (!el.parentElement.slug) {
+          let parentNode;
+          const parentConceptNodes = elements.get(el.parentElement.concept);
+          if (parentConceptNodes) {
+            parentNode = parentConceptNodes.find((p) => p.name.toLowerCase() === el.parentElement.name.toLowerCase());
+          }
+          if (!parentNode) {
+            for (const [, nodes] of elements.entries()) {
+              parentNode = nodes.find((p) => p.name.toLowerCase() === el.parentElement.name.toLowerCase() && p.type.toLowerCase() === el.parentElement.concept.toLowerCase());
+              if (parentNode)
+                break;
+            }
+          }
+          if (parentNode?.slug) {
+            el.parentElement.slug = parentNode.slug;
+          }
+        }
+        if (el.parentElement.slug && !el.parentSlug) {
+          el.parentSlug = el.parentElement.slug;
+        }
+      }
+    }
+  }
+  return Array.from(colliding.entries()).map(([slug, info]) => ({
+    slug,
+    elements: Array.from(info.elements),
+    concept: info.concept
+  }));
+}
+function splitTopLevelSections2(text) {
+  const lines = text.split("\n");
+  const sections = [];
+  let currentLines = [];
+  let inCodeFence = false;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("```") || trimmed.startsWith("~~~")) {
+      inCodeFence = !inCodeFence;
+    }
+    if (!inCodeFence && /^#\s/.test(line)) {
+      if (currentLines.length > 0) {
+        sections.push(currentLines.join("\n"));
+        currentLines = [];
+      }
+    }
+    currentLines.push(line);
+  }
+  if (currentLines.length > 0) {
+    sections.push(currentLines.join("\n"));
+  }
+  return sections;
+}
+function parseKnowledge2(content) {
+  const normalizedContent = normalizeSource2(content);
+  const parseWarnings = [];
+  const frontmatter = parseFrontmatter2(normalizedContent, (msg) => parseWarnings.push(msg));
+  const elements = new ElementsMap2();
+  const matrices = [];
+  let taxonomy = [];
+  const conceptFields = {};
+  const rawConceptFields = {};
+  const frontmatterMatch = normalizedContent.match(YAML_BLOCK_RE2);
+  const rawFrontmatter = frontmatterMatch ? frontmatterMatch[0] : void 0;
+  let rawPreamble;
+  if (frontmatterMatch) {
+    const afterFrontmatter = normalizedContent.slice(frontmatterMatch[0].length);
+    const firstSection = afterFrontmatter.search(/^#\s/m);
+    const preamble = (firstSection === -1 ? afterFrontmatter : afterFrontmatter.slice(0, firstSection)).trim();
+    if (preamble)
+      rawPreamble = preamble;
+  }
+  const body = normalizedContent.replace(YAML_BLOCK_RE2, "").trim();
+  const sections = splitTopLevelSections2(body);
+  const rawSections = {};
+  const rawOtherSections = {};
+  const sectionOrder = [];
+  const sectionBlankLine = {};
+  for (const section of sections) {
+    const headerMatch = section.match(/^#\s+(.*)$/m);
+    if (!headerMatch)
+      continue;
+    const rawTitle = headerMatch[1].trim();
+    const type = getSectionType2(rawTitle);
+    const name = sectionTitle2(rawTitle);
+    const bodyContent = section.replace(/^#\s+.*$/m, "").trim();
+    let sectionKey;
+    if (type === "index") {
+      sectionKey = "index";
+    } else if (type === "concept") {
+      sectionKey = name;
+    } else if (type === "matrix") {
+      sectionKey = `matrices: ${name}`;
+    } else {
+      sectionKey = rawTitle;
+      rawOtherSections[rawTitle] = section.trim();
+    }
+    if (sectionKey !== void 0) {
+      sectionOrder.push(sectionKey);
+      const linesAfterHeading = section.split("\n").slice(1);
+      sectionBlankLine[sectionKey.toLowerCase()] = linesAfterHeading.length > 0 && linesAfterHeading[0].trim() === "";
+    }
+    if (type === "index") {
+      if (taxonomy.length === 0) {
+        taxonomy = parseIndexBlock2(bodyContent);
+      }
+    } else if (type === "concept") {
+      const parsed = parseConceptSection2(name, bodyContent);
+      if (parsed.elements.length > 0) {
+        for (const el of parsed.elements) {
+          const targetConcept = el.type || name;
+          const existing = elements.get(targetConcept);
+          if (existing) {
+            existing.push(el);
+          } else {
+            elements.set(targetConcept, [el]);
+          }
+        }
+      }
+      if (parsed.fields) {
+        conceptFields[name] = parsed.fields;
+        if (parsed.rawFields !== void 0)
+          rawConceptFields[name] = parsed.rawFields;
+      }
+      if (parsed.warnings) {
+        parseWarnings.push(...parsed.warnings);
+      }
+      if (parsed.elements.length === 0 && (parsed.content || !parsed.fields && bodyContent.trim())) {
+        rawSections[name] = parsed.content ? parsed.content : bodyContent;
+      }
+    } else if (type === "matrix") {
+      const matrixDecl = frontmatter?.matrices?.find((m) => m.name.toLowerCase() === name.toLowerCase());
+      const cells = parseMatrixSection2(bodyContent, name);
+      const axis = parseMatrixHeaderAxis2(bodyContent);
+      matrices.push({
+        name,
+        source: axis?.source || matrixDecl?.source || "",
+        target: axis?.target || matrixDecl?.target || "",
+        cells
+      });
+    }
+  }
+  const collisions = deriveElementSlugs2(elements);
+  const slugCollisions = collisions.length > 0 ? collisions.map((c) => ({ slug: c.slug, elements: c.elements, concept: c.concept })) : void 0;
+  if (frontmatter?.mode === "FOLDER") {
+    parseWarnings.push("FOLDER mode is removed in V_0-1-3. Use index.md-based workspace with single-file models.");
+  }
+  return {
+    frontmatter: frontmatter ?? {},
+    taxonomy,
+    elements,
+    matrices,
+    slugCollisions,
+    parseWarnings: parseWarnings.length > 0 ? parseWarnings : void 0,
+    conceptFields: Object.keys(conceptFields).length > 0 ? conceptFields : void 0,
+    rawConceptFields: Object.keys(rawConceptFields).length > 0 ? rawConceptFields : void 0,
+    rawSections: Object.keys(rawSections).length > 0 ? rawSections : void 0,
+    rawOtherSections: Object.keys(rawOtherSections).length > 0 ? rawOtherSections : void 0,
+    rawContent: content,
+    sectionOrder: sectionOrder.length > 0 ? sectionOrder : void 0,
+    sectionBlankLine: Object.keys(sectionBlankLine).length > 0 ? sectionBlankLine : void 0,
+    rawFrontmatter,
+    rawPreamble
+  };
+}
+var init_core = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/parser/core.js"() {
+    "use strict";
+    init_types();
+    init_markdown();
+    init_yaml();
+    init_taxonomy();
+    init_sections();
+    init_slug();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/parser/index.js
+var init_parser2 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/parser/index.js"() {
+    "use strict";
+    init_slug();
+    init_slug();
+    init_slug();
+    init_yaml();
+    init_markdown();
+    init_taxonomy();
+    init_sections();
+    init_serializer();
+    init_core();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/schema/extract.js
+function asString(v) {
+  return typeof v === "string" && v.trim() !== "" ? v : void 0;
+}
+function asStringArray(v) {
+  if (Array.isArray(v))
+    return v.map(String);
+  return void 0;
+}
+function asNumber(v) {
+  if (typeof v === "number")
+    return v;
+  if (typeof v === "string" && v.trim() !== "" && !isNaN(Number(v)))
+    return Number(v);
+  return void 0;
+}
+function asObject(v) {
+  return v && typeof v === "object" && !Array.isArray(v) ? v : void 0;
+}
+function cleanWikilink(v) {
+  const str3 = asString(v);
+  if (!str3)
+    return void 0;
+  const trimmed = str3.trim();
+  if (trimmed.startsWith("[[") && trimmed.endsWith("]]")) {
+    const inner = trimmed.slice(2, -2).trim();
+    return inner !== "" ? inner : void 0;
+  }
+  return trimmed !== "" ? trimmed : void 0;
+}
+function extractBlueprintSchema(parsed) {
+  const concepts = [];
+  const fieldsByConcept = /* @__PURE__ */ new Map();
+  const globalFields = [];
+  for (const el of parsed.elements.get(CONCEPT_DEFINITION) ?? []) {
+    const parent = cleanWikilink(el.fields["parent"]);
+    const concept = {
+      name: el.name,
+      parent,
+      type: normalizeConceptType(asString(el.fields["type"]) ?? "text"),
+      icon: asString(el.fields["icon"]),
+      color: asString(el.fields["color"]),
+      weight: asNumber(el.fields["weight"])
+    };
+    const conceptDescription = asString(el.fields["description"]);
+    if (conceptDescription)
+      concept.description = conceptDescription;
+    concepts.push(concept);
+    fieldsByConcept.set(concept.name, []);
+  }
+  for (const el of parsed.elements.get(FIELD_DEFINITION) ?? []) {
+    const rawConcept = el.fields["concept"];
+    let scope = "concept";
+    let targets;
+    let owner;
+    if (rawConcept === "*" || Array.isArray(rawConcept) && rawConcept.length === 1 && String(rawConcept[0]).trim() === "*") {
+      scope = "*";
+    } else if (Array.isArray(rawConcept)) {
+      scope = "list";
+      targets = rawConcept.map(String).map((s) => s.trim()).filter(Boolean);
+    } else if (typeof rawConcept === "string") {
+      const trimmed = rawConcept.trim();
+      if (trimmed === "*") {
+        scope = "*";
+      } else if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        scope = "list";
+        targets = trimmed.slice(1, -1).split(",").map((s) => s.trim()).filter(Boolean);
+      } else if (trimmed !== "") {
+        scope = "concept";
+        owner = trimmed;
+      }
+    }
+    if (!owner && !targets && scope !== "*")
+      continue;
+    const targetBlueprint = asString(el.fields["target_blueprint"]);
+    const multiple = el.fields["multiple"] === true || el.fields["multiple"] === "true";
+    const widget = asString(el.fields["widget"]);
+    const widgetConfig = asObject(el.fields["widget_config"]);
+    const field = {
+      name: el.name,
+      type: normalizeFieldType(asString(el.fields["type"]) ?? "string"),
+      options: asStringArray(el.fields["options"]),
+      target_concepts: asStringArray(el.fields["target_concepts"]),
+      target_blueprint: targetBlueprint,
+      scope
+    };
+    if (multiple)
+      field.multiple = true;
+    if (widget)
+      field.widget = widget;
+    if (widgetConfig)
+      field.widgetConfig = widgetConfig;
+    const fieldDescription = asString(el.fields["description"]);
+    if (fieldDescription)
+      field.description = fieldDescription;
+    if (scope === "concept" && owner) {
+      const list = fieldsByConcept.get(owner);
+      if (list) {
+        list.push(field);
+      } else {
+        fieldsByConcept.set(owner, [field]);
+      }
+    } else {
+      globalFields.push({
+        field,
+        scope: scope === "list" ? "list" : "*",
+        targets
+      });
+    }
+  }
+  for (const concept of concepts) {
+    const fields = fieldsByConcept.get(concept.name);
+    if (fields && fields.length > 0)
+      concept.fields = fields;
+  }
+  const matrices = (parsed.elements.get(MATRIX_DEFINITION) ?? []).map((el) => {
+    const decl = {
+      name: el.name,
+      source: asString(el.fields["source"]) ?? "",
+      target: asString(el.fields["target"]) ?? "",
+      params: asString(el.fields["params"]) ?? ""
+    };
+    const values = asStringArray(el.fields["values"]);
+    if (values)
+      decl.values = values;
+    const widget = asString(el.fields["widget"]);
+    if (widget)
+      decl.widgetType = widget;
+    const widgetConfig = asObject(el.fields["widget_config"]);
+    if (widgetConfig)
+      decl.widgetConfig = widgetConfig;
+    const description = asString(el.fields["description"]);
+    if (description)
+      decl.description = description;
+    return decl;
+  });
+  let taxonomy = [];
+  const hasParentField = concepts.some((c) => c.parent !== void 0);
+  if (hasParentField) {
+    for (const concept of concepts) {
+      taxonomy.push({
+        parent: concept.parent ?? "",
+        child: concept.name
+      });
+    }
+  } else {
+    taxonomy = parsed.taxonomy;
+  }
+  const result = {
+    concepts,
+    matrices,
+    taxonomy
+  };
+  if (globalFields.length > 0) {
+    result.globalFields = globalFields;
+  }
+  return result;
+}
+var CONCEPT_DEFINITION, FIELD_DEFINITION, MATRIX_DEFINITION;
+var init_extract = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/schema/extract.js"() {
+    "use strict";
+    init_parser();
+    init_parser2();
+    CONCEPT_DEFINITION = "Concept Definition";
+    FIELD_DEFINITION = "Field Definition";
+    MATRIX_DEFINITION = "Matrix Definition";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/schema/compose.js
+function canonicalValue(v, key) {
+  if (Array.isArray(v)) {
+    const items = v.map((x) => canonicalValue(x));
+    if (key === "fields") {
+      return [...items].map((x) => JSON.stringify(x)).sort().map((s) => JSON.parse(s));
+    }
+    if (key && SET_LIKE_KEYS.has(key)) {
+      return [...items].map((x) => JSON.stringify(x)).sort();
+    }
+    return items;
+  }
+  if (v && typeof v === "object") {
+    const out = {};
+    for (const k of Object.keys(v).sort()) {
+      if (k === "declaredBy")
+        continue;
+      const val = v[k];
+      if (val === void 0 || val === null)
+        continue;
+      out[k] = canonicalValue(val, k);
+    }
+    return out;
+  }
+  if (typeof v === "string")
+    return v.trim();
+  return v;
+}
+function canonicalizeDefinition(def) {
+  return JSON.stringify(canonicalValue(def));
+}
+function applyAliasToSchema(schema, alias) {
+  if (!alias || !alias.concepts && !alias.fields) {
+    return schema;
+  }
+  const conceptMap = alias.concepts ?? {};
+  const fieldMap = alias.fields ?? {};
+  const conceptRenameLookup = /* @__PURE__ */ new Map();
+  for (const [oldName, newName] of Object.entries(conceptMap)) {
+    conceptRenameLookup.set(oldName.toLowerCase(), newName);
+  }
+  const fieldRenameLookup = /* @__PURE__ */ new Map();
+  for (const [oldKey, newKey] of Object.entries(fieldMap)) {
+    fieldRenameLookup.set(oldKey.toLowerCase(), newKey);
+  }
+  const concepts = schema.concepts.map((c) => {
+    const oldName = c.name;
+    const newConceptName = conceptRenameLookup.get(oldName.toLowerCase()) ?? oldName;
+    const fields = c.fields?.map((f) => {
+      const oldFieldKey = `${oldName.toLowerCase()}.${f.name.toLowerCase()}`;
+      const aliasVal = fieldRenameLookup.get(oldFieldKey);
+      let newFieldName = f.name;
+      if (aliasVal) {
+        newFieldName = aliasVal.includes(".") ? aliasVal.split(".").pop() : aliasVal;
+      }
+      let target_concepts = f.target_concepts;
+      if (target_concepts) {
+        target_concepts = target_concepts.map((tc) => conceptRenameLookup.get(tc.toLowerCase()) ?? tc);
+      }
+      return {
+        ...f,
+        name: newFieldName,
+        ...target_concepts ? { target_concepts } : {}
+      };
+    });
+    return {
+      ...c,
+      name: newConceptName,
+      ...fields ? { fields } : {}
+    };
+  });
+  const matrices = schema.matrices.map((mx) => {
+    const source = conceptRenameLookup.get(mx.source.toLowerCase()) ?? mx.source;
+    const target = conceptRenameLookup.get(mx.target.toLowerCase()) ?? mx.target;
+    return {
+      ...mx,
+      source,
+      target
+    };
+  });
+  const taxonomy = schema.taxonomy.map((edge) => {
+    const parent = conceptRenameLookup.get(edge.parent.toLowerCase()) ?? edge.parent;
+    const child = conceptRenameLookup.get(edge.child.toLowerCase()) ?? edge.child;
+    return { parent, child };
+  });
+  return { concepts, matrices, taxonomy };
+}
+function familySlug(raw) {
+  return String(raw ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+function declMetaOf(fm, label, location) {
+  const family = familySlug(fm?.blueprint_name || fm?.title || label);
+  const version = fm?.blueprint_version ? String(fm.blueprint_version) : void 0;
+  return { family, ...version ? { version } : {}, ...location ? { location } : {} };
+}
+function attachDeclaredBy(schema, provenance, fallback) {
+  const metaFor = (source) => (source ? provenance.meta.get(source) : void 0) ?? fallback;
+  for (const c of schema.concepts) {
+    const cm = metaFor(provenance.concept.get(c.name.toLowerCase())?.source);
+    if (cm)
+      c.declaredBy = cm;
+    for (const f of c.fields ?? []) {
+      const fk = `${c.name.toLowerCase()}.${f.name.toLowerCase()}`;
+      const src = provenance.field.get(fk) ?? provenance.starField.get(f.name.toLowerCase())?.source;
+      const fm = metaFor(src);
+      if (fm)
+        f.declaredBy = fm;
+    }
+  }
+  for (const mx of schema.matrices) {
+    const mm = metaFor(provenance.matrix.get(mx.name.toLowerCase())?.source);
+    if (mm)
+      mx.declaredBy = mm;
+  }
+}
+function expandFieldTargets(concepts, globalFields, sourceLabel, errors, provenance, isHost = true) {
+  if (!globalFields || globalFields.length === 0)
+    return;
+  for (const gf of globalFields) {
+    if (gf.scope === "*") {
+      if (provenance) {
+        const key = gf.field.name.toLowerCase();
+        const prior = provenance.starField.get(key);
+        if (prior) {
+          if (canonicalizeDefinition(prior.def) !== canonicalizeDefinition(gf.field)) {
+            errors.push({
+              path: `includes.Field.${gf.field.name}`,
+              message: `[COMPOSITION_COLLISION] Field Definition "${gf.field.name}" with concept:: * collision detected between included templates "${prior.source}" and "${sourceLabel}". Use frontmatter \`alias\` to resolve collisions.`,
+              severity: "error"
+            });
+          }
+        } else {
+          provenance.starField.set(key, { source: sourceLabel, def: gf.field });
+        }
+      }
+      for (const c of concepts) {
+        if (c.type === "text")
+          continue;
+        if (!c.fields)
+          c.fields = [];
+        const existingField = c.fields.find((f) => f.name.toLowerCase() === gf.field.name.toLowerCase());
+        if (!existingField) {
+          c.fields.push({ ...gf.field });
+        }
+      }
+    } else if (gf.scope === "list") {
+      const targets = gf.targets ?? [];
+      for (const t of targets) {
+        const concept = concepts.find((c) => c.name.toLowerCase() === t.toLowerCase());
+        if (!concept) {
+          errors.push({
+            path: `Field Definition.${gf.field.name}.concept`,
+            message: `Unknown concept "${t}" in Field "${gf.field.name}" concept list`,
+            severity: "error"
+          });
+          continue;
+        }
+        if (!concept.fields)
+          concept.fields = [];
+        const existingIdx = concept.fields.findIndex((f) => f.name.toLowerCase() === gf.field.name.toLowerCase());
+        if (existingIdx === -1) {
+          concept.fields.push({ ...gf.field });
+        } else if (concept.fields[existingIdx].scope !== "concept") {
+          concept.fields[existingIdx] = { ...gf.field };
+        }
+      }
+    }
+  }
+}
+function mergeDefinition(incoming, incomingSource, kindLabel, seen, target, errors, isHost = false) {
+  const key = incoming.name.toLowerCase();
+  const prior = seen.get(key);
+  if (prior) {
+    if (canonicalizeDefinition(prior.def) !== canonicalizeDefinition(incoming)) {
+      if (!isHost && prior.source !== incomingSource) {
+        errors.push({
+          path: `includes.${kindLabel}.${incoming.name}`,
+          message: `[COMPOSITION_COLLISION] ${kindLabel} Definition "${incoming.name}" collision detected between included templates "${prior.source}" and "${incomingSource}". Use frontmatter \`alias\` to resolve collisions.`,
+          severity: "error"
+        });
+      } else {
+        errors.push({
+          path: `includes.${kindLabel}.${incoming.name}`,
+          message: `${kindLabel} Definition "${incoming.name}" is declared with different bodies by both "${prior.source}" and "${incomingSource}" \u2014 \`includes\` composition is additive and MUST NOT redeclare a Definition differently`,
+          severity: "error"
+        });
+      }
+    }
+    return false;
+  }
+  seen.set(key, { source: incomingSource, def: incoming });
+  target.push(incoming);
+  return true;
+}
+function mergeSchemaInto(acc, incoming, incomingSource, provenance, errors, isHost = false) {
+  for (const c of incoming.concepts) {
+    mergeDefinition(c, incomingSource, "Concept", provenance.concept, acc.concepts, errors, isHost);
+    for (const f of c.fields ?? []) {
+      const fieldKey = `${c.name.toLowerCase()}.${f.name.toLowerCase()}`;
+      const priorFieldSource = provenance.field.get(fieldKey);
+      if (priorFieldSource && priorFieldSource !== incomingSource && !isHost) {
+        const existingConcept = acc.concepts.find((ac) => ac.name.toLowerCase() === c.name.toLowerCase());
+        const existingField = existingConcept?.fields?.find((af) => af.name.toLowerCase() === f.name.toLowerCase());
+        if (existingField && JSON.stringify(existingField) !== JSON.stringify(f)) {
+          errors.push({
+            path: `includes.Field.${c.name}.${f.name}`,
+            message: `[COMPOSITION_COLLISION] Field "${c.name}.${f.name}" collision detected between included templates "${priorFieldSource}" and "${incomingSource}". Use frontmatter \`alias\` to resolve collisions.`,
+            severity: "error"
+          });
+        }
+      } else {
+        provenance.field.set(fieldKey, incomingSource);
+      }
+    }
+  }
+  for (const mx of incoming.matrices) {
+    mergeDefinition(mx, incomingSource, "Matrix", provenance.matrix, acc.matrices, errors, isHost);
+  }
+  for (const edge of incoming.taxonomy) {
+    const existingIndex = acc.taxonomy.findIndex((e) => e.child.toLowerCase() === edge.child.toLowerCase());
+    if (existingIndex !== -1) {
+      if (isHost) {
+        acc.taxonomy[existingIndex] = edge;
+      }
+    } else {
+      acc.taxonomy.push(edge);
+    }
+  }
+}
+function resolveBlueprintSchema(templateContent, resolveInclude, _seen = /* @__PURE__ */ new Set(), _depth = 0, _provenance) {
+  const parsed = parseKnowledge2(templateContent);
+  const local = extractBlueprintSchema(parsed);
+  const includes = parsed.frontmatter?.includes ?? [];
+  const selfLabel = String(parsed.frontmatter?.title ?? "this template");
+  const errors = [];
+  const provenance = _provenance ?? {
+    concept: /* @__PURE__ */ new Map(),
+    matrix: /* @__PURE__ */ new Map(),
+    field: /* @__PURE__ */ new Map(),
+    starField: /* @__PURE__ */ new Map(),
+    meta: /* @__PURE__ */ new Map()
+  };
+  provenance.meta.set(selfLabel, declMetaOf(parsed.frontmatter, selfLabel));
+  if (!resolveInclude || includes.length === 0) {
+    if (local.globalFields && local.globalFields.length > 0) {
+      expandFieldTargets(local.concepts, local.globalFields, selfLabel, errors, provenance, true);
+      delete local.globalFields;
+    }
+    attachDeclaredBy(local, provenance, declMetaOf(parsed.frontmatter, selfLabel));
+    return { schema: local, errors };
+  }
+  if (_depth >= 10) {
+    return {
+      schema: local,
+      errors: [
+        {
+          path: "includes",
+          message: "Max inclusion depth of 10 exceeded",
+          severity: "error"
+        }
+      ]
+    };
+  }
+  const base = { concepts: [], matrices: [], taxonomy: [] };
+  for (const ref of includes) {
+    const key = ref.name.toLowerCase();
+    if (_seen.has(key)) {
+      errors.push({
+        path: `includes.${ref.name}`,
+        message: `Cyclic \`includes\`: "${ref.name}" is already being composed further up the chain`,
+        severity: "error"
+      });
+      continue;
+    }
+    const content = resolveInclude(ref);
+    if (content === null) {
+      errors.push({
+        path: `includes.${ref.name}`,
+        message: `Included template "${ref.name}" could not be resolved${ref.url ? ` from "${ref.url}"` : ""}`,
+        severity: "error"
+      });
+      continue;
+    }
+    const nested = resolveBlueprintSchema(content, resolveInclude, /* @__PURE__ */ new Set([..._seen, key]), _depth + 1, provenance);
+    errors.push(...nested.errors);
+    const aliasedSchema = ref.alias ? applyAliasToSchema(nested.schema, ref.alias) : nested.schema;
+    const includedLabel = String(parseKnowledge2(content).frontmatter?.title ?? ref.name);
+    provenance.meta.set(includedLabel, declMetaOf(parseKnowledge2(content).frontmatter, includedLabel, ref.url || ref.name));
+    mergeSchemaInto(base, aliasedSchema, includedLabel, provenance, errors, false);
+  }
+  mergeSchemaInto(base, local, selfLabel, provenance, errors, true);
+  if (local.globalFields && local.globalFields.length > 0) {
+    expandFieldTargets(base.concepts, local.globalFields, selfLabel, errors, provenance, true);
+    delete base.globalFields;
+  }
+  if (_depth === 0) {
+    const conceptNames = new Set(base.concepts.map((c) => c.name.toLowerCase()));
+    const BUILTIN_TARGETS = /* @__PURE__ */ new Set(["element", "item"]);
+    for (const mx of base.matrices) {
+      const srcKey = mx.source.toLowerCase();
+      const tgtKey = mx.target.toLowerCase();
+      if (!conceptNames.has(srcKey) && !BUILTIN_TARGETS.has(srcKey)) {
+        errors.push({
+          path: `matrix.${mx.name}.source`,
+          message: `Matrix "${mx.name}" source concept "${mx.source}" does not resolve to any concept in the composed template schema`,
+          severity: "error"
+        });
+      }
+      if (!conceptNames.has(tgtKey) && !BUILTIN_TARGETS.has(tgtKey)) {
+        errors.push({
+          path: `matrix.${mx.name}.target`,
+          message: `Matrix "${mx.name}" target concept "${mx.target}" does not resolve to any concept in the composed template schema`,
+          severity: "error"
+        });
+      }
+    }
+  }
+  if (_depth === 0) {
+    attachDeclaredBy(base, provenance, declMetaOf(parsed.frontmatter, selfLabel));
+  }
+  return { schema: base, errors };
+}
+var SET_LIKE_KEYS;
+var init_compose = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/schema/compose.js"() {
+    "use strict";
+    init_parser2();
+    init_extract();
+    SET_LIKE_KEYS = /* @__PURE__ */ new Set(["applies_to", "options", "target_concepts"]);
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/schema/declaredField.js
+var init_declaredField = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/schema/declaredField.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/schema/field-values.js
+function valueKey(v) {
+  if (v === null || v === void 0)
+    return "";
+  return String(v).trim().toLowerCase();
+}
+function validateFieldValue(def, value, path) {
+  const diagnostics = [];
+  if (value === void 0 || value === null) {
+    return diagnostics;
+  }
+  if (def.multiple) {
+    if (typeof value === "string" && value.includes(",") && !value.trim().startsWith("[")) {
+      diagnostics.push({
+        path,
+        message: `Field "${def.name}" has unbracketed comma-separated value "${value}". Multi-valued fields should use [val1, val2]`,
+        severity: "warning",
+        code: "MULTI_VALUE_UNBRACKETED"
+      });
+    }
+    const items = Array.isArray(value) ? value : [value];
+    if (def.type === "select" && def.options && def.options.length > 0) {
+      const allowedKeys = new Set(def.options.map(valueKey));
+      for (const item of items) {
+        if (!allowedKeys.has(valueKey(item))) {
+          diagnostics.push({
+            path,
+            message: `Invalid value "${String(item)}" for "${def.name}". Allowed: ${def.options.join(", ")}`,
+            severity: "error"
+          });
+        }
+      }
+    }
+    return diagnostics;
+  }
+  if (def.type === "select" && Array.isArray(value)) {
+    diagnostics.push({
+      path,
+      message: `Single-valued field "${def.name}" does not accept array values`,
+      severity: "error"
+    });
+    return diagnostics;
+  }
+  if (def.type === "select" && def.options && def.options.length > 0) {
+    const valStr = String(value);
+    if (!def.options.includes(valStr)) {
+      diagnostics.push({
+        path,
+        message: `Invalid value "${valStr}" for "${def.name}". Allowed: ${def.options.join(", ")}`,
+        severity: "error"
+      });
+    }
+  } else if (def.type === "number") {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      diagnostics.push({
+        path,
+        message: `Invalid numeric value "${String(value)}" for "${def.name}"`,
+        severity: "error"
+      });
+    } else if (def.widget === "scale" && def.widgetConfig) {
+      const { min, max, step } = def.widgetConfig;
+      if (typeof min === "number" && value < min || typeof max === "number" && value > max) {
+        diagnostics.push({
+          path,
+          message: `Value ${value} for "${def.name}" is outside declared bounds [${min ?? "-Infinity"}..${max ?? "Infinity"}]`,
+          severity: "error"
+        });
+      }
+      if (typeof step === "number" && step > 0) {
+        const base = typeof min === "number" ? min : 0;
+        const rem = Math.abs((value - base) % step);
+        if (rem > 1e-9 && Math.abs(rem - step) > 1e-9) {
+          diagnostics.push({
+            path,
+            message: `Value ${value} for "${def.name}" does not match declared step ${step}`,
+            severity: "error"
+          });
+        }
+      }
+    }
+  } else if (def.type === "boolean") {
+    if (typeof value !== "boolean") {
+      diagnostics.push({
+        path,
+        message: `Invalid boolean value "${String(value)}" for "${def.name}"`,
+        severity: "error"
+      });
+    }
+  }
+  return diagnostics;
+}
+var init_field_values = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/schema/field-values.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/constants.js
+var RESERVED_CONCEPT_NAMES, WIDGET_CONFIG_KEYS;
+var init_constants = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/constants.js"() {
+    "use strict";
+    init_parser();
+    RESERVED_CONCEPT_NAMES = /* @__PURE__ */ new Set(["Concepts", "Elements", "Markers"]);
+    WIDGET_CONFIG_KEYS = {
+      scale: ["min", "max", "step", "unit"],
+      set: ["max_selections"],
+      cycle: [],
+      boolean: ["true_label", "false_label"],
+      text: ["max_length"]
+    };
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/schema/metaschema.js
+function checkElementsAgainstSchema(elementGroups, concepts, opts = {}) {
+  const unknownProperty = opts.unknownProperty ?? "warning";
+  const conceptByName = new Map(concepts.map((c) => [c.name.toLowerCase(), c]));
+  const diagnostics = [];
+  for (const [conceptName, elements] of elementGroups) {
+    const def = conceptByName.get(conceptName.toLowerCase());
+    if (!def) {
+      if (opts.reportUnknownConcept) {
+        diagnostics.push({
+          path: `${conceptName}`,
+          message: `Concept "${conceptName}" is not defined in the schema`,
+          severity: "error"
+        });
+      }
+      continue;
+    }
+    const fieldByName = new Map((def.fields ?? []).map((f) => [f.name.toLowerCase(), f]));
+    const required = opts.requiredByConcept?.[def.name] ?? opts.requiredByConcept?.[conceptName] ?? [];
+    for (const el of elements) {
+      for (const key of required) {
+        const v = el.fields[key];
+        if (v === void 0 || v === null || v === "") {
+          diagnostics.push({
+            path: `${def.name}.${el.name}.${key}`,
+            message: `${def.name} "${el.name}" is missing required property "${key}"`,
+            severity: "error"
+          });
+        }
+      }
+      for (const [key, rawVal] of Object.entries(el.fields)) {
+        const fieldDef = fieldByName.get(key.toLowerCase());
+        if (!fieldDef) {
+          if (unknownProperty !== "ignore") {
+            diagnostics.push({
+              path: `${def.name}.${el.name}.${key}`,
+              message: `Property "${key}" is not declared on ${def.name} in the schema`,
+              severity: unknownProperty
+            });
+          }
+          continue;
+        }
+        const fieldDiags = validateFieldValue(fieldDef, rawVal, `${def.name}.${el.name}.${key}`);
+        diagnostics.push(...fieldDiags);
+      }
+    }
+  }
+  return diagnostics;
+}
+var REQUIRED_BY_PRIMITIVE;
+var init_metaschema = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/schema/metaschema.js"() {
+    "use strict";
+    init_parser2();
+    init_extract();
+    init_field_values();
+    init_constants();
+    REQUIRED_BY_PRIMITIVE = {
+      [CONCEPT_DEFINITION]: ["type"],
+      [FIELD_DEFINITION]: ["concept", "type"],
+      [MATRIX_DEFINITION]: ["source", "target"]
+    };
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/schema/canonical-registry.js
+function normalizeKey(str3) {
+  return str3.trim().toLowerCase().replace(/\.(md|markdown)$/i, "").replace(/_(nn|format|f)$/i, "");
+}
+function findCanonicalBlueprint(identifier) {
+  if (!identifier)
+    return null;
+  const rawClean = identifier.trim();
+  const lower = rawClean.toLowerCase();
+  if (CANONICAL_BLUEPRINTS[lower]) {
+    return CANONICAL_BLUEPRINTS[lower];
+  }
+  const normalized = normalizeKey(rawClean);
+  if (CANONICAL_BLUEPRINTS[normalized]) {
+    return CANONICAL_BLUEPRINTS[normalized];
+  }
+  for (const tmpl of Object.values(CANONICAL_BLUEPRINTS)) {
+    if (tmpl.name.toLowerCase() === lower || normalizeKey(tmpl.name) === normalized) {
+      return tmpl;
+    }
+    for (const alias of tmpl.aliases) {
+      const aliasLower = alias.toLowerCase();
+      if (aliasLower === lower || normalizeKey(alias) === normalized) {
+        return tmpl;
+      }
+    }
+  }
+  const urlParts = rawClean.split(/[/\\]/);
+  const lastPart = urlParts[urlParts.length - 1];
+  const parentPart = urlParts.length > 1 ? urlParts[urlParts.length - 2] : "";
+  if (lastPart) {
+    const lastNorm = normalizeKey(lastPart);
+    if (CANONICAL_BLUEPRINTS[lastNorm]) {
+      return CANONICAL_BLUEPRINTS[lastNorm];
+    }
+    if (parentPart) {
+      const parentNorm = normalizeKey(parentPart);
+      if (CANONICAL_BLUEPRINTS[parentNorm]) {
+        return CANONICAL_BLUEPRINTS[parentNorm];
+      }
+    }
+  }
+  const stemMatch = lastPart.match(/^([A-Za-z][A-Za-z0-9_-]*?)_V_\d+-\d+-\d+_NN\.md$/i);
+  if (stemMatch) {
+    const stemNorm = normalizeKey(stemMatch[1]);
+    if (CANONICAL_BLUEPRINTS[stemNorm]) {
+      return CANONICAL_BLUEPRINTS[stemNorm];
+    }
+    for (const tmpl of Object.values(CANONICAL_BLUEPRINTS)) {
+      if (tmpl.aliases.some((a) => normalizeKey(a) === stemNorm)) {
+        return tmpl;
+      }
+    }
+  }
+  return null;
+}
+var INNFO_V_0_5_0_SPEC_CONTENT, DEFINNITION_SPEC_CONTENT, PROCEDURES_SPEC_CONTENT, SOURCES_SPEC_CONTENT, ARTIFACTS_SPEC_CONTENT, SIDECAR_SPEC_CONTENT, CHANGES_SPEC_CONTENT, DOMAINN_SPEC_CONTENT, BLANK_SPEC_CONTENT, CANONICAL_BLUEPRINTS;
+var init_canonical_registry = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/schema/canonical-registry.js"() {
+    "use strict";
+    INNFO_V_0_5_0_SPEC_CONTENT = '---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\nlevel: 1\nparent: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/defiNNition_V_0-1-0_NN.md"\ntitle: "iNNfo Meta-bluepriNNt Specification"\ndescription: "Level-1 meta-bluepriNNt defining the root primitives (Concept Definition, Field Definition, Matrix Definition), multi-concept targets, multi-valued fields, widgets, concept-level inheritance, stable element identity via immutable slugs, and the unified NN syntax: `# NN` sections, `## NN` elements, and `key:: value` properties."\nauthor: "innV0 Team"\nstatus: "Draft"\n---\n\n> [!NOTE]\n> This is an **iNNfo document** \u2014 a plain-text Markdown file. Open it with any text editor or view and edit it with [cogNNitive](https://cognnitive.com/innfo/app/).\n\n# iNNfo Meta-bluepriNNt Specification\n\n## A concrete specification for semantic modeling with concepts, elements, fields, markers, and relationships, expressed through the unified NN syntax and a self-describing meta-bluepriNNt\n\n## Philosophy\n\niNNfo is designed around five principles:\n\n1. **Rich specs, lean models**: Specification documents (levels 0\u20132) are semantically rich. kNNowledge documents (level 3) carry only data and a parent pointer. The application resolves and caches the parent chain.\n2. **Self-describing**: Every iNNfo document is valid Markdown with YAML frontmatter and the unified `NN` syntax. No proprietary tooling required to read it.\n3. **Meta-bluepriNNt**: The level-1 specification is itself a *meta-bluepriNNt*. Level-2 bluepriNNts are ordinary iNNfo documents that instantiate the root primitives \u2014 `Concept Definition`, `Field Definition`, and `Matrix Definition` \u2014 as ordinary elements in their body. There is no separate declaration format.\n4. **Relationship polymorphism**: Relationships between concepts and elements are expressed through a typed system \u2014 hierarchy, evaluable matrices, graph edges, and sequences.\n5. **Stable identity via immutable slugs**: Every entity (element, concept, matrix) possesses an explicit, immutable slug identifier (`slug::`). Display names are decoupled from identity and scoped to their concept, allowing identical display names across distinct concepts. Once assigned, a slug is permanent across renames and edits.\n\n## Objectives\n\n- Define a unified, minimal syntax: `# NN <Concept>`, `## NN <Concept>: <Element>`, immutable `slug::` declarations, and `key:: value` properties.\n- Define the **Metaplantilla Nivel 1**: the root primitives that every level-2 bluepriNNt instantiates.\n- Establish immutable slugs for elements, concepts, and matrices to preserve citations and graph stability across renames (D1).\n- Support cross-concept duplicate display names while scoping sibling display names within each concept (D3).\n- Define extension-less model identity (`model_slug`) and universal `@` addressing grammar for elements, fields, and matrix cells (D4, D5).\n- Enforce slug freezing (`freeze_slugs`) on mutation and domain-wide upgrades (D19).\n- Remove the `concepts:` / `markers:` / `matrices:` frontmatter blocks from level-2 bluepriNNts; their schema is expressed as body elements.\n- Enable machine parsing, validation, and visual rendering of kNNowledge via the parent chain resolver.\n- Maintain full human readability and Git-diffability.\n- Ensure that kNNowledge files are lightweight and never duplicate specification content.\n\n## Unified Syntax\n\niNNfo uses three structural markers. The `NN` token is required and distinguishes iNNfo structure from ordinary Markdown.\n\n| Construct | Syntax | Example |\n|---|---|---|\n| Concept section | `# NN <Concept>` (H1) | `# NN Stakeholders` |\n| Element | `## NN <Concept>: <Element>` (H2) | `## NN Stakeholders: Customer` |\n| Nested Element | `#{3,6} NN <Concept>: <Element>` (H3\u2013H6) | `### NN Layer: Title` |\n| Identity slug | `slug:: <slug>` (first property line) | `slug:: customer` |\n| Property | `key:: value` (consecutive lines) | `importance:: high` |\n\nA **Concept** is a named type declared by a bluepriNNt. A Concept section is introduced by an H1 heading `# NN <Concept>`.\n\nAn **Element** is a single instance of a Concept, declared as an H2 heading `## NN <Concept>: <Element>` within the Concept section. The `<Concept>` token names the owning concept (it MUST match the enclosing section concept for top-level H2 headings).\n\n### Hierarchical Element Headings (Level-3 Documents)\n\nLevel-3 kNNowledge documents may author child elements inline beneath their parent element using deeper Markdown headings (`### NN`, `#### NN`, up to `###### NN`), without requiring separate top-level `# NN <ChildConcept>` sections.\n\n- **Nesting Rules**: A child heading `#{3,6} NN <ChildConcept>: <Element>` attaches to the nearest shallower element heading on the heading stack. The parentage relationship (`ParentConcept -> ChildConcept`) MUST be declared as a valid direct parent-child edge in the governing bluepriNNt\'s `# NN index` (`schema.taxonomy`). Disallowed nesting is rejected by validation (`INVALID_NESTED_CONCEPT`).\n- **Parent Identity**: The child element receives `parentSlug` referencing the parent element\'s slug.\n- **Prose Separation**: Any prose body authored for the parent element belongs exclusively to the parent and concludes immediately before the child\'s heading.\n- **Backward Compatibility**: Flat H2 headings in separate `# NN <ChildConcept>` sections remain 100% valid and supported.\n\nAn **Element Slug** is declared on the line immediately following the `## NN` heading via `slug:: <slug>`. The slug MUST be lowercase kebab-case conforming to `^[a-z0-9]+(?:-[a-z0-9]+)*$`. The slug is immutable: renaming an element modifies its display name in the `## NN` heading but preserves `slug::` unchanged.\n\nA **Field** is a typed key-value property of an Element. Element properties are written on consecutive `key:: value` lines immediately after the `slug::` line (or heading), before any free-form description text.\n\n```markdown\n# NN Stakeholders\n\n## NN Stakeholders: Customer\nslug:: customer\nimportance:: high\nneeds:: [speed, accuracy]\nCustomer description text follows the properties.\n```\n\nProperty values follow a small value grammar:\n\n- Plain text \u2014 `relationship_model:: Dedicated`\n- Quoted text \u2014 `brand_name:: "Acme Inc."`\n- Numbers \u2014 `weight:: 90`\n- Booleans \u2014 `published:: true`\n- Inline arrays \u2014 `options:: [Ideation, MVP, Validation]`\n- Inline objects (JSON) \u2014 `config:: {"a": 1}`\n\nThere is exactly ONE syntax. Older documents that use the legacy `_NN` markers or\nfenced ```yaml blocks are not supported and MUST be migrated to the unified syntax.\n\n## Universal Addressing Grammar\n\nSource references and citations support semantic addressing across documents without relying on fragile headings or filesystem extensions:\n\n| Target | Grammar Syntax | Resolves To |\n|---|---|---|\n| Entire Model | `model_slug` | Model document root |\n| Element | `model_slug@element-slug` | Specific element instance |\n| Element Field | `model_slug@element-slug&field_name` | Value of an element field |\n| Matrix | `model_slug@matrix-slug` | Specific matrix definition/table |\n| Matrix Cell | `model_slug@matrix-slug&row-slug&col-slug` | Specific cell at row \xD7 col |\n| Heading (Legacy) | `doc.md@## Heading` or `doc.md#heading` | Headings/sections fallback |\n\nWithin the same model or domain, references (`[[target]]`) resolve with the following 3-tier precedence:\n1. Exact element slug match (`element.slug`).\n2. Exact display name match (legacy fallback).\n3. Normalized display name match (case and punctuation insensitive fallback).\n\nIf a display name reference matches multiple elements belonging to different concepts, the reference is rejected as ambiguous (`AMBIGUOUS_ELEMENT_NAME`). Authors MUST qualify the reference or use the element\'s unique `slug`.\n\n## Root Primitives (Metaplantilla Nivel 1)\n\nA level-2 **bluepriNNt** is an iNNfo document (level 2) that instantiates the root primitives. Each primitive is a reserved Concept name whose Elements carry the schema of the bluepriNNt.\n\n| Primitive | Reserved Concept | Purpose | Instantiation |\n|---|---|---|---|\n| `Concept Definition` | `# NN Concept Definition` | Declares one Concept of the bluepriNNt | `## NN Concept Definition: <Name>` |\n| `Field Definition` | `# NN Field Definition` | Declares one typed Field of a Concept | `## NN Field Definition: <Name>` |\n| `Matrix Definition` | `# NN Matrix Definition` | Declares one evaluable Matrix | `## NN Matrix Definition: <Name>` |\n\n### Concept Definition\n\nDeclares a Concept. The Element name is the Concept name. Allowed properties:\n\n| Property | Type | Description |\n|---|---|---|\n| `slug` | string | Explicit kebab-case slug identifier |\n| `type` | `text` \\| `category` \\| `weight` \\| `list` \\| `steps` \\| `sequence` \\| `knowledge` \\| `model` | Representation of the Concept (required) |\n| `icon` | string | Lucide icon identifier |\n| `color` | string | Theme color |\n| `weight` | number | Display priority (higher = more prominent) |\n\n```markdown\n# NN Concept Definition\n\n## NN Concept Definition: Stakeholders\nslug:: stakeholders\nicon:: users\ntype:: weight\ncolor:: blue\nweight:: 80\n```\n\n### Field Definition\n\nDeclares a typed Field of a Concept. The Element name is the Field name. Allowed properties:\n\n| Property | Type | Description |\n|---|---|---|\n| `slug` | string | Explicit kebab-case slug identifier |\n| `concept` | string or array | Name of the owning Concept Definition, list of Concepts, or `*` for all non-text concepts (required) |\n| `type` | `string` \\| `number` \\| `boolean` \\| `select` \\| `reference` \\| `markdown_inline` \\| `markdown_file` \\| `image` \\| `file` \\| `video` \\| `audio` \\| `url` \\| `knowledge` \\| `model` \\| `address` \\| `citation` | Field type (required) |\n| `multiple` | boolean | Multi-valued field flag (allowed only on `type:: select`) |\n| `widget` | `boolean` \\| `cycle` \\| `scale` \\| `set` \\| `text` | Field interaction widget |\n| `widget_config` | object | Widget configuration parameters (JSON object) |\n| `options` | array | Allowed values for `select` fields |\n| `target_concepts` | array | Target concepts for `reference` fields |\n| `description` | string | Human-readable explanation |\n| `target_blueprint` | string | Required bluepriNNt name or URL for fields of type knowledge |\n\n```markdown\n# NN Field Definition\n\n## NN Field Definition: status\nconcept:: Stakeholders\ntype:: select\noptions:: [Ideation, MVP, Validation]\n\n## NN Field Definition: tags\nconcept:: *\ntype:: select\nmultiple:: true\n```\n\n**Reference Fields (`type:: reference`).** Property values for fields declared with `type:: reference` MUST be formatted using WikiLink syntax `[[Target Element]]` (e.g. `location:: [[Sal\xF3n-Comedor]]`). Bare string values without WikiLink delimiters are not parsed as active element-to-element graph references.\n\n**Knowledge Fields (`type:: knowledge` or `type:: model`).** A Field of any Concept MAY be declared `type:: knowledge` or `type:: model`. Its value is a domain-relative path, a `./`-relative path, or a WikiLink wrapping either (`[[kNNowledge/acme_business_NN.md]]`). When the Field declares `target_blueprint`, the referenced kNNowledge document\'s `parent_spec` MUST identify that bluepriNNt. Knowledge fields are followed during domaiNN traversal, so a document referenced by two parents appears once in the graph with both incoming edges \u2014 a diamond is not a cycle.\n\n**Citation Fields (`type:: citation`).** A Field declared `type:: citation` holds a pointer list to the Source documents it derives from, using the same bracketed grammar as the reserved `sources::` property (`[sources/nn/<filename>#<heading-slug>, ...]`). Unlike `reference` and `knowledge`, its values are validated by the `KU_*` integrity checks and are read into the element\'s source citations.\n\n**Address Fields (`type:: address`).** A Field declared `type:: address` holds one structural address `<target>@<unit>`: `<target>` is a workspace-relative path or a `knowledge_slug`; `<unit>` is `## Heading`, `RowID&col`, `/json/pointer`, `element-slug`, `element-slug&field`, or `matrix&row&col`. Its value MUST resolve to an existing unit; a dangling address is an **error**. `address` is the base of the address grammar: `citation` is an `address` that additionally asserts derivation (evidence), and `knowledge` is an `address` that is traversed. All three share the same parser.\n\n**Qualified Cross-Knowledge References.** A `reference` or `knowledge` Field MAY target an Element in another kNNowledge document in the same domaiNN using the qualified form `[[Document Title :: Element Name]]` or `[[model_slug@element-slug]]`.\n\n### Matrix Definition\n\nDeclares an evaluable Matrix. The Element name is the Matrix name. Allowed properties:\n\n| Property | Type | Description |\n|---|---|---|\n| `slug` | string | Explicit kebab-case slug identifier |\n| `source` | string | Source Concept (rows) \u2014 required |\n| `target` | string | Target Concept or reserved pseudo-Concept (columns) \u2014 required |\n| `values` | array | Allowed cell values (empty cell `-` and boolean marker `X` are always accepted) |\n| `widget` | `boolean` \\| `cycle` \\| `scale` \\| `set` \\| `text` | Cell interaction widget |\n| `widget_config` | object | Widget-specific configuration \u2014 see Widget Configuration |\n| `description` | string | Human-readable explanation |\n\n```markdown\n# NN Matrix Definition\n\n## NN Matrix Definition: problems-value propositions matrix\nslug:: problems-value-propositions\nsource:: Problems\ntarget:: Value propositions\nwidget:: set\nvalues:: [Max, Very High, High]\n```\n\n### Widget Configuration\n\n`widget_config` is an OPTIONAL inline JSON object that parameterizes the cell\ninteraction widget. It MUST be valid JSON on a single line.\n\n| Widget | Key | Type | Default | Description |\n|---|---|---|---|---|\n| `scale` | `min` | number | `0` | Minimum numeric score |\n| | `max` | number | `100` | Maximum numeric score |\n| | `step` | number | `1` | Step increment |\n| | `unit` | string | `""` | Optional display suffix (e.g. `"%"` or `"pts"`) |\n| `set` | `max_selections` | number | `undefined` | Maximum number of simultaneous selections |\n| `cycle` | (none) | | | Cycle through values in order |\n| `boolean` | `true_label` | string | `"X"` | Display text when true |\n| | `false_label` | string | `"-"` | Display text when false |\n| `text` | `max_length` | number | `200` | Character limit for cell input |\n\n### Free Matrices\n\nAn evaluable relationship between two domain Concepts (e.g. `Problems` \xD7 `Value propositions`).\n\n```markdown\n# NN matrices: problems-value propositions matrix\n\n| Problems | Solution A | Solution B |\n|---|---|---|\n| High latency | Max | High |\n| Data loss | Max | Very High |\n```\n\n### Relationship Types Block (Frontmatter)\n\nLevel-2 bluepriNNts MAY declare custom graph edge types in frontmatter under\n`relationship_types:`. A relationship type defines a typed directed connection\nbetween elements.\n\n```yaml\n---\nrelationship_types:\n  depends_on:\n    directed: true\n    label: "Depends on"\n    inverse: "Required by"\n    color: "#e06c75"\n    style: "dashed"\n  influences:\n    directed: true\n    label: "Influences"\n    color: "#61afef"\n    style: "solid"\n---\n```\n\nGraph edges are written in the kNNowledge document\'s element section using `->` syntax:\n\n```markdown\n## NN Work: Deploy\ndepends_on -> [[Build]]\ninfluences -> [[Monitoring]]\n```\n\n### Custom Guidance Headings in BluepriNNts\n\nLevel-2 bluepriNNts MAY include prose documentation sections after the schema definitions.\nThese sections provide human-readable guidance for authors and AI assistants filling out\nkNNowledge documents based on the bluepriNNt.\n\nTo prevent guidance text from being parsed as model elements, bluepriNNt authors MUST use\nregular Markdown headings (without the `NN` token) for guidance sections:\n\n```markdown\n# Concept Guidance Documentation\n\n## Stakeholders\n### Summary\nStakeholders are individuals, groups, or organizations that have an interest in or are affected by the system.\n\n### Identification Strategy\n1. Identify direct users who interact with the system daily.\n2. Identify decision makers who approve funding and strategy.\n3. Identify external parties subject to compliance or regulation.\n\n### Fields Reference\n- `importance`: Relative business impact (high, medium, low).\n- `needs`: Bulleted list of explicit operational requirements.\n```\n\n- Headings starting with `# NN` or `## NN` are **structural** (parsed as schema).\n- Headings starting with `#` or `##` (without `NN`) are **descriptive** (ignored by the schema parser).\n\n## Level 2 BluepriNNt Structure\n\nA level 2 bluepriNNt MUST follow this structure:\n\nFrontmatter:\n\n```yaml\n---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/<name>/spec_NN.md"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-5-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\ntitle: "<BluepriNNt Title>"\nblueprint_name: "<blueprint-name>"\nblueprint_version: "V_x-y-z"\nincludes:                        # OPTIONAL \u2014 additive schema composition\n  - name: "<blueprint>"\n    url: "<immutable-URL>"\nrelationship_types:              # OPTIONAL \u2014 custom graph edges\n  ...\n---\n```\n\n### Schema Composition (`includes`)\n\nA level-2 bluepriNNt MAY declare `includes:`, an array of `{name, url}` references to\npeer level-2 bluepriNNts. `includes` composes the schemas of the included bluepriNNts into\nthe including bluepriNNt additively.\n\n#### Collision Rules\n\nWhen two included bluepriNNts (or an included bluepriNNt and the including bluepriNNt) declare a\nDefinition with the same name:\n\n1. If their canonical forms are **identical**, the collision is resolved cleanly: they\n   carry a shared Definition and still compose.\n2. If their canonical forms **differ**, it is a validation ERROR that MUST name\n   both source documents and the Definition.\n\nThe **canonical form** of a Definition is its parsed body with: property order\nnormalized, surrounding whitespace in values trimmed, and set-like arrays\n(`options`, `target_concepts`) treated as order-insensitive. Every\nactual value \u2014 `type`, `source`, `target`, `values`, `weight`,\n`description`, a Concept\'s Field set, etc. \u2014 is significant. This rule applies\nacross the whole `includes` graph (transitively, depth-first, left to right); the\n`includes` cycle check is unaffected (a diamond is not a cycle).\n\nBody:\n\n```markdown\n> [!NOTE]\n> This is an **iNNfo document**...\n\n# NN index\n* [[...]]  (the blueprint\'s root concepts)\n\n# NN Concept Definition\n## NN Concept Definition: <Concept>\nslug:: <concept-slug>\nicon:: <icon>\ntype:: <type>\ncolor:: <color>\nweight:: <n>\n\n# NN Field Definition\n## NN Field Definition: <Field>\nslug:: <field-slug>\nconcept:: <Concept>\ntype:: <type>\noptions:: [...]\ntarget_concepts:: [...]\n\n# NN Matrix Definition\n## NN Matrix Definition: <Matrix>\nslug:: <matrix-slug>\nsource:: <Concept>\ntarget:: <Concept>\nvalues:: [..]\nwidget:: set\n\n# <Blueprint Name>       (prose: Philosophy, Objectives, Specification)\n# Concept Guidance Documentation   (## <Concept> with ### Summary/Description/...)\n```\n\n## Level 3 kNNowledge Structure (Lightweight)\n\n```yaml\n---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\nmodel_slug: "<model-slug>"\nworkspace_id: "<workspace-id>"\nlevel: 3\nparent_spec:\n  name: "<blueprint-name>"\n  url: "<immutable-url>"\nknowledge_version: "V_x-y-z"\ntitle: "..."\n---\n\n> [!NOTE]\n> ...\n# NN index\n...\n# NN Concept\ntags:: [inherited-tag]\n\n## NN Concept: Element\nslug:: <element-slug>\nkey:: value\n...\n```\n\n## DomaiNN Structure\n\nAn iNNfo DomaiNN is a workspace directory containing one or more kNNowledge documents. The entry point is a\n`domaiNN_NN.md` (or root index) file at the DomaiNN root.\n\nStandard directory conventions:\n- `knowledge_dir`: `kNNowledge/`\n- `blueprints_dir`: `specs/bluepriNNts/`\n\n## Immutable Versioning Policy\n\n- **Published specs are frozen.** Once a specification version is released, its file is\n  never modified. Corrections or improvements require a new spec version.\n- **Migrating a kNNowledge document** to a new spec version means creating a new copy of the document\n  adapted to the new version.\n- **Parent chain resolution** always resolves to the version the document was authored\n  against.\n\n## Removed Constructs\n\nThe following are NOT part of iNNfo:\n\n- **FOLDER mode / `_F` markers** \u2014 documents are single files using `NN` markers only.\n- **Hierarchy matrices** \u2014 hierarchy is expressed only through the index block.\n- **`_FORMAT.md` filenames** \u2014 the canonical suffix is `_NN.md`.\n- **`* _NN` element bullets and fenced ```yaml property blocks** \u2014 replaced by the\n  unified `## NN` headings and `key:: value` properties.\n- **Marker Definition and item-markers matrix** \u2014 replaced by typed Field Definitions and concept-level values.\n\n## Metaschema (Self-Description)\n\nThe root primitives are described by the prose tables above **and** expressed\nmechanically, in iNNfo\'s own syntax, by the metaschema below. An application MUST\nbe able to validate any level-2 bluepriNNt by resolving this metaschema and checking\nthe bluepriNNt\'s `\u2026 Definition` elements against it.\n\n### The Metaschema\n\n```markdown\n# NN Concept Definition\n\n## NN Concept Definition: Concept Definition\ntype:: list\n\n## NN Concept Definition: Field Definition\ntype:: list\n\n## NN Concept Definition: Matrix Definition\ntype:: list\n\n# NN Field Definition\n\n## NN Field Definition: type\nconcept:: Concept Definition\ntype:: select\noptions:: [text, category, weight, list, steps, sequence, knowledge, model]\ndescription:: Representation of the Concept (required).\n\n## NN Field Definition: icon\nconcept:: Concept Definition\ntype:: string\ndescription:: Lucide icon identifier.\n\n## NN Field Definition: color\nconcept:: Concept Definition\ntype:: string\ndescription:: Theme color.\n\n## NN Field Definition: weight\nconcept:: Concept Definition\ntype:: string\ndescription:: Display priority (higher = more prominent).\n\n## NN Field Definition: concept\nconcept:: Field Definition\ntype:: string\ndescription:: Name of the owning Concept Definition, list of concepts, or * (required).\n\n## NN Field Definition: type\nconcept:: Field Definition\ntype:: select\noptions:: [string, number, boolean, select, reference, markdown_inline, markdown_file, image, file, video, audio, url, knowledge, model, address, citation]\ndescription:: Field type (required).\n\n## NN Field Definition: multiple\nconcept:: Field Definition\ntype:: boolean\ndescription:: Multi-valued field flag (allowed only on select fields).\n\n## NN Field Definition: widget\nconcept:: Field Definition\ntype:: select\noptions:: [boolean, cycle, scale, set, text]\ndescription:: Field interaction widget.\n\n## NN Field Definition: widget_config\nconcept:: Field Definition\ntype:: string\ndescription:: Widget-specific configuration (inline JSON object).\n\n## NN Field Definition: options\nconcept:: Field Definition\ntype:: string\ndescription:: Allowed values for select fields (inline array).\n\n## NN Field Definition: target_concepts\nconcept:: Field Definition\ntype:: string\ndescription:: Target concepts for reference fields (inline array).\n\n## NN Field Definition: target_blueprint\nconcept:: Field Definition\ntype:: string\ndescription:: Required blueprint name or URL for fields of type knowledge or model.\n\n## NN Field Definition: description\nconcept:: Field Definition\ntype:: string\ndescription:: Human-readable explanation.\n\n## NN Field Definition: source\nconcept:: Matrix Definition\ntype:: string\ndescription:: Source Concept (rows) \u2014 required.\n\n## NN Field Definition: target\nconcept:: Matrix Definition\ntype:: string\ndescription:: Target Concept or reserved pseudo-Concept (columns) \u2014 required.\n\n## NN Field Definition: values\nconcept:: Matrix Definition\ntype:: string\ndescription:: Allowed cell values (inline array). Empty cell - and boolean marker X are always accepted.\n\n## NN Field Definition: widget\nconcept:: Matrix Definition\ntype:: select\noptions:: [boolean, cycle, scale, set, text]\ndescription:: Cell interaction widget.\n\n## NN Field Definition: widget_config\nconcept:: Matrix Definition\ntype:: string\ndescription:: Widget-specific configuration (inline JSON object).\n\n## NN Field Definition: description\nconcept:: Matrix Definition\ntype:: string\ndescription:: Human-readable explanation.\n```\n\n### Bootstrap Axiom\n\nThe metaschema is written in the very syntax it constrains. Its own conformance is\nthe single irreducible axiom of the system: an application **asserts** \u2014 it does\nnot derive \u2014 that the metaschema\'s `Field Definition` elements are valid\n`Field Definition` instances. Every other conformance check in the ecosystem\n(L2 against L1, L3 against L2) is mechanical and follows from it. This mirrors MOF\nbeing defined in MOF and `Ecore.ecore` describing Ecore.\n\n## Self-Description\n\nThis document (`iNNfo_V_0-5-0_NN.md`) is itself a level 1 specification following\ndefiNNition. It declares `parent: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/defiNNition_V_0-1-0_NN.md"` and defines\nthe root primitives \u2014 plus the mechanical metaschema above \u2014 that every\nlevel-2 bluepriNNt instantiates.\n';
+    DEFINNITION_SPEC_CONTENT = '---\nspec_version: "V_0-1-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/defiNNition_V_0-1-0_NN.md"\nlevel: 0\ntitle: "defiNNition \u2014 The Definition of Definitions"\ndescription: "Meta-specification for the CogNNitive ecosystem. Defines the structure, versioning, normative language, terminology discipline, and dependency resolution for all derived specifications."\nauthor: "CogNNitive Team"\nstatus: "Draft"\n---\n\n> [!NOTE]\n> This is an **iNNfo document** \u2014 a plain-text Markdown file. Open it with any text editor or view and edit it with [cogNNitive](https://cognnitive.com/innfo/app/).\n\n# defiNNition \u2014 The Definition of Definitions\n\n## A meta-specification for defining structured, versioned, and machine-readable technical specifications\n\n## Philosophy\n\ndefiNNition is built on four foundational values:\n\n1. **Hierarchical Consistency**: Every specification belongs to a level in a defined hierarchy. Each level inherits the constraints of the levels above it and adds its own.\n2. **Explicit Dependencies via Parent Chain**: Every specification declares a reference to its parent, resolvable to an exact document and immutable URL. From any document, the full chain up to level 0 is resolvable.\n3. **Rich Specs, Lean Models**: Specification documents (levels 0\u20132) are semantically rich \u2014 they carry Philosophy, Objectives, full specification text. Models (level 3) are lightweight \u2014 they carry only data and a pointer to their parent template.\n4. **Cacheable Resolution**: The parent chain can be resolved at load time and cached locally, making any model functionally self-contained without duplicating specification content.\n\n## Objectives\n\n- **Standardize** how specifications in the CogNNitive ecosystem are structured, versioned, and referenced.\n- **Enable dependency resolution** across specification levels via the parent chain.\n- **Provide a normative language** (RFC 2119) that all derived specifications must use.\n- **Enforce terminology discipline** so every entity has one canonical name across the ecosystem.\n- **Ensure URL persistence** so every specification version is retrievable indefinitely.\n- **Define the spec resolver protocol** so applications can auto-download and cache the parent chain.\n\n## Specification\n\n### Hierarchy of Levels\n\n| Level | Role | Example |\n|---|---|---|\n| **0** | Meta-specification | `defiNNition` |\n| **1** | Concrete specification | `iNNfo` |\n| **2** | bluepriNNt | `business`, `procedures`, `organization`, `kb` |\n| **3** | kNNowledge | `Ghostbusters` |\n\nRules:\n\n- A level N specification MUST declare `level: N` in its frontmatter.\n- A level 1 specification MUST declare `parent` as a string containing the URL, pointing to its level 0 parent.\n- A level 2 or level 3 specification MUST declare `parent_spec` as an object with `name` and `url` fields, pointing to its parent (the level 1 specification for a level 2 template; the level 2 template for a level 3 model).\n- A level 0 specification MUST NOT declare a `parent` or `parent_spec`.\n- Each level ADDS constraints. It MUST NOT relax constraints from the level above.\n\n### Terminology Discipline\n\nEvery specification defines its entities once and uses exactly one canonical name for\neach throughout its normative text. This applies to all derived specifications:\n\n- A specification MUST include a glossary that names each entity it defines.\n- Normative text MUST use only those canonical names. Synonyms MUST NOT be used\n  interchangeably for a defined entity.\n- Implementation-only vocabulary \u2014 in particular the word **"node"** (a runtime graph\n  representation) \u2014 MUST NOT appear in normative specification text.\n\nThe canonical entity vocabulary for semantic models is defined by iNNfo (level 1).\n\n### Parent Reference Fields\n\nThe field used to point to the parent document differs by level:\n\n- **Level 1** uses `parent`, a string containing the URL of the parent document:\n\n  ```yaml\n  parent: "<immutable-URL-to-the-parent-document>"\n  ```\n\n  - `parent`: an immutable URL (RECOMMENDED: git tag-based) pointing to the raw parent document. The application resolves this URL to find the parent.\n\n- **Level 2 and level 3** use `parent_spec`, an object with `name` and `url`:\n\n  ```yaml\n  parent_spec:\n    name: "<parent-document-name>"\n    url: "<immutable-URL-to-the-parent-document>"\n  ```\n\n  - `parent_spec.name`: an identifier for the parent document. The application uses this as the resolved document\'s identity in the parent chain (not merely re-derived from the URL).\n  - `parent_spec.url`: an immutable URL (RECOMMENDED: git tag-based) pointing to the raw parent document. The application resolves this URL to find the parent.\n\nA level 0 specification MUST NOT include `parent` or `parent_spec`.\n\n### Spec Resolver Protocol\n\n> **Note for application implementors**: This section describes the RECOMMENDED behavior for applications that consume iNNfo models. It is not a requirement for spec authors.\n\nWhen an application loads a level 3 model, it SHOULD resolve the full parent chain:\n\n1. Read the model\'s `parent_spec.url`.\n2. If the parent file is NOT already cached in a `specs/` subdirectory next to the model, download it from the URL.\n3. Save it to `specs/<parent_basename>_NN.md` (where `parent_basename` is derived from the URL, stripping directories and suffixes).\n4. Read the downloaded spec\'s parent reference \u2014 `parent_spec.url` if it is a level 2 template, or `parent` if it is the level 1 specification \u2014 and repeat until reaching level 0 (no parent).\n5. On subsequent loads, check `specs/` first. Only download missing files.\n6. If the model\'s `parent_spec.url` changes (version bump), the application detects the mismatch and downloads the new parent.\n\nThe cached directory structure:\n\n```\n\u{1F4C2} <Model>_V_x-y-z_<Template>/\n  \u{1F4C4} <Model>_V_x-y-z_<Template>_NN.md\n  \u{1F4C2} specs/\n    \u{1F4C4} <parent_name>_NN.md        \u2190 level 2 (template)\n    \u{1F4C4} <grandparent_name>_NN.md   \u2190 level 1 (iNNfo)\n    \u{1F4C4} <great-grandparent_name>_NN.md  \u2190 level 0 (defiNNition)\n```\n\n### Normative Language (RFC 2119)\n\nWhen a specification makes a normative statement (a rule, requirement, or constraint), it MUST use these keywords with RFC 2119 semantics:\n\n| Keyword | Meaning |\n|---|---|\n| **MUST** / **REQUIRED** / **SHALL** | Absolute requirement |\n| **MUST NOT** / **SHALL NOT** | Absolute prohibition |\n| **SHOULD** / **RECOMMENDED** | Valid reasons to ignore may exist |\n| **SHOULD NOT** / **NOT RECOMMENDED** | Valid reasons to accept may exist |\n| **MAY** / **OPTIONAL** | Truly optional |\n\nPurely descriptive or explanatory text (tables of concepts, examples, taxonomy listings) is NOT required to use RFC 2119 keywords.\n\n### Required Frontmatter Structure\n\nAll specifications MUST begin with a YAML frontmatter block.\n\n**Level 0 (defiNNition)**\n\n```yaml\n---\nspec_version: "V_x-y-z"\nspec_url: "<immutable-URL>"\nlevel: 0\ntitle: "..."\ndescription: "..."\nauthor: "..."\nstatus: "Draft | Stable | Deprecated"\n---\n```\n\nNo `parent` or `parent_spec`.\n\n**Level 1 (concrete specifications)**\n\n```yaml\n---\nspec_version: "V_x-y-z"\nspec_url: "<immutable-URL>"\nlevel: 1\nparent: "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/defiNNition_V_0-1-0_NN.md"\ntitle: "..."\ndescription: "..."\n---\n```\n\n**Level 2 (bluepriNNts)**\n\n```yaml\n---\nspec_version: "V_x-y-z"\nspec_url: "<immutable-URL>"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-3-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/iNNfo_V_0-3-0_NN.md"\ntitle: "..."\nblueprint_version: "V_x-y-z"\nincludes:                        # OPTIONAL \u2014 additive schema composition\n  - name: "<base-blueprint>"\n    url: "<immutable-URL>"\nrelationship_types: {...}\n---\n```\n\nA level 2 bluepriNNt\'s `concepts`, `fields`, `markers`, and `matrices` are NOT\nfrontmatter blocks. They are declared in the body as elements that instantiate\nthe four root primitives defined by iNNfo (level 1); see the iNNfo specification.\n`includes` composes the schemas of peer bluepriNNts additively \u2014 it is horizontal\n(bluepriNNt \u222A bluepriNNt), unlike the vertical `parent_spec` chain; see iNNfo.\n\n**Level 3 (kNNowledge) \u2014 Lightweight**\n\n```yaml\n---\nlevel: 3\nparent_spec:\n  name: "<blueprint-name>"\n  url: "<immutable-URL-to-blueprint>"\nknowledge_version: "V_x-y-z"\ntitle: "..."\n---\n```\n\nA level 3 kNNowledge document MUST NOT inline the bluepriNNt definition; it MUST rely on the `parent_spec.url` + spec resolver to obtain its schema.\n\n**Frontmatter Extensibility**\n\nSpecifications MAY include additional fields beyond those required above. Applications MUST ignore unrecognized fields. Additional fields MUST NOT contradict or override the required fields defined here.\n\n### File Naming Convention\n\nAll specification and kNNowledge files use the `_NN.md` suffix.\n\n| Level | Pattern | Example |\n|---|---|---|\n| 0 | `<Name>_V_x-y-z_NN.md` | `defiNNition_V_0-1-0_NN.md` |\n| 1 | `<Name>_V_x-y-z_NN.md` | `iNNfo_V_0-3-0_NN.md` |\n| 2 | `<Blueprint>_V_x-y-z_NN.md` | `business_V_0-1-0_NN.md` |\n| 3 | `<Knowledge>_V_x-y-z_<Blueprint>_NN.md` | `Ghostbusters_V_0-1-0_business_NN.md` |\n\nFiles live in a single flat `specs/` tree, with no per-version snapshot directories:\n\n```\nspecs/\n\u251C\u2500\u2500 defiNNition_V_x-y-z_NN.md  \u2190 level 0 specs, directly at the root\n\u251C\u2500\u2500 iNNfo_V_x-y-z_NN.md        \u2190 level 1 specs, directly at the root\n\u2514\u2500\u2500 templates/                 \u2190 level 2 bluepriNNts\n    \u251C\u2500\u2500 <blueprint>/\n    \u2502   \u251C\u2500\u2500 <blueprint>_V_x-y-z_NN.md\n    \u2502   \u2514\u2500\u2500 samples/\n    \u2502       \u2514\u2500\u2500 <Knowledge>_V_x-y-z_<blueprint>_NN.md\n    \u2514\u2500\u2500 ...\n```\n\nLevel 0 and level 1 specifications sit directly under `specs/` \u2014 there is no\n`level0/`/`level1/` subfolder. Each level 2 bluepriNNt lives under\n`specs/templates/<blueprint-name>/`, and that bluepriNNt\'s shipped samples live\nunder `specs/templates/<blueprint-name>/samples/`. There is no `latest/` alias:\nevery file already carries its own version in its filename (see\n**Versioning**), so a consumer always resolves an exact, versioned path.\n\n### Versioning\n\nAll versions use Semantic Versioning with hyphen separators: `V_MAJOR-MINOR-PATCH`.\n\n| Increment | When to apply |\n|---|---|\n| **MAJOR** | Breaking change in structure or semantics |\n| **MINOR** | Backward-compatible addition |\n| **PATCH** | Bug fix, clarification, examples |\n\nVersioning is filename-encoded and immutable: a specification\'s version is the\n`V_x-y-z` segment already present in its own filename (see **File Naming\nConvention**) \u2014 not a directory it is copied into.\n\n- A version bump MUST always create a new file (e.g.\n  `specs/templates/procedures/procedures_V_0-2-0_NN.md` alongside the existing\n  `procedures_V_0-1-0_NN.md`). It MUST NOT rename or overwrite the previous\n  version\'s file in place.\n- Once published, a specification file MUST NOT be edited or deleted while any\n  kNNowledge document still references it. Corrections and errata are published as a new\n  PATCH version, not as an in-place edit.\n- There is no `latest/` alias and no parallel version-snapshot directory (e.g.\n  `v0.2.0/`, `v0.2.1/`). A `parent_spec.url` or `parent` reference MUST always\n  point at a specific versioned filename.\n\n### Specification URL Persistence\n\n- The `spec_url` MUST point to an immutable version of the specification.\n- RECOMMENDED: use a git tag: `https://raw.githubusercontent.com/cogNNitive/<repo>/v<version>/<path>`\n- Once a version is published under a given URL, its content MUST NOT change.\n- Corrections and errata MUST be published as a new PATCH version.\n\n### Required Body Sections (Levels 0, 1, 2)\n\nThe document body of any level 0, 1, or 2 specification MUST include these sections as H2 headings, in this exact order, with no other section before the one-sentence summary:\n\n```\n## <one-sentence-summary>\n\n## Philosophy\n\n## Objectives\n\n## Specification\n\n## Template\n\n## Examples\n```\n\nThe `<one-sentence-summary>` placeholder means a brief H2 heading that summarizes the specification in one sentence.\n\nLevel 3 kNNowledge documents MUST NOT include these sections. They contain only data.\n\n### Document Notice\n\nThe first content in the Markdown body \u2014 immediately after the frontmatter \u2014 MUST be a GFM `> [!NOTE]` admonition. This applies to ALL levels (0\u20133).\n\n### Cross-References\n\nInternal cross-references MUST use stable heading names, not section numbers. Sections are unnumbered so that references remain valid as the document evolves.\n\n### Compliance Checklist\n\nA document is defiNNition-compliant only if ALL of the following hold:\n\n1. Filename matches the level convention (see **File Naming Convention**).\n2. Frontmatter contains `spec_version` in `V_MAJOR-MINOR-PATCH` form (see **Versioning**).\n3. Frontmatter contains a resolvable `spec_url` (see **Specification URL Persistence**).\n4. Frontmatter contains `level`.\n5. If level = 1: frontmatter contains `parent` as a string URL. If level = 2 or 3: frontmatter contains `parent_spec` as an object with `name` and `url`.\n6. If level \u2264 2: body contains the required sections in order (see **Required Body Sections**).\n7. If level = 3: body does NOT contain the required sections.\n8. Body begins with the required Document Notice (see **Document Notice**).\n9. Normative language uses RFC 2119 keywords (see **Normative Language**).\n10. Normative text obeys the **Terminology Discipline** (canonical names only; no "node").\n\n## Template\n\n### Level 3 kNNowledge Template (Lightweight)\n\n```markdown\n---\nlevel: 3\nparent_spec:\n  name: "<blueprint-name>"\n  url: "<immutable-url-to-blueprint>"\nknowledge_version: "V_x-y-z"\ntitle: "Document Name"\n---\n\n> [!NOTE]\n> This is an **iNNfo document** \u2014 a plain-text Markdown file. Open it with any text editor or view and edit it with [cogNNitive](https://cognnitive.com/innfo/app/).\n\n# _NN index\n...\n\n# _NN ConceptName\n...\n```\n\n## Examples\n\n### Full Parent Chain Resolution\n\nFrom the sample kNNowledge `specs/templates/business/samples/Ghostbusters_V_0-1-0_business_NN.md`:\n\n```yaml\n# Ghostbusters (level 3)\nparent_spec:\n  name: "business_V_0-1-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/templates/business/business_V_0-1-0_NN.md"\n\n# business_V_0-1-0 (level 2)\nparent_spec:\n  name: "iNNfo_V_0-3-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/iNNfo_V_0-3-0_NN.md"\n\n# iNNfo_V_0-3-0 (level 1)\nparent: "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/defiNNition_V_0-1-0_NN.md"\n\n# defiNNition_V_0-1-0 (level 0) \u2014 this document\n# No parent \u2014 root of the chain\n```\n\n### Cached Directory After First Load\n\n```\n\u{1F4C2} Ghostbusters_V_0-1-0_business/\n  \u{1F4C4} Ghostbusters_V_0-1-0_business_NN.md\n  \u{1F4C2} specs/\n    \u{1F4C2} templates/business/\n      \u{1F4C4} business_V_0-1-0_NN.md\n    \u{1F4C4} iNNfo_V_0-3-0_NN.md\n    \u{1F4C4} defiNNition_V_0-1-0_NN.md\n```\n';
+    PROCEDURES_SPEC_CONTENT = '---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/procedures/spec_NN.md"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-5-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\nblueprint_version: "V_0-5-0"\ntitle: "Procedures App"\nrelationship_types:\n  hierarchy:\n    enabled: true\n    via: "index block"\n  evaluable_matrix:\n    enabled: true\n  graph_edge:\n    enabled: false\n  sequence:\n    enabled: true\nviewers:\n  - id: "guided-procedure"\n    view_type: "fsm-stepper"\n    target_concept: "Work"\n    label: "Guided Procedure Execution"\n    icon: "play-circle"\nnature:\n  structure: catalog\n  ownership: derived\n---\n\n# NN index\n\n* [[Procedure]]\n* [[Work]]\n* [[Artifact]]\n* [[Tools]]\n* [[Roles]]\n\n# NN Concept Definition\n\n## NN Concept Definition: Procedure\nicon:: workflow\ntype:: list\ncolor:: teal\nweight:: 110\n\n## NN Concept Definition: Work\nicon:: list-ordered\ntype:: list\ncolor:: blue\nweight:: 100\n\n## NN Concept Definition: Artifact\nicon:: package\ntype:: list\ncolor:: orange\nweight:: 80\n\n## NN Concept Definition: Tools\nicon:: wrench\ntype:: list\ncolor:: orange\nweight:: 70\n\n## NN Concept Definition: Roles\nicon:: users\ntype:: list\ncolor:: green\nweight:: 60\n\n# NN Field Definition\n\n## NN Field Definition: tags\nconcept:: *\ntype:: select\nmultiple:: true\ndescription:: Open vocabulary ad-hoc tags and classification labels.\n\n## NN Field Definition: complexity\nconcept:: *\ntype:: number\nwidget:: scale\nwidget_config:: {"min": 0, "max": 100, "step": 5}\ndescription:: Relative complexity score (0-100 scale, step 5).\n\n## NN Field Definition: category\nconcept:: Procedure\ntype:: select\noptions:: [ingestion, transformation, audit, reporting, custom]\ndescription:: Functional classification of the procedure workflow.\n\n## NN Field Definition: summary\nconcept:: Procedure\ntype:: string\ndescription:: Mandatory concise summary of the workflow intent and transformation steps.\n\n## NN Field Definition: inputs_required\nconcept:: Procedure\ntype:: string\ndescription:: References to required Source or Model concepts consumed as inputs.\n\n## NN Field Definition: outputs_expected\nconcept:: Procedure\ntype:: string\ndescription:: References to expected Artifact concepts produced by the procedure.\n\n## NN Field Definition: executed_by\nconcept:: Procedure\ntype:: string\ndescription:: Reference to responsible agent or functional role executing the procedure.\n\n## NN Field Definition: procedure_model\nconcept:: Procedure\ntype:: knowledge\ndescription:: Link to concrete procedure definition or executable stepper model _NN.md.\n\n## NN Field Definition: step_type\nconcept:: Work\ntype:: select\noptions:: [task, decision, event]\n\n## NN Field Definition: parent\nconcept:: Work\ntype:: reference\ntarget_concepts:: [Work]\n\n## NN Field Definition: next\nconcept:: Work\ntype:: reference\ntarget_concepts:: [Work]\n\n## NN Field Definition: condition\nconcept:: Work\ntype:: string\n\n## NN Field Definition: input\nconcept:: Work\ntype:: reference\ntarget_concepts:: [Artifact]\n\n## NN Field Definition: output\nconcept:: Work\ntype:: reference\ntarget_concepts:: [Artifact]\n\n## NN Field Definition: output_status\nconcept:: Work\ntype:: string\n\n## NN Field Definition: tool\nconcept:: Work\ntype:: reference\ntarget_concepts:: [Tools]\n\n## NN Field Definition: scope\nconcept:: Roles\ntype:: select\noptions:: [internal, external]\n\n# NN Matrix Definition\n\n## NN Matrix Definition: work-roles matrix\nsource:: Work\ntarget:: Roles\nvalues:: [Responsible, Accountable, Consulted, Informed]\n\n## NN Matrix Definition: work-tools matrix\nsource:: Work\ntarget:: Tools\nvalues:: [Uses]\n\n## NN Matrix Definition: work-artifacts matrix\nsource:: Work\ntarget:: Artifact\nvalues:: [Creates, Modifies, Validates, Reviews]\n\n# Procedures Template\n\n## A template for modeling procedure catalogs and structured workflows with sequenced steps, roles, artifacts, tools, and RACI matrices\n\n## Philosophy\n\nThe Procedures Template operates on two complementary tiers:\n1. **Catalog Tier (Procedure)**: Enables progressive disclosure of all workspace procedures, capturing concise summaries, categorization, expected I/O, and links to detailed execution models (`procedure_model`).\n2. **Execution Tier (Work, Artifact, Tools, Roles)**: Defines granular FSM step sequences, accountability matrices (RACI), and tool bindings for step-by-step procedure execution.\n\n## Specification\n\n### Concepts\n\n| Concept | Type | Purpose |\n|---|---|---|\n| **Procedure** | `list` | Catalog entry declaring procedure metadata, summary, required inputs, expected outputs, and model links |\n| **Work** | `list` | Hierarchical tree of procedures and steps. Root elements (no `parent`) = procedure; child elements (`parent` set) = step |\n| **Artifact** | `list` | Documents, deliverables, or data produced or consumed by work steps |\n| **Tools** | `list` | Software or hardware used to execute work steps |\n| **Roles** | `list` | Functional roles with accountability scope (internal/external) |\n\n## Template\n\n### Level 3 Catalog Template\n\n```yaml\n---\nlevel: 3\nparent_spec:\n  name: "procedures"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/procedures/spec_NN.md"\nknowledge_version: "V_0-1-0"\ntitle: "<Procedures Catalog Name>"\n---\n\n# NN index\n\n* [[Procedure]]\n\n# NN Procedure\n\n## NN Procedure: Workflow Name\ncategory:: transformation\nsummary:: Concise summary of workflow intent and steps.\ninputs_required:: [[Source or Model Name]]\noutputs_expected:: [[Artifact Name]]\nexecuted_by:: Lead Engineer\nprocedure_model:: procedures/workflow_NN.md\n```\n\n### Usage Procedure\n\nEvery blueprint that ships procedures (any `*_NN.md` under its `procedures/` tree) MUST also ship a file named `usage_procedures_NN.md` there \u2014 its "how to use this blueprint" guide. It is an ordinary procedure (consumed by a human as a stepper in the console and by an AI agent as an executable Work sequence) whose steps walk from an empty model to a useful one, and it pins this `procedures` blueprint as its parent. Blueprints with no `procedures/` tree are exempt.\n\nThe convention is by file name, not frontmatter, so it never collides with the template-immutability guard (which exempts everything under `procedures/`). It is enforced by `scripts/check-usage-procedure.mjs` (a `verify.js` step).\n\n# Concept Guidance Documentation\n\n## Procedure\n\n### Summary\nCatalog entry declaring procedure metadata, functional categorization, input requirements, expected outputs, execution owner, and linked submodels.\n\n### Description\nA Procedure is a high-level operational workflow catalog item. It encapsulates standard operating procedures (SOPs), repeatable transformation routines, verification pipelines, or governance checklists. Each procedure captures its functional domain through `category` (ingestion, transformation, audit, reporting, custom), defines operational prerequisites via `inputs_required`, specifies tangible outcomes in `outputs_expected`, assigns responsibility with `executed_by`, and optionally links to a granular execution model through `procedure_model`.\n\n### Methodologies\n**Standard Operating Procedure (SOP) Framework**\nDefines standard procedural sequences to ensure consistency, regulatory compliance, and operational repeatability across technical and business workflows.\n\n**ITIL Service Transition & Operational Procedures**\nAligns operational routines with lifecycle management, change governance, and quality verification gates.\n\n**BPMN Workflow Modeling**\nStructures procedure categorization and I/O contracts into clean business process models for human and automated agents.\n\n### Prompts\n`Define a structured procedure catalog entry for our verification gate.`\n`Specify the required inputs and expected deliverables for the release workflow.`\n`Categorize all workspace procedures and map their execution owners.`\n`Link high-level catalog procedures to executable FSM submodels.`\n\n---\n\n## Work\n\n### Summary\nHierarchical execution tree defining end-to-end workflows, stages, decision nodes, and granular action steps.\n\n### Description\nWork represents the structural execution elements of a procedure. Root elements (where `parent` is omitted) represent top-level procedures or workflows, while child elements (where `parent` references a parent Work item) represent sequential steps, decision gates, or sub-tasks. Each work element defines its operational character through `step_type` (task, decision, event), establishes execution ordering via `next` and `condition`, links consumed inputs and produced outputs via `input` and `output`, and associates execution tooling via `tool`.\n\n### Methodologies\n**Hierarchical Task Analysis (HTA)**\nDecomposes complex operational processes into a hierarchy of sub-goals, tasks, and sequential steps.\n\n**Finite State Machine (FSM) Execution**\nModels procedure progression as discrete states transitioning based on evaluated conditions, events, and task completion.\n\n**Value Stream Mapping (VSM)**\nVisualizes sequential work steps to identify bottlenecks, redundant handoffs, and optimization opportunities.\n\n### Prompts\n`Decompose this multi-step procedure into structured Work steps.`\n`Define conditional branches and decision gates for the workflow.`\n`Link input and output artifacts to each granular work step.`\n`Construct an end-to-end step sequence using next and parent references.`\n\n---\n\n## Artifact\n\n### Summary\nTangible deliverables, structured models, reports, or data assets consumed and produced by procedural work steps.\n\n### Description\nArtifact represents any physical or digital deliverable produced or required during procedure execution. Artifacts serve as inputs to subsequent work steps or represent the final terminal deliverables of a workflow. In execution models, artifacts are linked to Work steps via `input` and `output` fields and mapped against tasks through the `work-artifacts matrix` (Creates, Modifies, Validates, Reviews).\n\n### Methodologies\n**Deliverable-Oriented Planning**\nFocuses workflow design on concrete, verifiable outputs rather than open-ended activities.\n\n**Artifact Lifecycle Management**\nTracks the state transitions of artifacts (draft, in-review, approved, published, archived) across procedural milestones.\n\n**Configuration Management (CM)**\nEnsures all procedural inputs and outputs maintain traceable versions and baseline integrity.\n\n### Prompts\n`Identify all artifacts produced and consumed by this operational workflow.`\n`Map procedural deliverables against RACI roles and validation steps.`\n`Define artifact quality criteria and expected output formats.`\n\n---\n\n## Tools\n\n### Summary\nSoftware platforms, CLI utilities, AI agents, or physical instruments used by roles to execute work steps.\n\n### Description\nTools defines the operational instruments, automation scripts, compilers, editors, or external platforms employed during the execution of procedural steps. Tools are referenced directly in Work steps via `tool` and mapped across tasks in the `work-tools matrix` to ensure capability readiness and toolchain compatibility.\n\n### Methodologies\n**Toolchain Integration Matrix**\nMaps operational requirements to software tooling and execution automation capabilities.\n\n**Capability-Based Tooling Assessment**\nEvaluates tool suitability, integration contracts, and automation maturity for workflow execution.\n\n### Prompts\n`Catalog the tools and scripts required for each step in this procedure.`\n`Map tool dependencies across our automated and manual workflows.`\n`Identify opportunities to automate manual steps with dedicated CLI tools.`\n\n---\n\n## Roles\n\n### Summary\nFunctional roles, actors, or automated agents responsible for executing, reviewing, or overseeing procedural tasks.\n\n### Description\nRoles defines the organizational positions, actor profiles, or automated agent types participating in procedure execution. Each role specifies its organizational boundary through `scope` (internal, external) and is mapped against work steps in the `work-roles matrix` using standard RACI values (Responsible, Accountable, Consulted, Informed).\n\n### Methodologies\n**RACI Governance Framework**\nClarifies organizational responsibility and decision rights across procedural steps.\n\n**Role-Based Access & Execution (RBAC)**\nAligns procedural execution permissions and accountability with functional roles.\n\n### Prompts\n`Define the RACI assignments for each step in this workflow.`\n`Identify internal and external roles required for procedure governance.`\n`Clarify accountability and approval gates for critical workflow decisions.`\n\n';
+    SOURCES_SPEC_CONTENT = '---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/sources/spec_NN.md"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-5-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\nblueprint_version: "V_0-3-1"\ntitle: "Sources Catalog App"\nrelationship_types:\n  hierarchy:\n    enabled: true\n    via: "index block"\n  evaluable_matrix:\n    enabled: true\n  graph_edge:\n    enabled: false\n  sequence:\n    enabled: false\nnature:\n  structure: catalog\n  ownership: derived\n---\n\n# NN index\n\n* [[Source]]\n\n# NN Concept Definition\n\n## NN Concept Definition: Source\nicon:: file-input\ntype:: list\ncolor:: teal\nweight:: 100\n\n# NN Field Definition\n\n## NN Field Definition: tags\nconcept:: *\ntype:: select\nmultiple:: true\ndescription:: Open vocabulary ad-hoc tags and classification labels.\n\n## NN Field Definition: type\nconcept:: Source\ntype:: select\noptions:: [local_file, url_snapshot, dynamic_feed, git_repo, api_export]\ndescription:: Polymorphic origin category of the primary source.\n\n## NN Field Definition: origin_uri\nconcept:: Source\ntype:: string\ndescription:: Universal identifier of origin: local path, web URL (https://), or git repository URI.\n\n## NN Field Definition: format\nconcept:: Source\ntype:: select\noptions:: [pdf, docx, html, md, json, csv, audio, xlsx, repo]\ndescription:: Original file or payload format.\n\n## NN Field Definition: raw_path\nconcept:: Source\ntype:: string\ndescription:: Workspace-relative path to the raw/binary asset in sources/import/ or sources/original/.\n\n## NN Field Definition: summary\nconcept:: Source\ntype:: string\ndescription:: Mandatory concise semantic summary of the source contents for progressive disclosure.\n\n## NN Field Definition: status\nconcept:: Source\ntype:: select\noptions:: [ready, stale, processing, error]\ndescription:: Operational and synchronization state of the source.\n\n## NN Field Definition: source_model\nconcept:: Source\ntype:: knowledge\ndescription:: Relative link to normalized iNNfo model document in sources/nn/.\n\n# Sources Catalog Template\n\n## A level-2 template for indexing polymorphic primary sources and normalized source models with progressive disclosure summaries\n\n## Philosophy\n\nThe Sources Catalog serves as the single source of truth for all primary and normalized sources in an iNNfo workspace. By maintaining concise semantic summaries directly in the catalog, AI agents and human users can query source inventories and make informed citation decisions without performing expensive file I/O operations against normalized leaf models. Physical cryptographic metadata (e.g. SHA-256 hashes, timestamps) remains strictly isolated within normalized document frontmatter under `sources/nn/`.\n\n## Template\n\n### Level 3 Model Template (Lightweight)\n\n```yaml\n---\nlevel: 3\nparent_spec:\n  name: "sources"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/sources/spec_NN.md"\nknowledge_version: "V_0-1-0"\ntitle: "<Sources Catalog Name>"\n---\n\n# NN index\n\n* [[Source]]\n\n# NN Source\n\n## NN Source: Source Name\ntype:: local_file\norigin_uri:: sources/original/document.pdf\nraw_path:: sources/original/document.pdf\nformat:: pdf\nsummary:: Concise summary of the source document contents.\ntags:: [tag1, tag2]\nstatus:: ready\nsource_model:: sources/nn/document.md\n```\n';
+    ARTIFACTS_SPEC_CONTENT = '---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/artifacts/spec_NN.md"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-5-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\nblueprint_version: "V_0-5-1"\ntitle: "Artifacts Catalog App"\nrelationship_types:\n  hierarchy:\n    enabled: true\n    via: "index block"\n  evaluable_matrix:\n    enabled: true\n  graph_edge:\n    enabled: false\n  sequence:\n    enabled: false\nnature:\n  structure: catalog\n  ownership: derived\n---\n\n# NN index\n\n* [[Artifact]]\n\n# NN Concept Definition\n\n## NN Concept Definition: Artifact\nicon:: file-output\ntype:: list\ncolor:: teal\nweight:: 100\n\n# NN Field Definition\n\n## NN Field Definition: tags\nconcept:: *\ntype:: select\nmultiple:: true\ndescription:: Open vocabulary ad-hoc tags and classification labels.\n\n## NN Field Definition: format\nconcept:: Artifact\ntype:: select\noptions:: [model, markdown, html, json, csv, binary]\ndescription:: Format of the deliverable or output artifact.\n\n## NN Field Definition: summary\nconcept:: Artifact\ntype:: string\ndescription:: Mandatory concise summary of the artifact contents for progressive disclosure.\n\n## NN Field Definition: status\nconcept:: Artifact\ntype:: select\noptions:: [draft, verified, published, deprecated]\ndescription:: Lifecycle and verification state of the artifact.\n\n## NN Field Definition: artifact_model\nconcept:: Artifact\ntype:: knowledge\ndescription:: Link to structured output model in artifacts/models/ when format is model.\n\n## NN Field Definition: file_path\nconcept:: Artifact\ntype:: string\ndescription:: Relative path to generated deliverable file when format is non-model.\n\n# Artifacts Catalog Template\n\n## A level-2 template for indexing derivative deliverables, generated reports, structured models, and export artifacts with progressive disclosure summaries\n\n## Philosophy\n\nThe Artifacts Catalog registers all tangible and digital outputs generated within an iNNfo workspace. Artifacts encompass interactive web consoles, compiled HTML hubs, documents, tabular datasets, and structured downstream models. By capturing concise summaries in the catalog, agents and users can discover outputs without scanning raw deliverable files.\n\n## Template\n\n### Level 3 Model Template (Lightweight)\n\n```yaml\n---\nlevel: 3\nparent_spec:\n  name: "artifacts"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/artifacts/spec_NN.md"\nknowledge_version: "V_0-1-0"\ntitle: "<Artifacts Catalog Name>"\n---\n\n# NN index\n\n* [[Artifact]]\n\n# NN Artifact\n\n## NN Artifact: Artifact Name\nformat:: model\nsummary:: Concise summary of the deliverable contents.\nstatus:: verified\ntags:: [report, summary]\nartifact_model:: artifacts/models/report_NN.md\n```\n';
+    SIDECAR_SPEC_CONTENT = '---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/sidecar/spec_NN.md"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-5-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\nblueprint_version: "V_0-1-2"\ntitle: "Sidecar App"\nrelationship_types:\n  hierarchy:\n    enabled: true\n    via: "index block"\n  evaluable_matrix:\n    enabled: true\n  graph_edge:\n    enabled: false\n  sequence:\n    enabled: false\n---\n\n# NN index\n\n* [[Sidecar]]\n\n# NN Concept Definition\n\n## NN Concept Definition: Sidecar\nicon:: file-check\ntype:: list\ncolor:: teal\nweight:: 100\n\n# NN Field Definition\n\n## NN Field Definition: source_file\nconcept:: Sidecar\ntype:: string\ndescription:: Workspace-relative path of the file this sidecar describes (its subject). Must match the subject implied by the sidecar file name.\n\n## NN Field Definition: sha256\nconcept:: Sidecar\ntype:: string\ndescription:: SHA-256 of the subject\'s raw bytes (never of decoded text), as lowercase hex. A changed hash makes the sidecar stale.\n\n## NN Field Definition: size_bytes\nconcept:: Sidecar\ntype:: string\ndescription:: Size of the subject in bytes, written as a decimal integer.\n\n## NN Field Definition: source_format\nconcept:: Sidecar\ntype:: string\ndescription:: Format of the subject, taken from its extension (for example pdf, docx, csv, md, json).\n\n## NN Field Definition: normalized_at\nconcept:: Sidecar\ntype:: string\ndescription:: ISO-8601 UTC instant at which the sidecar was written or last refreshed.\n\n## NN Field Definition: normalized_by\nconcept:: Sidecar\ntype:: string\ndescription:: Optional. Name of the normalizer that produced the body for a binary subject. Absent for text-native subjects, whose sidecar has no body.\n\n## NN Field Definition: sources\nconcept:: Sidecar\ntype:: citation\ndescription:: Optional. Citations to the upstream sources the subject was produced from. This is the only upstream edge a sidecar may declare; a sidecar never declares derived_from.\n\n# Sidecar Template\n\n## A level-2 template for the co-located metadata document that makes any workspace file a citable source\n\n## Philosophy\n\nA sidecar binds metadata to bytes. It sits next to its subject, keeps the subject\'s original extension in its own name, and records the subject\'s hash, size, and format. For binary subjects it also carries a normalized Markdown body, so citations by heading or row stay valid while the raw file stays untouched. Text-native subjects (Markdown, CSV, JSON) need no body: the file is its own text.\n\nA sidecar is a concept, not a new level. It is a kNNowledge-level document that is never a model: model discovery, manifests, console targets, and editor workspace detection all ignore it. It is created or refreshed by the `cognitivize` operation, which is the only writer. Raw files and write-once artifacts are never edited; a sidecar is rewritten when the subject\'s hash changes.\n\n## Naming\n\nA sidecar is named `<file>.<ext>_sidecar_NN.md`. The original extension stays in the name, so `report.pdf` is described by `report.pdf_sidecar_NN.md` in the same folder. The name carries the blueprint, so the name invariant holds without exception: the stem `report.pdf_sidecar` ends with `_sidecar`.\n\n## Template\n\n### Level 3 Document Template\n\n```yaml\n---\nlevel: 3\nparent_spec:\n  name: "sidecar"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/sidecar/spec_NN.md"\nsource_file: "sources/import/report.pdf"\nsha256: "<64 lowercase hex characters>"\nsize_bytes: 1048576\nsource_format: "pdf"\nnormalized_at: "2026-10-02T10:15:00Z"\nnormalized_by: "nn-trannsform"\nsources: []\n---\n```\n\nThe body is optional. A sidecar for a binary subject carries the normalized Markdown under ordinary headings; a sidecar for a Markdown, CSV, or JSON subject has no body.\n\n## Rules\n\n1. `source_file`, `sha256`, `size_bytes`, `source_format`, and `normalized_at` are required. `normalized_by` and `sources` are optional.\n2. A normalizer may add its own metadata keys to the frontmatter; they are preserved on refresh.\n3. A sidecar never declares `derived_from`. The upstream edge of a subject is `sources`; the lineage projection derives its own `derived_from` from it.\n4. The sidecar of a sidecar does not exist. `cognitivize` rejects sidecars, `_NN.md` documents, excluded paths, and over-long paths.\n';
+    CHANGES_SPEC_CONTENT = '---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/changes/spec_NN.md"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-5-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\nblueprint_name: "changes"\nblueprint_version: "V_0-5-5"\ntitle: "Changeset Blueprint"\ndescription: "Level-2 blueprint defining the normative document model for graph mutations, proposals, reviews, and version transitions in cogNNitive."\nnature:\n  structure: members\n  ownership: derived\n---\n\n# NN index\n\n* [[Change]]\n\n# NN Concept Definition\n\n## NN Concept Definition: Change\nicon:: git-commit\ntype:: list\ncolor:: blue\nweight:: 100\n\n# NN Field Definition\n\n## NN Field Definition: tags\nconcept:: *\ntype:: select\nmultiple:: true\ndescription:: Open vocabulary ad-hoc tags and classification labels.\n\n## NN Field Definition: op\nconcept:: Change\ntype:: select\noptions:: [update_field, add_element, remove_element, rename_element, rename_concept, update_matrix_cell, update_concept_text, update_concept_field, remove_matrix, add_matrix, comment, add_model, freeze_slugs, bump_version]\ndescription:: Mutation or review operation.\n\n## NN Field Definition: target\nconcept:: Change\ntype:: address\ndescription:: Canonical D5 target address (model@element&field or model@matrix&row&col).\n\n## NN Field Definition: from\nconcept:: Change\ntype:: string\ndescription:: Precondition check value prior to mutation.\n\n## NN Field Definition: to\nconcept:: Change\ntype:: string\ndescription:: Proposed target value. For bump_version, the version level to bump: patch, minor or major. For add_matrix, the column-axis concept.\n\n## NN Field Definition: base_hash\nconcept:: Change\ntype:: string\ndescription:: Content hash of the target element when the change was written (the console\'s element hash). A different current hash is a precondition failure (conflict). Optional; absent means the change is not guarded by element content.\n\n## NN Field Definition: concept\nconcept:: Change\ntype:: string\ndescription:: Target concept for add_element operations, and the row-axis concept for add_matrix.\n\n## NN Field Definition: name\nconcept:: Change\ntype:: string\ndescription:: Display name for added or renamed entities; the title of a model created by add_model (defaults to the id); the matrix name for add_matrix.\n\n## NN Field Definition: slug\nconcept:: Change\ntype:: string\ndescription:: Proposed explicit slug.\n\n## NN Field Definition: fields\nconcept:: Change\ntype:: string\ndescription:: Initial field key-values for added elements.\n\n## NN Field Definition: author\nconcept:: Change\ntype:: string\ndescription:: Identifier of author, reviewer, or agent.\n\n## NN Field Definition: notes\nconcept:: Change\ntype:: string\ndescription:: Rationale, commit note, or review critique.\n\n## NN Field Definition: evidence\nconcept:: Change\ntype:: citation\ndescription:: Evidence the change derives from \u2014 the ONLY provenance of the mutation \u2014 in the shared citation grammar (<path>@## <Heading>, <csv>@<row>, <json>@/<pointer>, a bare path, or the literal tokens decision / unknown). Mandatory on every change; written by the proposer at proposal time and sealed into proposal_sha; apply only verifies that it resolves.\n\n## NN Field Definition: blueprint_name\nconcept:: Change\ntype:: string\ndescription:: add_model only. Name of the parent bluepriNNt of the model to create.\n\n## NN Field Definition: blueprint_url\nconcept:: Change\ntype:: string\ndescription:: add_model only. Immutable URL of the parent bluepriNNt of the model to create.\n\n## NN Field Definition: knowledge_version\nconcept:: Change\ntype:: string\ndescription:: add_model only. Optional initial knowledge_version of the created model (inferred from the bluepriNNt when omitted).\n\n## NN Field Definition: status\nconcept:: Change\ntype:: select\noptions:: [proposed, applied, partially_applied, rejected, conflict]\ndescription:: Execution status annotation assigned by the apply engine. partially_applied is a changeset-level status (some changes applied, some conflicted); a change itself is applied, conflict or rejected.\n\n## NN Field Definition: resolution\nconcept:: Change\ntype:: string\ndescription:: Execution outcome, conflict description or rejection reason. A rejected changeset records why it was rejected here and is never re-applied.\n\n## NN Field Definition: resolved_slug\nconcept:: Change\ntype:: string\ndescription:: Disambiguated slug assigned upon insertion.\n\n# Changeset Blueprint\n\n## A level-2 blueprint defining the normative document model for graph mutations, proposals, reviews, and version transitions in cogNNitive\n\n## Philosophy\n\nEvery graph mutation in cogNNitive is represented as a structured changeset document. Rather than performing uncoordinated mutations or relying on informal agent chat transcript promotion, changesets serve as the single authoritative mutation and provenance medium. Changesets are sealed with a proposal hash, verified before application, and recorded permanently to form an immutable chain of provenance. The seal is produced at intake when a proposer omits it (see Specification).\n\n## Objectives\n\n- Standardize graph mutation operations across models, elements, fields, and matrices.\n- Provide cryptographic proposal sealing to detect tampering before execution.\n- Support atomic two-phase transactions with zero partial side-effects on validation failure.\n- Preserve explicit field-level citations pointing directly to originating changes.\n- Enable structured human and agent review feedback as comment operations.\n\n## Specification\n\nA changeset document lives in the changes/ directory at the domain root with the filename pattern <prefix>_<author>_<stamp>_changes_NN.md. The prefix is the workspace_id for a changeset written by the MCP (propose_changeset, init_knowledge, apply_change) and the model slug for a changeset exported by the console review.\n\nEach change is declared as an element of concept Change:\n- op: One of update_field, add_element, remove_element, rename_element, rename_concept, update_matrix_cell, update_concept_text, update_concept_field, remove_matrix, add_matrix, comment, add_model, freeze_slugs, bump_version.\n- target: Canonical target address identifying the model, element, field, matrix, row, or column.\n- from: Precondition value that must match the live model state.\n- to: Proposed value.\n- add_model: Creates a new Level-3 kNNowledge document. target is the new model id; blueprint_name and blueprint_url are required; name (title) and knowledge_version are optional. It carries no from, to or base_hash and no element payload: initial elements are add_element changes that follow it in the same changeset.\n- freeze_slugs: Writes an explicit slug for every element of the model that lacks one. target is the bare model id; it carries no other payload.\n- bump_version: Raises the model knowledge_version by the level named in to (patch, minor or major). target is the bare model id. The apply engine bumps each touched model exactly once: a changeset that carries bump_version applies that level instead of the default patch bump, never both. The unversioned lineage record cannot be bumped.\n- add_matrix: Adds a new matrix table to a Level-3 model. target is model@matrix:&lt;name&gt;; name is the matrix name, concept is the row-axis concept and to is the column-axis concept. Optional fields.columns and fields.rows (comma-separated) seed the grid; when omitted they default to the axis concepts\' own elements. Every seeded cell starts empty, ready for update_matrix_cell. It is refused on a Level-2 bluepriNNt (declare a Matrix Definition element there instead), and rejected when the matrix already exists.\n- base_hash: Optional precondition on the target element content; a mismatch is a conflict.\n- evidence: Mandatory. Evidence the change derives from (a citation, or the literal tokens decision / unknown); written by the proposer and sealed with the proposal. The change is the only provenance of the mutation.\n- Execution annotations (status, resolution, resolved_slug, applied_at, batch) record the outcome of applying the change. Each change carries its own applied_at (UTC), status, author and batch; the change chain, ordered by applied_at, is a field\'s history.\n\nChangeset status is one of proposed, applied, partially_applied, rejected, conflict. A changeset is rejected when the proposal itself is invalid (a failed validation or an unresolved citation): the status and the reason (resolution) are persisted and the changeset is never re-applied. A conflict is a failed precondition of the live model and may be fixed and retried.\n\nA changeset MAY be authored by hand (for example a large agent-generated batch) and applied by path with `apply_change`; it does not require a pre-computed `proposal_sha`. When the seal is omitted the runtime computes it at intake; a present but non-matching value is rejected as tampered (`PROPOSAL_TAMPERED`), so a hand-authored changeset MUST either omit the seal or carry the exact hash. The document-level `proposal_sha` is therefore optional in the template below.\n\n## Template\n\n### Level 3 Changeset Template\n\n```markdown\n---\nspec_version: "V_0-4-0"\nlevel: 3\nparent_spec:\n  name: changes\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/changes/spec_NN.md"\nblueprint_version: "V_0-4-0"\nstatus: proposed\nproposal_sha: "<64-character-sha256-hex>"\ntitle: "<Changeset Title>"\nauthor: "<Author>"\n---\n\n# NN index\n\n* [[Change]]\n\n# NN Change\n\n## NN Change: change-1\nop:: update_field\ntarget:: model@element&field\nfrom:: "old_value"\nto:: "new_value"\nevidence:: sources/import/<file>@## <Heading>\n```\n\n## Examples\n\n### Field Update and Review Comment\n\n```markdown\n## NN Change: c-01\nop:: update_field\ntarget:: strategy@vision&statement\nfrom:: "Initial draft"\nto:: "Accelerate renewable adoption"\nauthor:: agent-1\nnotes:: Align with 2026 sustainability roadmap\n\n## NN Change: c-02\nop:: comment\ntarget:: strategy@vision&statement\nauthor:: reviewer-human\nnotes:: Verified alignment with executive briefing\n```\n';
+    DOMAINN_SPEC_CONTENT = '---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/domaiNN/spec_NN.md"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-5-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\ntitle: "DomaiNN Blueprint"\nblueprint_name: "domaiNN"\nblueprint_version: "V_0-4-0"\nrelationship_types:\n  hierarchy:\n    enabled: true\n    via: "index block"\n  evaluable_matrix:\n    enabled: true\n  graph_edge:\n    enabled: false\n  sequence:\n    enabled: false\n---\n\n# NN index\n\n* [[domaiNN]]\n* [[kNNowledge]]\n* [[bluepriNNts]]\n\n# NN Concept Definition\n\n## NN Concept Definition: domaiNN\nicon:: layout-dashboard\ntype:: text\ncolor:: grey\nweight:: 100\n\n## NN Concept Definition: kNNowledge\nicon:: file-symlink\ntype:: knowledge\ncolor:: purple\nweight:: 95\n\n## NN Concept Definition: bluepriNNts\nicon:: copy\ntype:: model\ncolor:: grey\nweight:: 90\n\n# NN Field Definition\n\n## NN Field Definition: tags\nconcept:: *\ntype:: select\nmultiple:: true\ndescription:: Open vocabulary ad-hoc tags and classification labels (e.g. verified).\n\n<!-- domaiNN fields: container conventions -->\n\n## NN Field Definition: name\nconcept:: domaiNN\ntype:: string\ndescription:: Display name or title of the domaiNN.\n\n## NN Field Definition: knowledge_dir\nconcept:: domaiNN\ntype:: string\ndescription:: Base relative path for kNNowledge documents in the domaiNN (default: kNNowledge/).\n\n## NN Field Definition: blueprints_dir\nconcept:: domaiNN\ntype:: string\ndescription:: Base relative path for local bluepriNNts in the domaiNN (default: specs/bluepriNNts/).\n\n<!-- kNNowledge fields: inventory + lineage -->\n\n## NN Field Definition: path\nconcept:: kNNowledge\ntype:: knowledge\ndescription:: domaiNN-relative path to the referenced kNNowledge document.\n\n## NN Field Definition: blueprint\nconcept:: kNNowledge\ntype:: string\ndescription:: The level-2 bluepriNNt the referenced kNNowledge document conforms to.\n\n## NN Field Definition: status\nconcept:: kNNowledge\ntype:: select\noptions:: [draft, active, archived]\ndescription:: Lifecycle status of the kNNowledge document within this domaiNN.\n\n## NN Field Definition: author\nconcept:: kNNowledge\ntype:: string\ndescription:: Author or owner of the kNNowledge document within this domaiNN.\n\n<!-- bluepriNNts fields: local blueprint inventory -->\n\n## NN Field Definition: path\nconcept:: bluepriNNts\ntype:: model\ndescription:: domaiNN-relative path to a local bluepriNNt spec (spec_NN.md).\n\n## NN Field Definition: category\nconcept:: bluepriNNts\ntype:: string\ndescription:: Domain classification or strategic focus of the local bluepriNNt.\n\n# DomaiNN Blueprint\n\n## A level-2 blueprint for a domaiNN root \u2014 linking kNNowledge documents, local bluepriNNts, and taxonomy tags\n\n## Philosophy\n\nA domaiNN is the container for a body of kNNowledge. It is itself a kNNowledge document, so a domaiNN can nest inside another domaiNN without a special case:\n* **domaiNN** sets directory conventions and the entry point (`domaiNN_NN.md`).\n* **kNNowledge** links to the Level-3 documents with metadata and blueprint binding.\n* **bluepriNNts** catalogs local bluepriNNt packages.\n\n## Objectives\n\n- Define the domaiNN root as an ordinary Level-3 kNNowledge document governed by this blueprint.\n- Standardize the directory layout: `kNNowledge/` for knowledge and `specs/bluepriNNts/` for local bluepriNNts.\n- Make every domaiNN resolvable offline through the parent chain (`domaiNN` \u2192 iNNfo V_0-5-0 \u2192 defiNNition).\n\n## Specification\n\n### Concepts\n\n| Concept | Type | Purpose |\n|---|---|---|\n| **domaiNN** | text | Prose description, entry point, and directory conventions of the container |\n| **kNNowledge** | knowledge | kNNowledge documents in the domaiNN with metadata and blueprint binding |\n| **bluepriNNts** | model | Local bluepriNNt specs the domaiNN references (path + category) |\n\n### Fields\n\n| Concept | Field | Type | Purpose |\n|---|---|---|---|\n| `*` | `tags` | select (multiple) | Open vocabulary ad-hoc tags and classification labels (e.g. `verified`) |\n| domaiNN | `name` | string | Display name or title of the domaiNN |\n| domaiNN | `knowledge_dir` | string | Base relative path for kNNowledge documents |\n| domaiNN | `blueprints_dir` | string | Base relative path for local bluepriNNts |\n| kNNowledge | `path` | knowledge | domaiNN-relative path to referenced document |\n| kNNowledge | `blueprint` | string | Level-2 bluepriNNt name |\n| kNNowledge | `status` | select | draft, active, archived |\n| kNNowledge | `author` | string | Author or owner |\n| bluepriNNts | `path` | model | domaiNN-relative path to local spec |\n| bluepriNNts | `category` | string | Strategic focus of local bluepriNNt |\n\n### Directory Conventions\n\n| Key | Default | Meaning |\n|---|---|---|\n| `knowledge_dir` | `kNNowledge/` | Base path for Level-3 kNNowledge documents |\n| `blueprints_dir` | `specs/bluepriNNts/` | Base path for local bluepriNNt packages |\n\nThe entry point of a domaiNN is a root document named exactly `domaiNN_NN.md`. Legacy entrypoint names (`workspace*.md`, `*_base_NN.md`) are detected as legacy and are never loaded by current tooling.\n\n## Template\n\n### Level 3 kNNowledge Template (Lightweight)\n\n```yaml\n---\nlevel: 3\nparent_spec:\n  name: "domaiNN"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/domaiNN/spec_NN.md"\nknowledge_version: "V_0-1-0"\ntitle: "<DomaiNN Name>"\n---\n\n# NN domaiNN\n\nDescription of the domaiNN: its purpose, scope, and conventions.\n\n# NN kNNowledge\n\n## NN kNNowledge: Core Knowledge\npath:: kNNowledge/core_business_NN.md\nblueprint:: business\nstatus:: active\nauthor:: Lead Architect\ntags:: [verified]\n```\n\n## Examples\n\nA domaiNN that links one business kNNowledge document uses two concepts: `domaiNN` for the container and `kNNowledge` for the linked document. No other structure is required.\n';
+    BLANK_SPEC_CONTENT = '---\nspec_version: "V_0-5-0"\nspec_url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/blank/spec_NN.md"\nlevel: 2\nparent_spec:\n  name: "iNNfo_V_0-5-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md"\nblueprint_version: "V_0-4-0"\ntitle: "Blank App"\nrelationship_types:\n  hierarchy:\n    enabled: true\n    via: "index block"\n  evaluable_matrix:\n    enabled: false\n  graph_edge:\n    enabled: false\n  sequence:\n    enabled: false\n---\n\n# NN index\n\n* [[Content]]\n\n# NN Concept Definition\n\n## NN Concept Definition: Content\nicon:: file-text\ntype:: text\ncolor:: blue\nweight:: 100\n\n# NN Field Definition\n\n## NN Field Definition: tags\nconcept:: *\ntype:: select\nmultiple:: true\ndescription:: Open vocabulary ad-hoc tags and classification labels.\n\n## NN Field Definition: summary\nconcept:: Content\ntype:: string\ndescription:: Free-form one-line summary or label for the content block.\n\n# NN Matrix Definition\n\n# Blank Template\n\n## A minimal starting point for defining new concepts and fields from scratch\n\n## Philosophy\n\nThe Blank Template is the empty canvas of the iNNfo ecosystem. Where the Business, Organization, Procedures, and Projects templates ship pre-built domain concepts, the Blank Template declares a single minimal `Content` concept and leaves every other Concept, Field, and Matrix Definition to the model author. Use it to model a domain that has no dedicated template yet, or to bootstrap a custom specialization without inheriting unrelated structure.\n\nBy design it keeps model creation unopinionated: you add `# NN Concept Definition`, `# NN Field Definition`, and `# NN Matrix Definition` elements to this page to shape your own schema, then author Level 3 models against them.\n\n## Objectives\n\n- Provide a minimal, valid Level 2 template that can be used as `parent_spec` for any new or exploratory model.\n- Avoid forcing any domain vocabulary onto the model author.\n- Keep the body valid against the `iNNfo_V_0-3-0` meta-template (the four root primitives instantiated in the body, no `concepts:`/`fields:` frontmatter).\n- Serve as the starting point for authoring a specialization that still follows iNNfo conventions.\n\n## Specification\n\n### Concepts\n\n| Concept | Type | Purpose |\n|---|---|---|\n| **Content** | `text` | A single free-form container for notes, prose, or unstructured content |\n\nThe `Content` concept exists so the template has a non-empty, resolvable `# NN index` and a place for the model author to put opening content. Additional Concepts are added by the author through `# NN Concept Definition` elements.\n\n### Fields\n\n| Field | Concept | Type | Purpose |\n|---|---|---|---|\n| `tags` | `*` | `select` (multiple) | Open vocabulary ad-hoc tags and classification labels |\n| `summary` | Content | `string` | Free-form one-line summary or label for the content block |\n\n### Matrices\n\nNone by default. Add `# NN Matrix Definition` elements as your schema grows.\n\n### Relationship Types\n\n| Type | Enabled | Representation |\n|---|---|---|\n| Hierarchy | \u2705 | index block (wikilinks) |\n| Evaluable matrix | \u274C | Not applicable by default |\n| Graph edge | \u274C | Not applicable |\n| Sequence | \u274C | Not applicable |\n\n## Template\n\n### Level 3 Model Template (Lightweight)\n\nTo create a blank model, create a level 3 FILE mode document with:\n\n```yaml\n---\nlevel: 3\nparent_spec:\n  name: "blank_V_0-2-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/blank/spec_NN.md"\nknowledge_version: "V_x-y-z"\ntitle: "<Your Model Name>"\n---\n\n# NN index\n* [[Content]]\n\n# NN Content\nYour opening content here.\n```\n\nThe application will resolve the `parent` URL, download this template, and use its Concept, Field, Marker, and Matrix Definitions to validate and render your model. To model a richer domain, extend the template (or create a specialization) with additional `# NN Concept Definition` and `# NN Field Definition` elements following the `iNNfo_V_0-3-0` meta-template.\n\n## Examples\n\n### Canonical Sample\n\nThe Blank Template intentionally ships without a domain sample, because a blank model is defined entirely by its author. For a guided example of a fully populated template, see the Business (`specs/bluepriNNts/business/`), Organization (`specs/bluepriNNts/organization/`), Procedures (`specs/bluepriNNts/procedures/`), or Projects (`specs/bluepriNNts/projects/`) templates.\n\n### Parent Chain\n\n```yaml\n# This template\'s parent:\nparent_spec:\n  name: "iNNfo_V_0-3-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-3-0_NN.md"\n```\n\nModels targeting this template set:\n\n```yaml\nparent_spec:\n  name: "blank_V_0-2-0"\n  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/blank/spec_NN.md"\n```\n\n# Concept Guidance Documentation\n\n## Content\n\n### Summary\nA free-form container for the model author\'s opening content, notes, or prose.\n\n### Description\nThe `Content` concept is the only concept the Blank Template declares. It is a single-instance `text` block where you can place an introduction, a summary, or unstructured notes before you define your own purposeful Concepts and Fields. Extend the template as needed to model your domain.\n';
+    CANONICAL_BLUEPRINTS = {
+      procedures: {
+        name: "procedures",
+        version: "V_0-5-0",
+        aliases: [
+          "procedures",
+          "procedures_spec_nn",
+          "procedures_spec",
+          "procedures_v_0-2-0_nn",
+          "procedures_v_0-2-0",
+          "procedures_v_0-2-1",
+          "procedures_v_0-1-0",
+          "specs/templates/procedures/spec_nn.md",
+          "specs/templates/procedures/procedures_v_0-2-0_nn.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/iNNfo/specs/bluepriNNts/procedures/spec_nn.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/iNNfo/specs/bluepriNNts/procedures/procedures_v_0-2-0_nn.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/iNNfo/specs/bluepriNNts/procedures/procedures_v_0-2-1_nn.md"
+        ],
+        specContent: PROCEDURES_SPEC_CONTENT
+      },
+      sources: {
+        name: "sources",
+        version: "V_0-3-1",
+        aliases: [
+          "sources",
+          "sources_spec_nn",
+          "sources_spec",
+          "sources_v_0-1-0_nn",
+          "sources_v_0-1-0",
+          "specs/templates/sources/spec_nn.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/iNNfo/specs/bluepriNNts/sources/spec_nn.md"
+        ],
+        specContent: SOURCES_SPEC_CONTENT
+      },
+      artifacts: {
+        name: "artifacts",
+        version: "V_0-5-1",
+        aliases: [
+          "artifacts",
+          "artifacts_spec_nn",
+          "artifacts_spec",
+          "artifacts_v_0-1-0_nn",
+          "artifacts_v_0-1-0",
+          "artifacts_v_0-2-0",
+          "specs/templates/artifacts/spec_nn.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/iNNfo/specs/bluepriNNts/artifacts/spec_nn.md"
+        ],
+        specContent: ARTIFACTS_SPEC_CONTENT
+      },
+      sidecar: {
+        name: "sidecar",
+        version: "V_0-1-2",
+        aliases: [
+          "sidecar",
+          "sidecar_spec_nn",
+          "sidecar_spec",
+          "sidecar_v_0-1-0_nn",
+          "sidecar_v_0-1-0",
+          "specs/templates/sidecar/spec_nn.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/iNNfo/specs/bluepriNNts/sidecar/spec_nn.md"
+        ],
+        specContent: SIDECAR_SPEC_CONTENT
+      },
+      definition: {
+        name: "defiNNition",
+        version: "V_0-1-0",
+        aliases: [
+          "definition",
+          "defiNNition",
+          "definne",
+          "defiNNe",
+          "defiNNition_spec_NN",
+          "defiNNition_V_0-1-0",
+          "defiNNition_V_0-1-0_NN",
+          "defiNNition_V_0-1-0_NN.md",
+          "specs/defiNNition_V_0-1-0_NN.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/innfo/specs/definnition_v_0-1-0_nn.md",
+          "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/defiNNition_V_0-1-0_NN.md"
+        ],
+        specContent: DEFINNITION_SPEC_CONTENT
+      },
+      innfo: {
+        name: "innfo",
+        version: "V_0-5-0",
+        aliases: [
+          "innfo",
+          "iNNfo",
+          "innfo_spec_NN",
+          "iNNfo_spec_NN",
+          "innfo_V_0-2-0",
+          "iNNfo_V_0-2-0",
+          "innfo_V_0-2-0_NN",
+          "iNNfo_V_0-2-0_NN",
+          "innfo_V_0-2-1",
+          "iNNfo_V_0-2-1",
+          "innfo_V_0-2-1_NN",
+          "iNNfo_V_0-2-1_NN",
+          "innfo_V_0-2-2",
+          "iNNfo_V_0-2-2",
+          "innfo_V_0-2-2_NN",
+          "iNNfo_V_0-2-2_NN",
+          "specs/iNNfo_V_0-2-0_NN.md",
+          "specs/iNNfo_V_0-2-1_NN.md",
+          "specs/iNNfo_V_0-2-2_NN.md",
+          "specs/iNNfo_V_0-3-0_NN.md",
+          "innfo_V_0-3-0",
+          "iNNfo_V_0-3-0",
+          "innfo_V_0-3-0_NN",
+          "iNNfo_V_0-3-0_NN",
+          "specs/iNNfo_V_0-5-0_NN.md",
+          "innfo_V_0-5-0",
+          "iNNfo_V_0-5-0",
+          "innfo_V_0-5-0_NN",
+          "iNNfo_V_0-5-0_NN",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/innfo/specs/innfo_v_0-5-0_nn.md",
+          "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive-web/main/innfo/specs/innfo_v_0-5-0_nn.md",
+          "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/innfo/specs/innfo_v_0-3-0_nn.md",
+          "https://raw.githubusercontent.com/cogNNitive/cogNNitive/main/iNNfo/specs/iNNfo_V_0-3-0_NN.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/innfo/specs/innfo_v_0-2-0_nn.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/innfo/specs/innfo_v_0-2-1_nn.md",
+          "https://raw.githubusercontent.com/cognnitive/cognnitive/main/innfo/specs/innfo_v_0-2-2_nn.md"
+        ],
+        specContent: INNFO_V_0_5_0_SPEC_CONTENT
+      },
+      changes: {
+        name: "changes",
+        version: "V_0-5-5",
+        aliases: [
+          "changes",
+          "changes_spec_nn",
+          "changes_spec",
+          "changes_v_0-1-0_nn",
+          "changes_v_0-1-0",
+          "specs/bluepriNNts/changes/spec_NN.md",
+          "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/changes/spec_NN.md"
+        ],
+        specContent: CHANGES_SPEC_CONTENT
+      },
+      domainn: {
+        name: "domaiNN",
+        version: "V_0-4-0",
+        aliases: [
+          "domaiNN",
+          "domaiNN_spec_NN",
+          "domaiNN_V_0-4-0",
+          "domaiNN_V_0-4-0_NN",
+          "specs/bluepriNNts/domaiNN/spec_NN.md",
+          "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/domaiNN/spec_NN.md"
+        ],
+        specContent: DOMAINN_SPEC_CONTENT
+      },
+      blank: {
+        name: "blank",
+        version: "V_0-4-0",
+        aliases: [
+          "blank",
+          "blank_spec_NN",
+          "blank_V_0-4-0",
+          "blank_V_0-4-0_NN",
+          "specs/bluepriNNts/blank/spec_NN.md",
+          "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/blank/spec_NN.md"
+        ],
+        specContent: BLANK_SPEC_CONTENT
+      }
+    };
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/schema/index.js
+var init_schema = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/schema/index.js"() {
+    "use strict";
+    init_extract();
+    init_compose();
+    init_declaredField();
+    init_metaschema();
+    init_canonical_registry();
+    init_nature();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/resolver.js
+function getSpecForLevel(cache, level) {
+  for (const doc of cache.specs.values()) {
+    if (doc.level === level)
+      return doc;
+  }
+  return void 0;
+}
+function getBlueprint(cache) {
+  return getSpecForLevel(cache, 3) ?? getSpecForLevel(cache, 2);
+}
+function normalizeVersion(versionStr) {
+  let v = versionStr.replace(/^[vV]_?/, "");
+  v = v.replace(/[_-]/g, ".");
+  return v.trim();
+}
+function isVersionDirName(name) {
+  if (PACKAGE_NON_VERSION_DIRS.has(name.toLowerCase()))
+    return false;
+  return /_V_\d+[-_.]\d+[-_.]\d+/i.test(name) || /^V[_.-]?\d+[-_.]\d+[-_.]\d+$/i.test(name) || /^\d+[-_.]\d+[-_.]\d+$/.test(name);
+}
+function parseSpecName(name) {
+  const clean = name.replace(/\.(md|markdown)$/i, "").replace(/_(NN|FORMAT|F)$/i, "");
+  const parts = clean.split(/_V_/i);
+  const base = parts[0].toLowerCase();
+  const rawVersion = parts[1];
+  const version = rawVersion ? normalizeVersion(rawVersion) : void 0;
+  return { base, version };
+}
+async function getMarkdownFiles(dir) {
+  const { readdir: readdir5 } = await import("node:fs/promises");
+  const { join: join14 } = await import("node:path");
+  const files = [];
+  try {
+    const entries = await readdir5(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = join14(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === "node_modules" || entry.name.startsWith("."))
+          continue;
+        files.push(...await getMarkdownFiles(fullPath));
+      } else if (entry.isFile() && /\.(md|markdown)$/i.test(entry.name)) {
+        files.push(fullPath);
+      }
+    }
+  } catch (err) {
+    if (err?.code !== "ENOENT") {
+      console.warn(`[resolver] Failed to scan dir ${dir}: ${err}`);
+    }
+  }
+  return files;
+}
+function versionFromFrontmatter(content) {
+  const fm = parseFrontmatter2(content);
+  const v = fm?.spec_version ?? fm?.specification_version;
+  return v ? normalizeVersion(String(v)) : void 0;
+}
+function blueprintVersionFromFrontmatter(content) {
+  const v = parseFrontmatter2(content)?.blueprint_version;
+  return v ? normalizeVersion(String(v)) : void 0;
+}
+function compareDottedVersions(a, b) {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const x = pa[i] ?? 0;
+    const y = pb[i] ?? 0;
+    if (x !== y)
+      return x - y;
+  }
+  return 0;
+}
+async function matchSpecPath(reqParsed, filePath) {
+  const { readFile: readFile7 } = await import("node:fs/promises");
+  const { basename: basename9 } = await import("node:path");
+  const fileParsed = parseSpecName(basename9(filePath));
+  if (fileParsed.base !== reqParsed.base)
+    return false;
+  if (!reqParsed.version)
+    return true;
+  if (fileParsed.version)
+    return fileParsed.version === reqParsed.version;
+  try {
+    const content = await readFile7(filePath, "utf-8");
+    const fmVersion = versionFromFrontmatter(content);
+    return fmVersion !== void 0 && fmVersion === reqParsed.version;
+  } catch (err) {
+    if (err?.code !== "ENOENT") {
+      console.warn(`[resolver] Failed to read ${filePath} for version match: ${err}`);
+    }
+    return false;
+  }
+}
+async function preferHighestVersion(matches) {
+  if (matches.length === 0)
+    return null;
+  const { readFile: readFile7 } = await import("node:fs/promises");
+  const { basename: basename9 } = await import("node:path");
+  let best = matches[0];
+  let bestVersion;
+  for (const m of matches) {
+    const nameVersion = parseSpecName(basename9(m)).version;
+    const v = nameVersion ?? versionFromFrontmatter(await readFile7(m, "utf-8").catch(() => ""));
+    if (!bestVersion && v) {
+      best = m;
+      bestVersion = v;
+      continue;
+    }
+    if (bestVersion && v && compareDottedVersions(v, bestVersion) > 0) {
+      best = m;
+      bestVersion = v;
+    }
+  }
+  return best;
+}
+async function findLocalSpec(specsDir, reqName) {
+  const reqParsed = parseSpecName(reqName);
+  const matches = [];
+  for (const filePath of await getMarkdownFiles(specsDir)) {
+    if (await matchSpecPath(reqParsed, filePath))
+      matches.push(filePath);
+  }
+  if (reqParsed.version)
+    return matches[0] ?? null;
+  return preferHighestVersion(matches);
+}
+async function findSpecInPackageDir(dir, base) {
+  const { readdir: readdir5 } = await import("node:fs/promises");
+  const { join: join14 } = await import("node:path");
+  try {
+    const entries = await readdir5(dir, { withFileTypes: true });
+    const files = entries.filter((e) => e.isFile() && /\.(md|markdown)$/i.test(e.name)).map((e) => e.name);
+    if (files.length === 0)
+      return null;
+    const specNN = files.find((f) => f.toLowerCase() === "spec_nn.md");
+    if (specNN)
+      return join14(dir, specNN);
+    const baseV = files.find((f) => f.toLowerCase().startsWith(`${base.toLowerCase()}_v_`));
+    if (baseV)
+      return join14(dir, baseV);
+    const baseNN = files.find((f) => f.toLowerCase() === `${base.toLowerCase()}_nn.md`);
+    if (baseNN)
+      return join14(dir, baseNN);
+    const specMd = files.find((f) => f.toLowerCase() === "spec.md");
+    if (specMd)
+      return join14(dir, specMd);
+    const baseMd = files.find((f) => f.toLowerCase() === `${base.toLowerCase()}.md`);
+    if (baseMd)
+      return join14(dir, baseMd);
+    return join14(dir, files[0]);
+  } catch (err) {
+    if (err?.code !== "ENOENT") {
+      console.warn(`[resolver] Failed to scan package dir ${dir}: ${err}`);
+    }
+    return null;
+  }
+}
+function isDirectSpecEntryName(filePath, base) {
+  const entry = (filePath.split(/[\\/]/).pop() ?? filePath).toLowerCase();
+  return entry === "spec_nn.md" || entry === `${base.toLowerCase()}_nn.md` || entry.startsWith(`${base.toLowerCase()}_v_`);
+}
+async function resolveBlueprintPackage(rootDir, reqName, reqVersion, options) {
+  const { readdir: readdir5, readFile: readFile7 } = await import("node:fs/promises");
+  const { join: join14 } = await import("node:path");
+  const { homedir: homedir2 } = await import("node:os");
+  const globalDir = options?.globalDir ?? process.env.INNFO_GLOBAL_DIR ?? join14(homedir2(), ".agents", "bluepriNNts");
+  const skillsDir = options?.skillsDir ?? process.env.INNFO_SKILLS_DIR ?? join14(homedir2(), ".agents", "skills");
+  const parsed = parseSpecName(reqName);
+  const base = parsed.base;
+  const targetVersion = reqVersion ? normalizeVersion(reqVersion) : parsed.version;
+  const wsPackageBaseDir = join14(rootDir, "specs", "bluepriNNts", base);
+  const unversionedSpecFile = await findSpecInPackageDir(wsPackageBaseDir, base);
+  if (unversionedSpecFile && isDirectSpecEntryName(unversionedSpecFile, base)) {
+    const content = await readFile7(unversionedSpecFile, "utf-8").catch(() => "");
+    const fmVersion = versionFromFrontmatter(content);
+    const bpVersion = blueprintVersionFromFrontmatter(content);
+    return {
+      name: base,
+      version: targetVersion || bpVersion || fmVersion || "V_0-1-0",
+      packagePath: wsPackageBaseDir,
+      specFilePath: unversionedSpecFile,
+      isPackageDir: true,
+      tier: "workspace-package"
+    };
+  }
+  try {
+    const entries = await readdir5(wsPackageBaseDir, { withFileTypes: true });
+    const verDirs = entries.filter((e) => e.isDirectory() && isVersionDirName(e.name));
+    let matchDir = null;
+    let matchVer;
+    if (targetVersion) {
+      for (const d of verDirs) {
+        if (normalizeVersion(d.name) === targetVersion) {
+          matchDir = join14(wsPackageBaseDir, d.name);
+          matchVer = targetVersion;
+          break;
+        }
+      }
+    } else if (verDirs.length > 0) {
+      let bestVer = "";
+      for (const d of verDirs) {
+        const v = normalizeVersion(d.name);
+        if (!bestVer || compareDottedVersions(v, bestVer) > 0) {
+          bestVer = v;
+          matchDir = join14(wsPackageBaseDir, d.name);
+          matchVer = v;
+        }
+      }
+    }
+    if (matchDir) {
+      const specFile = await findSpecInPackageDir(matchDir, base);
+      if (specFile) {
+        return {
+          name: base,
+          version: matchVer || "V_0-1-0",
+          packagePath: matchDir,
+          specFilePath: specFile,
+          isPackageDir: true,
+          tier: "workspace-package"
+        };
+      }
+    }
+  } catch (err) {
+    if (err?.code !== "ENOENT") {
+      console.warn(`[resolver] Failed to scan package tier dir: ${err}`);
+    }
+  }
+  const flatSearchDirs = [join14(rootDir, "specs")];
+  for (const dir of flatSearchDirs) {
+    const matchFile = await findLocalSpec(dir, reqName);
+    if (matchFile) {
+      const content = await readFile7(matchFile, "utf-8").catch(() => "");
+      const v = targetVersion || versionFromFrontmatter(content) || "0.1.0";
+      return {
+        name: base,
+        version: v,
+        packagePath: matchFile,
+        specFilePath: matchFile,
+        isPackageDir: false,
+        tier: "workspace-flat"
+      };
+    }
+  }
+  const globalBaseDir = join14(globalDir, base);
+  try {
+    const entries = await readdir5(globalBaseDir, { withFileTypes: true });
+    const verDirs = entries.filter((e) => e.isDirectory() && isVersionDirName(e.name));
+    let matchDir = null;
+    let matchVer;
+    if (targetVersion) {
+      for (const d of verDirs) {
+        if (normalizeVersion(d.name) === targetVersion) {
+          matchDir = join14(globalBaseDir, d.name);
+          matchVer = targetVersion;
+          break;
+        }
+      }
+    } else if (verDirs.length > 0) {
+      let bestVer = "";
+      for (const d of verDirs) {
+        const v = normalizeVersion(d.name);
+        if (!bestVer || compareDottedVersions(v, bestVer) > 0) {
+          bestVer = v;
+          matchDir = join14(globalBaseDir, d.name);
+          matchVer = v;
+        }
+      }
+    }
+    if (matchDir) {
+      const specFile = await findSpecInPackageDir(matchDir, base);
+      if (specFile) {
+        return {
+          name: base,
+          version: matchVer || "V_0-1-0",
+          packagePath: matchDir,
+          specFilePath: specFile,
+          isPackageDir: true,
+          tier: "global-cache"
+        };
+      }
+    } else if (verDirs.length === 0) {
+      const specFile = await findSpecInPackageDir(globalBaseDir, base);
+      if (specFile) {
+        const specContent = await readFile7(specFile, "utf-8").catch(() => "");
+        const fmVersion = versionFromFrontmatter(specContent);
+        const bpVersion = blueprintVersionFromFrontmatter(specContent);
+        if (!targetVersion || fmVersion === targetVersion || bpVersion === targetVersion) {
+          return {
+            name: base,
+            version: targetVersion || fmVersion || "0.1.0",
+            packagePath: globalBaseDir,
+            specFilePath: specFile,
+            isPackageDir: true,
+            tier: "global-cache"
+          };
+        }
+      }
+    }
+  } catch {
+    const matchFile = await findLocalSpec(globalDir, reqName);
+    if (matchFile) {
+      const content = await readFile7(matchFile, "utf-8").catch(() => "");
+      const v = targetVersion || versionFromFrontmatter(content) || "0.1.0";
+      return {
+        name: base,
+        version: v,
+        packagePath: matchFile,
+        specFilePath: matchFile,
+        isPackageDir: false,
+        tier: "global-cache"
+      };
+    }
+  }
+  try {
+    const skillEntries = await readdir5(skillsDir, { withFileTypes: true });
+    const skillDirs = skillEntries.filter((e) => e.isDirectory()).map((e) => e.name);
+    for (const skillName of skillDirs) {
+      const skillPkgBase = join14(skillsDir, skillName, "bluepriNNts", base);
+      try {
+        const entries = await readdir5(skillPkgBase, { withFileTypes: true });
+        const verDirs = entries.filter((e) => e.isDirectory() && isVersionDirName(e.name));
+        let matchDir = null;
+        let matchVer;
+        if (targetVersion) {
+          for (const d of verDirs) {
+            if (normalizeVersion(d.name) === targetVersion) {
+              matchDir = join14(skillPkgBase, d.name);
+              matchVer = targetVersion;
+              break;
+            }
+          }
+        } else if (verDirs.length > 0) {
+          let bestVer = "";
+          for (const d of verDirs) {
+            const v = normalizeVersion(d.name);
+            if (!bestVer || compareDottedVersions(v, bestVer) > 0) {
+              bestVer = v;
+              matchDir = join14(skillPkgBase, d.name);
+              matchVer = v;
+            }
+          }
+        }
+        if (matchDir) {
+          const specFile = await findSpecInPackageDir(matchDir, base);
+          if (specFile) {
+            return {
+              name: base,
+              version: matchVer || "V_0-1-0",
+              packagePath: matchDir,
+              specFilePath: specFile,
+              isPackageDir: true,
+              tier: "installed-skill"
+            };
+          }
+        }
+      } catch {
+        const matchFile = await findLocalSpec(join14(skillsDir, skillName, "bluepriNNts"), reqName) || await findLocalSpec(join14(skillsDir, skillName), reqName);
+        if (matchFile) {
+          const content = await readFile7(matchFile, "utf-8").catch(() => "");
+          const v = targetVersion || versionFromFrontmatter(content) || "0.1.0";
+          return {
+            name: base,
+            version: v,
+            packagePath: matchFile,
+            specFilePath: matchFile,
+            isPackageDir: false,
+            tier: "installed-skill"
+          };
+        }
+      }
+    }
+  } catch (err) {
+    if (err?.code !== "ENOENT") {
+      console.warn(`[resolver] Failed to scan skills dir: ${err}`);
+    }
+  }
+  return null;
+}
+var SpecResolutionError, PACKAGE_NON_VERSION_DIRS;
+var init_resolver = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/resolver.js"() {
+    "use strict";
+    init_parser2();
+    SpecResolutionError = class extends Error {
+      url;
+      constructor(message, url) {
+        super(message);
+        this.url = url;
+        this.name = "SpecResolutionError";
+      }
+    };
+    PACKAGE_NON_VERSION_DIRS = /* @__PURE__ */ new Set([
+      "procedures",
+      "samples",
+      "assets",
+      "web",
+      "node_modules",
+      ".git",
+      "dist",
+      ".spec-cache",
+      "backups",
+      "archive"
+    ]);
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/diagnostics.js
+var Diagnostics;
+var init_diagnostics = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/diagnostics.js"() {
+    "use strict";
+    Diagnostics = class {
+      _errors = [];
+      _warnings = [];
+      /** Add a fully-formed diagnostic, routed to errors/warnings by `severity`. */
+      add(diag) {
+        if (diag.severity === "error")
+          this._errors.push(diag);
+        else
+          this._warnings.push(diag);
+        return this;
+      }
+      /** Add many diagnostics, each routed by its own `severity`. */
+      addAll(diags) {
+        for (const d of diags)
+          this.add(d);
+        return this;
+      }
+      /** Record an error at `path`. */
+      error(path, message, extra) {
+        this._errors.push({ path, message, severity: "error", ...extra });
+        return this;
+      }
+      /** Record a warning at `path`. */
+      warn(path, message, extra) {
+        this._warnings.push({ path, message, severity: "warning", ...extra });
+        return this;
+      }
+      /**
+       * Record an informational notice at `path`. Informational diagnostics live
+       * in the warnings bucket but keep `severity: 'info'` so reporters can
+       * distinguish them; they never affect `valid`.
+       */
+      info(path, message, extra) {
+        this._warnings.push({ path, message, severity: "info", ...extra });
+        return this;
+      }
+      /**
+       * Force a diagnostic into the warnings bucket regardless of its `severity`.
+       * For checks that are intentionally non-blocking (e.g. matrix label drift),
+       * where the underlying diagnostic may still carry `severity: 'error'`.
+       */
+      addAsWarning(diag) {
+        this._warnings.push({ ...diag, severity: "warning" });
+        return this;
+      }
+      /** Live internal errors array. Treat as read-only unless decorating in place. */
+      get errors() {
+        return this._errors;
+      }
+      /** Live internal warnings array. Treat as read-only unless decorating in place. */
+      get warnings() {
+        return this._warnings;
+      }
+      /** True when no errors have been recorded. */
+      get valid() {
+        return this._errors.length === 0;
+      }
+      /** Snapshot as a plain `{ valid, errors, warnings }` result object. */
+      result() {
+        return { valid: this.valid, errors: this._errors, warnings: this._warnings };
+      }
+    };
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/elementIndex.js
+function conceptsByElementName(model) {
+  const map = /* @__PURE__ */ new Map();
+  for (const [conceptName, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      const key = el.name.toLowerCase();
+      const set = map.get(key) ?? /* @__PURE__ */ new Set();
+      set.add(conceptName);
+      map.set(key, set);
+    }
+  }
+  return map;
+}
+var IMPLICIT_REF_FIELDS;
+var init_elementIndex = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/elementIndex.js"() {
+    "use strict";
+    IMPLICIT_REF_FIELDS = /* @__PURE__ */ new Set(["location", "room", "component", "parent_component"]);
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/blueprintMatching.js
+function matchesTargetBlueprint(expectedBlueprint, actual) {
+  const expected = expectedBlueprint.trim().toLowerCase();
+  const actualName = (actual.name ?? "").trim().toLowerCase();
+  const actualUrl = (actual.url ?? "").trim().toLowerCase();
+  return actualName === expected || actualUrl === expected || actualUrl.endsWith(`/${expected}`) || actualUrl.endsWith(`/${expected}.md`) || actualUrl.endsWith(`/${expected}_NN.md`) || actualName.endsWith(expected);
+}
+var init_blueprintMatching = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/blueprintMatching.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/references.js
+function buildElementIndexes(model) {
+  const bySlug = /* @__PURE__ */ new Map();
+  const byName = /* @__PURE__ */ new Map();
+  for (const [, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      if (el.slug) {
+        const lowerSlug = el.slug.toLowerCase();
+        const sList = bySlug.get(lowerSlug) ?? [];
+        sList.push(el);
+        bySlug.set(lowerSlug, sList);
+      }
+      const lowerName = el.name.toLowerCase();
+      const nList = byName.get(lowerName) ?? [];
+      nList.push(el);
+      byName.set(lowerName, nList);
+    }
+  }
+  return { bySlug, byName };
+}
+function resolveReferenceTarget(value, indexes, context) {
+  const trimmed = value.trim();
+  const lower = trimmed.toLowerCase();
+  const slugMatches = indexes.bySlug.get(lower);
+  if (slugMatches && slugMatches.length > 0) {
+    return {
+      found: true,
+      elements: slugMatches,
+      matchedName: slugMatches[0].name,
+      matchedBy: "slug"
+    };
+  }
+  const nameMatches = indexes.byName.get(lower);
+  if (nameMatches && nameMatches.length > 0) {
+    if (nameMatches.length > 1) {
+      const concept = context?.concept?.trim().toLowerCase();
+      if (concept) {
+        const narrowed = nameMatches.filter((e) => e.type.toLowerCase() === concept);
+        if (narrowed.length === 1) {
+          return {
+            found: true,
+            elements: narrowed,
+            matchedName: narrowed[0].name,
+            matchedBy: "name"
+          };
+        }
+      }
+      return {
+        found: true,
+        ambiguous: true,
+        elements: nameMatches,
+        matchedBy: "name"
+      };
+    }
+    return {
+      found: true,
+      elements: nameMatches,
+      matchedName: nameMatches[0].name,
+      matchedBy: "name"
+    };
+  }
+  return { found: false };
+}
+function validateReferences(model) {
+  const diagnostics = [];
+  const indexes = buildElementIndexes(model);
+  for (const matrix of model.matrices) {
+    const axes = [
+      { field: "row", label: "row", matrixAxis: "source", context: matrix.source },
+      { field: "col", label: "column", matrixAxis: "target", context: matrix.target }
+    ];
+    for (const cell of matrix.cells) {
+      for (const axis of axes) {
+        const value = cell[axis.field];
+        if (!value)
+          continue;
+        const contextConcept = axis.context.trim();
+        const resolved = resolveReferenceTarget(value, indexes, contextConcept ? { concept: contextConcept } : void 0);
+        if (!resolved.found) {
+          diagnostics.push({
+            path: `matrices.${matrix.name}.${axis.field}`,
+            message: `Dangling reference: matrix "${matrix.name}" ${axis.label} "${value}" does not match any element name`,
+            severity: "error"
+          });
+        } else if (resolved.ambiguous) {
+          const tried = contextConcept ? ` The matrix ${axis.matrixAxis} concept "${contextConcept}" did not disambiguate.` : "";
+          diagnostics.push({
+            path: `matrices.${matrix.name}.${axis.field}`,
+            message: `Ambiguous element reference "${value}" in matrix "${matrix.name}": matches multiple elements across concepts (${resolved.elements.map((e) => `${e.type}/${e.name}`).join(", ")}). Use element slug or qualify reference.${tried}`,
+            severity: "warning",
+            code: "AMBIGUOUS_ELEMENT_NAME"
+          });
+        }
+      }
+    }
+  }
+  return diagnostics;
+}
+function validateElementFieldReferences(model, templateConcepts, options) {
+  const diagnostics = [];
+  const indexes = buildElementIndexes(model);
+  for (const [conceptName, elements] of model.elements.entries()) {
+    const conceptDef = templateConcepts.find((c) => c.name.toLowerCase() === conceptName.toLowerCase());
+    const fieldDefs = conceptDef?.fields ?? [];
+    for (const el of elements) {
+      for (const fieldName of Object.keys(el.fields)) {
+        const fieldDef = fieldDefs.find((f) => f.name.toLowerCase() === fieldName.toLowerCase());
+        if (fieldDef?.type === "address") {
+          const rawAddress = el.fields[fieldName];
+          if (rawAddress !== void 0 && rawAddress !== null && rawAddress !== "") {
+            const address = String(rawAddress).trim();
+            if (address === "" || address.startsWith("@") || address.endsWith("@")) {
+              diagnostics.push({
+                path: `elements.${conceptName}.${el.name}.fields.${fieldName}`,
+                message: `Invalid address: field "${fieldName}" value "${address}" is not a <target>@<unit> address`,
+                severity: "error",
+                code: "ADDRESS_MALFORMED",
+                promptHint: 'Use "<target>@<unit>" (for example model@element&field).',
+                meta: { field: fieldName }
+              });
+            }
+          }
+          continue;
+        }
+        const isRef = fieldDef && (fieldDef.type === "reference" || fieldDef.type === "knowledge") || IMPLICIT_REF_FIELDS.has(fieldName.toLowerCase());
+        if (!isRef)
+          continue;
+        const raw = el.fields[fieldName];
+        if (raw === void 0 || raw === null || raw === "")
+          continue;
+        const refs = Array.isArray(raw) ? raw.map(String) : [String(raw)];
+        for (const ref of refs) {
+          const rawValue = ref.trim();
+          if (!rawValue)
+            continue;
+          let value = rawValue;
+          if (value.startsWith("[[") && value.endsWith("]]")) {
+            value = value.slice(2, -2).trim();
+          }
+          if (fieldDef?.type === "knowledge") {
+            const cleanPath = value.trim();
+            if (options?.resolveSubmodel) {
+              const res = options.resolveSubmodel(cleanPath, options.referringPath);
+              if (res) {
+                if (!res.exists) {
+                  diagnostics.push({
+                    path: `elements.${conceptName}.${el.name}.fields.${fieldDef?.name ?? fieldName}`,
+                    message: `Dangling submodel reference: field "${fieldDef?.name ?? fieldName}" references file "${cleanPath}" which does not exist`,
+                    severity: "warning",
+                    code: "SUBMODEL_NOT_FOUND",
+                    promptHint: `Create the file "${cleanPath}" or fix the path in field "${fieldDef?.name ?? fieldName}".`,
+                    meta: { refPath: cleanPath, field: fieldDef?.name ?? fieldName }
+                  });
+                } else if (fieldDef.target_blueprint) {
+                  const matches = matchesTargetBlueprint(fieldDef.target_blueprint, {
+                    name: res.templateName,
+                    url: res.templateUrl
+                  });
+                  if (!matches) {
+                    const actualLabel = res.templateName || res.templateUrl || "unknown";
+                    diagnostics.push({
+                      path: `elements.${conceptName}.${el.name}.fields.${fieldDef?.name ?? fieldName}`,
+                      message: `Submodel template mismatch: field "${fieldDef?.name ?? fieldName}" expects template "${fieldDef.target_blueprint}", but referenced file "${cleanPath}" uses template "${actualLabel}"`,
+                      severity: "warning",
+                      code: "SUBMODEL_TEMPLATE_MISMATCH",
+                      promptHint: `Field "${fieldDef?.name ?? fieldName}" expects template "${fieldDef.target_blueprint}" but "${cleanPath}" uses "${actualLabel}": update target_blueprint or fix parent_spec in the referenced file.`,
+                      meta: {
+                        expectedBlueprint: fieldDef.target_blueprint,
+                        actualBlueprint: actualLabel,
+                        refPath: cleanPath
+                      }
+                    });
+                  }
+                }
+              }
+            }
+            continue;
+          }
+          let isCrossModel = false;
+          if (value.startsWith("[") && value.includes("]")) {
+            isCrossModel = true;
+          } else if (value.includes("::")) {
+            isCrossModel = true;
+          }
+          if (isCrossModel) {
+            continue;
+          }
+          const resolved = resolveReferenceTarget(value, indexes);
+          if (!resolved.found) {
+            diagnostics.push({
+              path: `elements.${conceptName}.${el.name}.fields.${fieldDef?.name ?? fieldName}`,
+              message: `Dangling reference: field "${fieldDef?.name ?? fieldName}" value "${rawValue}" does not match any element name`,
+              severity: "error"
+            });
+            continue;
+          }
+          if (resolved.ambiguous) {
+            diagnostics.push({
+              path: `elements.${conceptName}.${el.name}.fields.${fieldDef?.name ?? fieldName}`,
+              message: `Ambiguous element reference "${rawValue}": matches multiple elements across concepts (${resolved.elements.map((e) => `${e.type}/${e.name}`).join(", ")}). Use element slug or qualify reference.`,
+              severity: "error",
+              code: "AMBIGUOUS_ELEMENT_NAME"
+            });
+            continue;
+          }
+          if (fieldDef?.target_concepts && fieldDef.target_concepts.length > 0) {
+            const owningConcepts = new Set(resolved.elements.map((e) => e.type.toLowerCase()));
+            const allowed = fieldDef.target_concepts.map((c) => c.toLowerCase());
+            const allowedMatch = [...owningConcepts].some((c) => allowed.includes(c));
+            if (!allowedMatch) {
+              diagnostics.push({
+                path: `elements.${conceptName}.${el.name}.fields.${fieldDef.name}`,
+                message: `Reference "${rawValue}" in field "${fieldDef.name}" resolves to element "${resolved.matchedName ?? value}" but that element belongs to concept(s) "${[...resolved.elements.map((e) => e.type)].join(", ")}" which is not in target_concepts of the field`,
+                severity: "error"
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+  return diagnostics;
+}
+var init_references = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/references.js"() {
+    "use strict";
+    init_elementIndex();
+    init_blueprintMatching();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/hierarchy.js
+function validateTaxonomyHierarchy(model, templateConcepts, templateTaxonomy) {
+  const diagnostics = [];
+  const effectiveTaxonomy = templateTaxonomy && templateTaxonomy.length > 0 ? templateTaxonomy : model.taxonomy;
+  const directEdges = new Set(effectiveTaxonomy.map((e) => `${e.parent.toLowerCase()}->${e.child.toLowerCase()}`));
+  for (const [, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      if (el.parentElement) {
+        const edgeKey = `${el.parentElement.concept.toLowerCase()}->${el.type.toLowerCase()}`;
+        if (!directEdges.has(edgeKey)) {
+          diagnostics.push({
+            code: "INVALID_NESTED_CONCEPT",
+            severity: "error",
+            path: `elements.${el.type}.${el.name}`,
+            message: `Element "${el.name}" of concept "${el.type}" cannot be nested under "${el.parentElement.name}" of concept "${el.parentElement.concept}" per blueprint taxonomy.`
+          });
+        }
+      }
+      if ((el.headingDepth === 2 || el.headingDepth === void 0) && el.sectionConcept) {
+        if (el.type.toLowerCase() !== el.sectionConcept.toLowerCase()) {
+          diagnostics.push({
+            code: "SECTION_CONCEPT_MISMATCH",
+            severity: "error",
+            path: `elements.${el.type}.${el.name}`,
+            message: `Element "${el.name}" of concept "${el.type}" cannot be declared as a top-level heading in section "# NN ${el.sectionConcept}" (expected concept "${el.sectionConcept}").`
+          });
+        }
+      }
+    }
+  }
+  const parentOfConcept = /* @__PURE__ */ new Map();
+  for (const edge of effectiveTaxonomy) {
+    if (edge.parent)
+      parentOfConcept.set(edge.child.toLowerCase(), edge.parent);
+  }
+  if (parentOfConcept.size === 0)
+    return diagnostics;
+  function isConceptAncestor(ancestorLower, conceptLower) {
+    let current = conceptLower;
+    const seen = /* @__PURE__ */ new Set();
+    while (!seen.has(current)) {
+      seen.add(current);
+      const parent = parentOfConcept.get(current);
+      if (!parent)
+        return false;
+      const parentLower = parent.toLowerCase();
+      if (parentLower === ancestorLower)
+        return true;
+      current = parentLower;
+    }
+    return false;
+  }
+  const conceptsByElement = conceptsByElementName(model);
+  for (const [conceptName, elements] of model.elements.entries()) {
+    const taxonomyParent = parentOfConcept.get(conceptName.toLowerCase());
+    if (!taxonomyParent)
+      continue;
+    const conceptDef = templateConcepts.find((c) => c.name.toLowerCase() === conceptName.toLowerCase());
+    const fieldDefs = conceptDef?.fields ?? [];
+    for (const el of elements) {
+      for (const fieldName of Object.keys(el.fields)) {
+        const fieldDef = fieldDefs.find((f) => f.name.toLowerCase() === fieldName.toLowerCase());
+        const isRef = fieldDef && fieldDef.type === "reference" || IMPLICIT_REF_FIELDS.has(fieldName.toLowerCase());
+        if (!isRef)
+          continue;
+        const raw = el.fields[fieldName];
+        if (raw === void 0 || raw === null || raw === "")
+          continue;
+        const refs = Array.isArray(raw) ? raw.map(String) : [String(raw)];
+        for (const ref of refs) {
+          let value = ref.trim();
+          if (!value)
+            continue;
+          if (value.startsWith("[[") && value.endsWith("]]")) {
+            value = value.slice(2, -2).trim();
+          }
+          if (value.startsWith("[") && value.includes("]"))
+            continue;
+          if (value.includes("::"))
+            continue;
+          const owningConcepts = conceptsByElement.get(value.toLowerCase());
+          if (!owningConcepts || owningConcepts.size === 0)
+            continue;
+          const consistent = [...owningConcepts].some((oc) => {
+            const ocLower = oc.toLowerCase();
+            return ocLower === taxonomyParent.toLowerCase() || isConceptAncestor(ocLower, taxonomyParent.toLowerCase());
+          });
+          if (!consistent) {
+            diagnostics.push({
+              path: `elements.${conceptName}.${el.name}.fields.${fieldDef?.name ?? fieldName}`,
+              message: `Hierarchy inconsistency: element "${el.name}" of concept "${conceptName}" (a child of "${taxonomyParent}" per the index taxonomy) references element "${value}" via field "${fieldDef?.name ?? fieldName}", but "${value}" belongs to concept(s) "${[...owningConcepts].join(", ")}" \u2014 neither "${taxonomyParent}" nor an ancestor of it.`,
+              severity: "warning"
+            });
+          }
+        }
+      }
+    }
+  }
+  return diagnostics;
+}
+var init_hierarchy = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/hierarchy.js"() {
+    "use strict";
+    init_elementIndex();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/crypto.js
+function computeSha2562(content) {
+  const utf8 = new TextEncoder().encode(content);
+  function rotr(n, x) {
+    return x >>> n | x << 32 - n;
+  }
+  const K = [
+    1116352408,
+    1899447441,
+    3049323471,
+    3921009573,
+    961987163,
+    1508970993,
+    2453635748,
+    2870763221,
+    3624381080,
+    310598401,
+    607225278,
+    1426881987,
+    1925078388,
+    2162078206,
+    2614888103,
+    3248222580,
+    3835390401,
+    4022224774,
+    264347078,
+    604807628,
+    770255983,
+    1249150122,
+    1555081692,
+    1996064986,
+    2554220882,
+    2821834349,
+    2952996808,
+    3210313671,
+    3336571891,
+    3584528711,
+    113926993,
+    338241895,
+    666307205,
+    773529912,
+    1294757372,
+    1396182291,
+    1695183700,
+    1986661051,
+    2177026350,
+    2456956037,
+    2730485921,
+    2820302411,
+    3259730800,
+    3345764771,
+    3516065817,
+    3600352804,
+    4094571909,
+    275423344,
+    430227734,
+    506948616,
+    659060556,
+    883997877,
+    958139571,
+    1322822218,
+    1537002063,
+    1747873779,
+    1955562222,
+    2024104815,
+    2227730452,
+    2361852424,
+    2428436474,
+    2756734187,
+    3204031479,
+    3329325298
+  ];
+  let H = [
+    1779033703,
+    3144134277,
+    1013904242,
+    2773480762,
+    1359893119,
+    2600822924,
+    528734635,
+    1541459225
+  ];
+  const len = utf8.length;
+  const bitLen = len * 8;
+  const padLen = (len + 8 >> 6 << 6) + 64;
+  const msg = new Uint8Array(padLen);
+  msg.set(utf8);
+  msg[len] = 128;
+  const view = new DataView(msg.buffer);
+  view.setUint32(padLen - 4, bitLen, false);
+  const W = new Int32Array(64);
+  for (let i = 0; i < padLen; i += 64) {
+    for (let t = 0; t < 16; t++) {
+      W[t] = view.getInt32(i + t * 4, false);
+    }
+    for (let t = 16; t < 64; t++) {
+      const s0 = rotr(7, W[t - 15]) ^ rotr(18, W[t - 15]) ^ W[t - 15] >>> 3;
+      const s1 = rotr(17, W[t - 2]) ^ rotr(19, W[t - 2]) ^ W[t - 2] >>> 10;
+      W[t] = W[t - 16] + s0 + W[t - 7] + s1 | 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let t = 0; t < 64; t++) {
+      const S1 = rotr(6, e) ^ rotr(11, e) ^ rotr(25, e);
+      const ch = e & f ^ ~e & g;
+      const temp1 = h + S1 + ch + K[t] + W[t] | 0;
+      const S0 = rotr(2, a) ^ rotr(13, a) ^ rotr(22, a);
+      const maj = a & b ^ a & c ^ b & c;
+      const temp2 = S0 + maj | 0;
+      h = g;
+      g = f;
+      f = e;
+      e = d + temp1 | 0;
+      d = c;
+      c = b;
+      b = a;
+      a = temp1 + temp2 | 0;
+    }
+    H = [
+      H[0] + a | 0,
+      H[1] + b | 0,
+      H[2] + c | 0,
+      H[3] + d | 0,
+      H[4] + e | 0,
+      H[5] + f | 0,
+      H[6] + g | 0,
+      H[7] + h | 0
+    ];
+  }
+  return H.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
+}
+var init_crypto = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/crypto.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/knowledge-checks.js
+function checkFrontmatterInvariants(model, d) {
+  const fm = model.frontmatter;
+  if (!fm.level) {
+    d.error("frontmatter.level", "Missing level");
+  } else if (fm.level !== 3 && fm.level !== 2) {
+    d.error("frontmatter.level", `Expected level 2 or 3 for model/template validation, got ${fm.level}`);
+  }
+  if (!fm.parent_spec) {
+    d.error("frontmatter.parent_spec", "Missing parent_spec");
+  }
+  if (fm.level === 3) {
+    if (!fm.knowledge_version) {
+      d.error("frontmatter.knowledge_version", "Missing knowledge_version");
+    }
+    if (fm.matrices !== void 0 || fm.concepts !== void 0 || fm.markers !== void 0 || fm.relationship_types !== void 0) {
+      d.error("frontmatter", "Level 3 models MUST NOT declare schema components (matrices, concepts, markers, relationship_types) in their frontmatter. Move them to the template.", {
+        code: "L3_SCHEMA_COMPONENTS",
+        promptHint: 'Move the schema components from the model frontmatter into the parent template (e.g. declare the matrix under "# NN Matrix Definition" in the level-2 template); level-3 models must not declare schema components.'
+      });
+    }
+  }
+  for (const col of model.slugCollisions ?? []) {
+    d.error(`elements.${col.concept}`, `Slug collision: "${col.slug}" is shared by elements: ${col.elements.join(", ")}. Element names must be unique across the whole model`);
+  }
+  const elementsBySlug = /* @__PURE__ */ new Map();
+  for (const [, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      if (el.slug) {
+        const list = elementsBySlug.get(el.slug) ?? [];
+        list.push(el.name);
+        elementsBySlug.set(el.slug, list);
+      }
+    }
+  }
+  for (const [slug, names] of elementsBySlug.entries()) {
+    if (names.length > 1) {
+      d.error("elements", `Duplicate slug "${slug}" shared by elements: ${names.join(", ")}. Slugs are immutable and unique per model; a copy-pasted element repeats its original's "slug::" line. On the copy, delete the "slug::" line and give it a unique name, or add elements with the apply_change add_element operation instead of copy-pasting`, { code: "DUPLICATE_SLUG" });
+    }
+  }
+  if (fm.level === 3 && model.elements.size > 0) {
+    let hasUnfrozen = false;
+    for (const [, elements] of model.elements.entries()) {
+      for (const el of elements) {
+        if (!el.slugExplicit) {
+          hasUnfrozen = true;
+          break;
+        }
+      }
+      if (hasUnfrozen)
+        break;
+    }
+    if (hasUnfrozen) {
+      d.warn("model", "Model contains elements without explicit slugs and is not frozen. Any mutation will automatically freeze slugs.", { code: "UNFROZEN_MODEL" });
+    }
+  }
+  for (const concept of fm.concepts ?? []) {
+    if (RESERVED_CONCEPT_NAMES.has(concept.name)) {
+      d.error(`frontmatter.concepts.${concept.name}`, `Reserved concept name "${concept.name}" \u2014 Concepts, Elements, and Markers are reserved pseudo-concepts and MUST NOT be declared`, {
+        code: "RESERVED_CONCEPT_NAME",
+        promptHint: `Rename the concept (e.g. "${concept.name}" -> "${concept.name}Catalog"); Concepts, Elements, and Markers are reserved pseudo-concepts and must not be declared as normal concepts.`
+      });
+    }
+  }
+  if (fm.mode === "FOLDER") {
+    d.error("frontmatter.mode", "FOLDER mode is removed in V_0-1-3. Use index.md-based workspace with single-file models.");
+  }
+}
+function scanGuidanceSections(rawContent) {
+  const sections = [];
+  let current = null;
+  for (const line of rawContent.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("## ")) {
+      current = { title: trimmed.substring(3).trim(), subheadings: [] };
+      sections.push(current);
+    } else if (trimmed.startsWith("### ") && current) {
+      current.subheadings.push(trimmed.substring(4).trim());
+    }
+  }
+  return sections;
+}
+function parseBlueprintCached(raw) {
+  const hit = parseCache.get(raw);
+  if (hit)
+    return hit;
+  const parsed = parseKnowledge2(raw);
+  if (parseCache.size >= PARSE_CACHE_LIMIT)
+    parseCache.delete(parseCache.keys().next().value);
+  parseCache.set(raw, parsed);
+  return parsed;
+}
+function mapGuidanceSources(raw, resolveInclude, seen = /* @__PURE__ */ new Set(), depth = 0) {
+  const sources = /* @__PURE__ */ new Map();
+  const parsed = parseBlueprintCached(raw);
+  if (depth < 10) {
+    for (const ref of parsed.frontmatter?.includes ?? []) {
+      const key = ref.name.toLowerCase();
+      if (seen.has(key))
+        continue;
+      const content = resolveInclude(ref);
+      if (content === null)
+        continue;
+      const renames = new Map(Object.entries(ref.alias?.concepts ?? {}).map(([from, to]) => [from.toLowerCase(), to]));
+      for (const [name, source] of mapGuidanceSources(content, resolveInclude, /* @__PURE__ */ new Set([...seen, key]), depth + 1)) {
+        sources.set((renames.get(name) ?? name).toLowerCase(), source);
+      }
+    }
+  }
+  for (const concept of extractBlueprintSchema(parsed).concepts) {
+    sources.set(concept.name.toLowerCase(), { raw, name: concept.name });
+  }
+  return sources;
+}
+function checkBlueprintDocumentation(templateConcepts, templateRawContent, d, resolveInclude) {
+  const definers = resolveInclude ? mapGuidanceSources(templateRawContent, resolveInclude) : null;
+  const sectionsByRaw = /* @__PURE__ */ new Map();
+  const sectionsOf = (raw) => {
+    let sections = sectionsByRaw.get(raw);
+    if (!sections) {
+      sections = scanGuidanceSections(raw);
+      sectionsByRaw.set(raw, sections);
+    }
+    return sections;
+  };
+  const incomplete = [];
+  for (const concept of templateConcepts) {
+    const source = definers?.get(concept.name.toLowerCase()) ?? { raw: templateRawContent, name: concept.name };
+    const section = sectionsOf(source.raw).find((s) => s.title === source.name);
+    const missing = section ? REQUIRED_GUIDANCE_H3S.filter((req) => !section.subheadings.includes(req)) : [...REQUIRED_GUIDANCE_H3S];
+    if (missing.length > 0)
+      incomplete.push({ name: concept.name, missing });
+  }
+  if (incomplete.length === 0)
+    return;
+  const describe = (c) => `'${c.name}' (missing: ${c.missing.join(", ")})`;
+  const message = incomplete.length === 1 ? `Concept ${describe(incomplete[0])} lacks complete guidance section in parent template` : `${incomplete.length} template concepts lack complete guidance sections: ${incomplete.map(describe).join("; ")}`;
+  const headings = REQUIRED_GUIDANCE_H3S.map((h) => `\`### ${h}\``).join(", ");
+  d.warn("parent.concepts", message, {
+    code: "PARENT_CONCEPT_GUIDANCE_INCOMPLETE",
+    promptHint: `In the parent template, add a \`## <ConceptName>\` section for each listed concept containing the subsections ${headings}.`,
+    meta: { concepts: incomplete }
+  });
+}
+function matchConcept(name, concepts) {
+  const lower = name.toLowerCase();
+  const exact = concepts.find((c) => c.name.toLowerCase() === lower);
+  if (exact)
+    return exact;
+  return concepts.find((c) => {
+    const cLower = c.name.toLowerCase();
+    if (lower + "s" === cLower || lower + "es" === cLower)
+      return true;
+    if (cLower + "s" === lower || cLower + "es" === lower)
+      return true;
+    return false;
+  });
+}
+function checkElementGroups(model, templateConcepts, d) {
+  const known = [];
+  for (const [conceptName, elements] of model.elements) {
+    if (conceptName.toLowerCase() === "marker definition") {
+      continue;
+    }
+    const conceptDef = matchConcept(conceptName, templateConcepts);
+    if (!conceptDef) {
+      d.error(`elements.${conceptName}`, `Concept "${conceptName}" is not defined in template`);
+      continue;
+    }
+    if (conceptDef.type === "text" && elements.length > 0) {
+      d.warn(`elements.${conceptName}`, `Text-type concept "${conceptName}" should use plain Markdown content, not element headings (## NN ${conceptName}:). Found ${elements.length} element(s).`);
+    }
+    known.push([conceptDef.name, elements]);
+  }
+  return known;
+}
+function checkSchemaConformance(groups, templateConcepts, d) {
+  for (const diag of checkElementsAgainstSchema(groups, templateConcepts, {
+    unknownProperty: "ignore"
+  })) {
+    d.add({ ...diag, path: `elements.${diag.path}` });
+  }
+}
+function checkConceptFields(model, templateConcepts, d) {
+  if (!model.conceptFields)
+    return;
+  for (const [conceptName, fields] of Object.entries(model.conceptFields)) {
+    const conceptDef = matchConcept(conceptName, templateConcepts);
+    if (!conceptDef)
+      continue;
+    const fieldByName = new Map((conceptDef.fields || []).map((f) => [f.name.toLowerCase(), f]));
+    for (const [key, rawVal] of Object.entries(fields)) {
+      const fieldDef = fieldByName.get(key.toLowerCase());
+      if (!fieldDef)
+        continue;
+      const fieldDiags = validateFieldValue(fieldDef, rawVal, `concepts.${conceptDef.name}.${key}`);
+      for (const diag of fieldDiags) {
+        d.add(diag);
+      }
+    }
+  }
+}
+function checkMatrixCells(model, templateMatrices, d) {
+  for (const matrix of model.matrices) {
+    const decl = templateMatrices.find((m) => m.name.toLowerCase() === matrix.name.toLowerCase());
+    if (!decl) {
+      d.warn(`matrices.${matrix.name}`, `Matrix "${matrix.name}" is not declared in template`);
+      continue;
+    }
+    const declaredValues = Array.isArray(decl.values) ? decl.values.map((v) => v.toLowerCase()) : void 0;
+    if (!declaredValues || declaredValues.length === 0)
+      continue;
+    for (const cell of matrix.cells) {
+      const raw = cell.value;
+      if (raw === "-" || raw === "" || raw === "X" || raw === "x")
+        continue;
+      if (!declaredValues.includes(raw.toLowerCase())) {
+        d.warn(`matrices.${matrix.name}.cells["${cell.row}"]["${cell.col}"]`, `Matrix "${matrix.name}" cell value "${raw}" is not in the declared value set: ${decl.values.join(", ")}`);
+      }
+    }
+  }
+}
+var REQUIRED_GUIDANCE_H3S, PARSE_CACHE_LIMIT, parseCache;
+var init_knowledge_checks = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/knowledge-checks.js"() {
+    "use strict";
+    init_schema();
+    init_parser2();
+    init_field_values();
+    init_constants();
+    REQUIRED_GUIDANCE_H3S = ["Summary", "Description", "Methodologies", "Prompts"];
+    PARSE_CACHE_LIMIT = 64;
+    parseCache = /* @__PURE__ */ new Map();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/removed-constructs.js
+function checkRemovedMarkerConstructs(parsed, filePath) {
+  const markerDefs = parsed.elements.get(MARKER_DEFINITION) ?? [];
+  const markers = markerDefs.map((el) => el.name);
+  const matrixColumns = [];
+  const raw = parsed.rawContent || "";
+  const normalized = normalizeSource2(raw);
+  const itemMarkersMatch = normalized.match(/^#\s+NN\s+matrices:\s*item-markers(?:\s+matrix)?\s*$/im);
+  if (itemMarkersMatch) {
+    const afterHeading = normalized.slice(itemMarkersMatch.index + itemMarkersMatch[0].length);
+    const nextSection = afterHeading.search(/^#\s/m);
+    const matrixBody = nextSection === -1 ? afterHeading : afterHeading.slice(0, nextSection);
+    const rows = parseMarkdownTable2(matrixBody);
+    if (rows.length > 0) {
+      const allCols = Object.keys(rows[0] || {});
+      for (let i = 1; i < allCols.length; i++) {
+        if (!matrixColumns.includes(allCols[i])) {
+          matrixColumns.push(allCols[i]);
+        }
+      }
+    }
+  }
+  if (markers.length === 0 && matrixColumns.length === 0) {
+    return [];
+  }
+  const fileName = filePath || "Document";
+  const parts = [];
+  if (markers.length > 0) {
+    parts.push(`Marker Definitions (${markers.join(", ")})`);
+  }
+  if (matrixColumns.length > 0) {
+    parts.push(`an item-markers matrix (${matrixColumns.join(", ")})`);
+  }
+  const constructStr = parts.join(" / ");
+  const message = `${fileName} uses ${constructStr}, removed in iNNfo V_0-5-0. A flag marker becomes a value of the tags Field (tags:: [name]). A valued marker becomes a declared Field (concept:: * or a list, with type/widget) whose cells become field:: value lines; concept rows become concept-level values; scores with no declared Field are dropped. Then delete the Marker Definition section or the item-markers matrix. Agents: submit the fix as a changeset.`;
+  return [
+    {
+      path: markers.length > 0 ? MARKER_DEFINITION : "matrices.item-markers matrix",
+      code: "MARKERS_REMOVED",
+      severity: "error",
+      message,
+      promptHint: "nn-innfo recipe MARKERS_REMOVED",
+      filePath,
+      meta: {
+        markers,
+        matrixColumns
+      }
+    }
+  ];
+}
+var MARKER_DEFINITION;
+var init_removed_constructs = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/removed-constructs.js"() {
+    "use strict";
+    init_markdown();
+    MARKER_DEFINITION = "Marker Definition";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/knowledge.js
+function reportCheckFromWarning(w, templateName) {
+  return {
+    id: w.code === "TEMPLATE_CACHE_STALE" ? `template-freshness-${templateName ?? "spec"}` : w.code || w.path || "warning",
+    label: w.code === "TEMPLATE_CACHE_STALE" ? "Template Cache Freshness" : w.path || "Validation warning",
+    description: w.code === "TEMPLATE_CACHE_STALE" ? "Verifies that local cached template in specs/ matches canonical remote upstream." : w.message,
+    category: w.code === "TEMPLATE_CACHE_STALE" ? "governance" : "convention",
+    severity: w.severity === "info" ? "info" : "warning",
+    passed: false,
+    message: w.message,
+    code: w.code,
+    promptHint: w.promptHint,
+    meta: w.meta
+  };
+}
+function buildReportMetadata(res, templateName) {
+  const checks = [
+    ...res.errors.map((e) => ({
+      id: e.code || e.path || "error",
+      label: e.path || "Validation error",
+      description: e.message,
+      category: e.code === "TEMPLATE_CACHE_STALE" ? "governance" : "convention",
+      severity: "error",
+      passed: false,
+      message: e.message,
+      code: e.code,
+      promptHint: e.promptHint,
+      meta: e.meta
+    })),
+    ...res.warnings.map((w) => reportCheckFromWarning(w, templateName))
+  ];
+  return {
+    checks,
+    summary: {
+      total: checks.length,
+      passed: 0,
+      errors: res.errors.length,
+      warnings: res.warnings.length
+    }
+  };
+}
+function validateKnowledge(model, template, _formatSpec, resolveIncludeOrOptions, options) {
+  const opts = typeof resolveIncludeOrOptions === "function" ? { resolveInclude: resolveIncludeOrOptions, ...options } : resolveIncludeOrOptions ?? options ?? {};
+  const d = new Diagnostics();
+  checkFrontmatterInvariants(model, d);
+  for (const diag of checkRemovedMarkerConstructs(model, opts.referringPath)) {
+    d.add(diag);
+  }
+  if (!template) {
+    d.error("parent", "[PARENT_RESOLUTION_FAILED] Parent specification template could not be resolved or loaded");
+    const res2 = d.result();
+    const { checks: checks2, summary: summary2 } = buildReportMetadata(res2);
+    return { ...res2, checks: checks2, summary: summary2 };
+  }
+  const composed = resolveBlueprintSchema(template.rawContent, opts.resolveInclude);
+  for (const diag of composed.errors) {
+    d.add({ ...diag, path: `parent.${diag.path}` });
+  }
+  const { concepts: templateConcepts, matrices: templateMatrices } = composed.schema;
+  checkBlueprintDocumentation(templateConcepts, template.rawContent || "", d, opts.resolveInclude);
+  const knownConceptGroups = checkElementGroups(model, templateConcepts, d);
+  checkSchemaConformance(knownConceptGroups, templateConcepts, d);
+  checkConceptFields(model, templateConcepts, d);
+  checkMatrixCells(model, templateMatrices, d);
+  d.addAll(validateElementFieldReferences(model, templateConcepts, {
+    resolveSubmodel: opts.resolveSubmodel,
+    referringPath: opts.referringPath
+  }));
+  for (const diag of validateReferences(model))
+    d.addAsWarning(diag);
+  for (const diag of validateTaxonomyHierarchy(model, templateConcepts, composed.schema.taxonomy)) {
+    d.add(diag);
+  }
+  if (opts.checkFreshness) {
+    const parentRef = model.frontmatter?.parent_spec;
+    const canonicalUrl = opts.canonicalUrl || (typeof parentRef === "object" && parentRef ? parentRef.url : void 0) || "";
+    const templateName = (typeof parentRef === "object" && parentRef ? parentRef.name : void 0) || template.name || "template";
+    let isStale = false;
+    let localHash = "";
+    let remoteHash = "";
+    if (opts.freshness) {
+      if (opts.freshness.verdict === "stale") {
+        isStale = true;
+        localHash = opts.freshness.localHash || "";
+        remoteHash = opts.freshness.remoteHash || "";
+      }
+    } else if (opts.remoteContent !== void 0) {
+      if (opts.remoteContent !== null) {
+        localHash = computeSha2562(template.rawContent || "");
+        remoteHash = computeSha2562(opts.remoteContent);
+        if (localHash !== remoteHash) {
+          isStale = true;
+        }
+      }
+    } else if (opts.fetchRemoteBlueprint && canonicalUrl) {
+      try {
+        const fetched = opts.fetchRemoteBlueprint(canonicalUrl);
+        if (typeof fetched === "string") {
+          localHash = computeSha2562(template.rawContent || "");
+          remoteHash = computeSha2562(fetched);
+          if (localHash !== remoteHash) {
+            isStale = true;
+          }
+        }
+      } catch (err) {
+        console.warn(`[validator] Remote template freshness check skipped: ${err}`);
+      }
+    }
+    if (isStale) {
+      d.warn("parent_spec", `Cached template specs/bluepriNNts/${templateName}_NN.md differs from canonical remote upstream.`, {
+        code: "TEMPLATE_CACHE_STALE",
+        promptHint: `Update the template under specs/ with the canonical remote version "${canonicalUrl}" and re-validate the model.`,
+        meta: {
+          canonicalUrl,
+          localHash,
+          remoteHash,
+          templateName
+        }
+      });
+    }
+  }
+  const res = d.result();
+  const { checks, summary } = buildReportMetadata(res, template.name);
+  return { ...res, checks, summary };
+}
+var init_knowledge = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/knowledge.js"() {
+    "use strict";
+    init_schema();
+    init_diagnostics();
+    init_references();
+    init_hierarchy();
+    init_crypto();
+    init_knowledge_checks();
+    init_removed_constructs();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/paths.js
+var init_paths = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/paths.js"() {
+    "use strict";
+    init_contract();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/workspaceReferences.js
+var init_workspaceReferences = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/workspaceReferences.js"() {
+    "use strict";
+    init_slug();
+    init_paths();
+    init_blueprintMatching();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/content.js
+var init_content = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/content.js"() {
+    "use strict";
+    init_parser2();
+    init_constants();
+    init_schema();
+    init_workspaceReferences();
+    init_contract();
+    init_removed_constructs();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/document.js
+var init_document = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/document.js"() {
+    "use strict";
+    init_parser2();
+    init_markdown();
+    init_diagnostics();
+    init_content();
+    init_knowledge();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/syntax.js
+var init_syntax = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/syntax.js"() {
+    "use strict";
+    init_parser2();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/csvTable.js
+function parseCsvTable(content, options = {}) {
+  const delimiter = options.delimiter ?? ",";
+  const records = [];
+  let record = [];
+  let field = "";
+  let inQuotes = false;
+  let hasContent = false;
+  const pushField = () => {
+    record.push(field);
+    field = "";
+  };
+  const pushRecord = () => {
+    if (record.length === 1 && record[0] === "" && !hasContent) {
+      record = [];
+      return;
+    }
+    records.push(record);
+    record = [];
+    hasContent = false;
+  };
+  for (let i = 0; i < content.length; i++) {
+    const ch = content[i];
+    hasContent = hasContent || ch !== "\r" && ch !== "\n" || inQuotes;
+    if (inQuotes) {
+      if (ch === '"') {
+        if (content[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === delimiter) {
+      pushField();
+    } else if (ch === "\r") {
+      if (content[i + 1] !== "\n")
+        field += ch;
+    } else if (ch === "\n") {
+      pushField();
+      pushRecord();
+    } else {
+      field += ch;
+    }
+  }
+  if (inQuotes) {
+    return { headers: [], rows: [], malformed: true };
+  }
+  pushField();
+  pushRecord();
+  if (records.length === 0)
+    return { headers: [], rows: [], malformed: false };
+  const [headerRow, ...body] = records;
+  return { headers: headerRow.map((h) => normalizeName2(h)), rows: body, malformed: false };
+}
+var init_csvTable = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/csvTable.js"() {
+    "use strict";
+    init_sourceRef();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/unitResolve.js
+function resolveElementUnit(content, unit, subunits) {
+  const headings = extractHeadings(content);
+  const lines = content.split("\n");
+  let matchedHeading;
+  for (const h of headings) {
+    if (h.level === 2) {
+      const section2 = resolveHeadingSection(content, h.slug);
+      if (section2) {
+        for (let i = section2.startLine + 1; i < section2.endLine; i++) {
+          const m = lines[i].match(/^\s*slug\s*::\s*([^\s]+)/);
+          if (m && m[1].toLowerCase() === unit.slug.toLowerCase()) {
+            matchedHeading = h;
+            break;
+          }
+          if (/^#{1,6}\s/.test(lines[i]))
+            break;
+        }
+      }
+    }
+    if (matchedHeading)
+      break;
+  }
+  if (!matchedHeading) {
+    matchedHeading = headings.find((h) => h.slug === unit.slug || h.element && slugifyHeading2(h.element) === unit.slug || h.slug.endsWith(`--${unit.slug}`));
+  }
+  if (!matchedHeading)
+    return null;
+  const section = resolveHeadingSection(content, matchedHeading.slug);
+  if (!section)
+    return null;
+  if (subunits.length === 0) {
+    return { kind: "section", startLine: section.startLine, endLine: section.endLine };
+  }
+  if (subunits.length === 1) {
+    const owned = sectionOwnLines(content, matchedHeading.slug);
+    if (!owned)
+      return null;
+    const wanted = normalizeName2(subunits[0]);
+    const found = [];
+    for (const i of owned) {
+      const field = lines[i].match(FIELD_LINE);
+      if (field && normalizeName2(field[1]) === wanted)
+        found.push(i);
+    }
+    return found.length > 0 ? { kind: "field", lines: found } : null;
+  }
+  return null;
+}
+function resolveMatrixUnit(content, unit, subunits) {
+  const headings = extractHeadings(content);
+  const lines = content.split("\n");
+  const matchedHeading = headings.find((h) => h.slug === unit.matrixSlug || h.slug === `matrices--${unit.matrixSlug}` || h.text.toLowerCase().includes(unit.matrixSlug.toLowerCase()));
+  if (!matchedHeading)
+    return null;
+  const section = resolveHeadingSection(content, matchedHeading.slug);
+  if (!section)
+    return null;
+  const row = unit.rowSlug ?? subunits[0];
+  const col = unit.colSlug ?? subunits[1];
+  if (row && col) {
+    const table = parseMarkdownTable3(lines.slice(section.startLine, section.endLine));
+    if (!table)
+      return null;
+    const wantedRow = normalizeName2(row);
+    const wantedCol = normalizeName2(col);
+    const rowIdx = table.rows.findIndex((r) => normalizeName2(r[0] ?? "") === wantedRow);
+    if (rowIdx === -1)
+      return null;
+    const colIdx = table.headers.findIndex((h) => normalizeName2(h) === wantedCol);
+    if (colIdx === -1)
+      return null;
+    const value = table.rows[rowIdx][colIdx];
+    if (value === void 0)
+      return null;
+    return { kind: "cell", row: rowIdx, column: table.headers[colIdx], value };
+  }
+  return { kind: "section", startLine: section.startLine, endLine: section.endLine };
+}
+function resolveHeaderUnit(content, unit, subunits) {
+  const headings = extractHeadings(content);
+  const match = headings.find((h) => h.slug === unit.slug && h.level === unit.level);
+  if (!match)
+    return null;
+  if (subunits.length === 0) {
+    const section2 = resolveHeadingSection(content, unit.slug);
+    if (!section2)
+      return null;
+    return { kind: "section", startLine: section2.startLine, endLine: section2.endLine };
+  }
+  const lines = content.split("\n");
+  const section = resolveHeadingSection(content, unit.slug);
+  if (!section)
+    return null;
+  if (subunits.length === 1) {
+    const owned = sectionOwnLines(content, unit.slug);
+    if (!owned)
+      return null;
+    const wanted = normalizeName2(subunits[0]);
+    const found = [];
+    for (const i of owned) {
+      const field = lines[i].match(FIELD_LINE);
+      if (field && normalizeName2(field[1]) === wanted)
+        found.push(i);
+    }
+    return found.length > 0 ? { kind: "field", lines: found } : null;
+  }
+  if (subunits.length === 2) {
+    const table = parseMarkdownTable3(lines.slice(section.startLine, section.endLine));
+    if (!table)
+      return null;
+    const wantedRow = normalizeName2(subunits[0]);
+    const wantedCol = normalizeName2(subunits[1]);
+    const rowIdx = table.rows.findIndex((r) => normalizeName2(r[0] ?? "") === wantedRow);
+    if (rowIdx === -1)
+      return null;
+    const colIdx = table.headers.findIndex((h) => normalizeName2(h) === wantedCol);
+    if (colIdx === -1)
+      return null;
+    const value = table.rows[rowIdx][colIdx];
+    if (value === void 0)
+      return null;
+    return { kind: "cell", row: rowIdx, column: table.headers[colIdx], value };
+  }
+  return null;
+}
+function splitTableCells(line) {
+  return line.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+}
+function parseMarkdownTable3(lines) {
+  const tableLines = lines.filter((l) => l.trim().startsWith("|"));
+  if (tableLines.length < 2)
+    return null;
+  const headers = splitTableCells(tableLines[0]);
+  const body = tableLines.slice(1).filter((l) => !/^[\s|:.-]+$/.test(splitTableCells(l).join(""))).map(splitTableCells);
+  if (body.length === 0)
+    return null;
+  return { headers, rows: body };
+}
+function resolveCsvUnit(content, id, subunits) {
+  const table = parseCsvTable(content);
+  if (table.malformed || table.headers.length === 0)
+    return null;
+  const rowIdx = table.rows.findIndex((r) => (r[0] ?? "").trim() === id.trim());
+  if (rowIdx === -1)
+    return null;
+  if (subunits.length === 0)
+    return { kind: "row", index: rowIdx };
+  if (subunits.length > 1)
+    return null;
+  const colIdx = table.headers.findIndex((h) => h === normalizeName2(subunits[0]));
+  if (colIdx === -1)
+    return null;
+  const value = table.rows[rowIdx][colIdx];
+  if (value === void 0)
+    return null;
+  return { kind: "cell", row: rowIdx, column: table.headers[colIdx], value };
+}
+function resolveUnit(content, ref) {
+  const unit = ref.unit;
+  if (!unit)
+    return null;
+  const subunits = ref.subunits ?? [];
+  switch (unit.kind) {
+    case "header":
+      return resolveHeaderUnit(content, unit, subunits);
+    case "row":
+      return resolveCsvUnit(content, unit.id, subunits);
+    case "pointer": {
+      const found = resolveJsonPointer(content, unit.pointer);
+      return found.ok ? { kind: "pointer", pointer: unit.pointer, value: found.value } : null;
+    }
+    case "element":
+      return resolveElementUnit(content, unit, subunits);
+    case "matrix":
+      return resolveMatrixUnit(content, unit, subunits);
+    default:
+      return assertNever2(unit, "knowledge unit kind");
+  }
+}
+function sectionOwnLines(content, slug) {
+  const headings = extractHeadings(content);
+  const target = headings.find((h) => h.slug === slug);
+  if (!target)
+    return null;
+  const lines = content.split("\n");
+  let end = lines.length;
+  for (const o of headings) {
+    if (o.line > target.line && o.level <= target.level) {
+      end = o.line;
+      break;
+    }
+  }
+  const skip = [];
+  for (const o of headings) {
+    if (o.line > target.line && o.line < end && o.level > target.level) {
+      let oEnd = lines.length;
+      for (const p of headings) {
+        if (p.line > o.line && p.level <= o.level) {
+          oEnd = p.line;
+          break;
+        }
+      }
+      skip.push([o.line, Math.min(oEnd, end)]);
+    }
+  }
+  const owned = [];
+  for (let i = target.line + 1; i < end; i++) {
+    if (!skip.some(([a, b]) => i >= a && i < b))
+      owned.push(i);
+  }
+  return owned;
+}
+var FIELD_LINE;
+var init_unitResolve = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/unitResolve.js"() {
+    "use strict";
+    init_csvTable();
+    init_assertNever();
+    init_jsonPointer();
+    init_sourceRef();
+    FIELD_LINE = /^\s*([^\s:][^:]*?)\s*::/;
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/querySections.js
+var init_querySections = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/querySections.js"() {
+    "use strict";
+    init_sourceRef();
+    init_unitResolve();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/queryUnits.js
+var init_queryUnits = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/queryUnits.js"() {
+    "use strict";
+    init_sourceRef();
+    init_csvTable();
+    init_querySections();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/lineage/project.js
+var init_project = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/lineage/project.js"() {
+    "use strict";
+    init_yaml();
+    init_core();
+    init_sourceRef();
+    init_contract();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/workspaceSources.js
+var init_workspaceSources = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/workspaceSources.js"() {
+    "use strict";
+    init_csvTable();
+    init_assertNever();
+    init_jsonPointer();
+    init_queryUnits();
+    init_sourceRef();
+    init_naming();
+    init_unitResolve();
+    init_schema();
+    init_project();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/index.js
+var init_validator = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/index.js"() {
+    "use strict";
+    init_knowledge();
+    init_document();
+    init_content();
+    init_syntax();
+    init_removed_constructs();
+    init_references();
+    init_hierarchy();
+    init_workspaceReferences();
+    init_workspaceSources();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/identity.js
+var init_identity = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/identity.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/metamodel.js
+var init_metamodel = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/metamodel.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/relationships.js
+var init_relationships = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/relationships.js"() {
+    "use strict";
+    init_schema();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/matrix.js
+var init_matrix = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/matrix.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/normalize.js
+var init_normalize = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/normalize.js"() {
+    "use strict";
+    init_schema();
+    init_slug();
+    init_sourceRef();
+    init_relationships();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/knowledge.js
+var init_knowledge2 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/knowledge.js"() {
+    "use strict";
+    init_parser2();
+    init_identity();
+    init_matrix();
+    init_paths();
+    init_contract();
+    init_normalize();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/topology.js
+var init_topology = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/topology.js"() {
+    "use strict";
+    init_paths();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/workspace.js
+var init_workspace = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/workspace.js"() {
+    "use strict";
+    init_identity();
+    init_paths();
+    init_knowledge2();
+    init_normalize();
+    init_parser2();
+    init_topology();
+    init_layout();
+    init_contract();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/workspaceId.js
+var init_workspaceId = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/workspaceId.js"() {
+    "use strict";
+    init_paths();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/workspaceIndex.js
+var init_workspaceIndex = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/workspaceIndex.js"() {
+    "use strict";
+    init_slug();
+    init_paths();
+    init_workspaceId();
+    init_topology();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/index.js
+var init_recursiveParser = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/recursiveParser/index.js"() {
+    "use strict";
+    init_paths();
+    init_relationships();
+    init_knowledge2();
+    init_workspace();
+    init_workspaceIndex();
+    init_workspaceId();
+    init_topology();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/fs-types.js
+var init_fs_types = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/fs-types.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/workspace/reconcileManifest.js
+var init_reconcileManifest = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/workspace/reconcileManifest.js"() {
+    "use strict";
+    init_paths();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/workspace/discoverModels.js
+var init_discoverModels = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/workspace/discoverModels.js"() {
+    "use strict";
+    init_paths();
+    init_contract();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/workspace/integrity/versionStatus.js
+function parseSemVer(v) {
+  const m = String(v).match(VERSION_RE2);
+  if (!m)
+    return null;
+  return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]) };
+}
+function compareVersions2(a, b) {
+  const va = parseSemVer(a);
+  const vb = parseSemVer(b);
+  if (!va || !vb)
+    return 0;
+  return va.major - vb.major || va.minor - vb.minor || va.patch - vb.patch;
+}
+var VERSION_RE2;
+var init_versionStatus = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/workspace/integrity/versionStatus.js"() {
+    "use strict";
+    VERSION_RE2 = /V_(\d+)-(\d+)-(\d+)/i;
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/workspace/integrity/report.js
+var init_report = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/workspace/integrity/report.js"() {
+    "use strict";
+    init_versionStatus();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/root.js
+function isFile2(path) {
+  try {
+    return (0, import_node_fs6.statSync)(path).isFile();
+  } catch {
+    return false;
+  }
+}
+function isDomainRoot2(dir) {
+  return isFile2((0, import_node_path6.join)(dir, ENTRYPOINT_FILENAME2));
+}
+var import_node_fs6, import_node_path6;
+var init_root = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/root.js"() {
+    "use strict";
+    import_node_fs6 = require("node:fs");
+    import_node_path6 = require("node:path");
+    init_contract();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/helpers.js
+var init_helpers = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/helpers.js"() {
+    "use strict";
+    init_parser2();
+    init_contract();
+    init_root();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/mutate.js
+function requireArgs(args, keys) {
+  const values = {};
+  const missing = [];
+  for (const key of keys) {
+    const value = args[key];
+    if (typeof value === "string" && value.length > 0) {
+      values[key] = value;
+    } else {
+      missing.push(key);
+    }
+  }
+  if (missing.length > 0) {
+    return {
+      ok: false,
+      result: {
+        success: false,
+        errors: [
+          {
+            path: "",
+            message: `${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} required`
+          }
+        ]
+      }
+    };
+  }
+  return { ok: true, values };
+}
+function unknownConceptMessage(conceptName, declaredNames) {
+  let best;
+  let bestDistance = Infinity;
+  for (const name of declaredNames) {
+    const dist = levenshteinDistance(conceptName.toLowerCase(), name.toLowerCase());
+    if (dist < bestDistance) {
+      bestDistance = dist;
+      best = name;
+    }
+  }
+  if (best !== void 0 && bestDistance <= 2) {
+    return `Concept "${conceptName}" is not declared in the template. Did you mean "${best}"?`;
+  }
+  return `Concept "${conceptName}" is not declared in the template. Declared concepts: ${declaredNames.join(", ")}`;
+}
+function cloneKnowledge(model) {
+  const { elements, ...rest } = model;
+  const clonedElements = new ElementsMap2();
+  for (const [key, nodes] of elements.entries()) {
+    clonedElements.set(key, nodes.map((node) => structuredClone(node)));
+  }
+  return { ...structuredClone(rest), elements: clonedElements };
+}
+function applyMutation(model, op, args, schema) {
+  const draft = cloneKnowledge(model);
+  const result = runMutation(draft, op, args, schema);
+  if (result.success) {
+    Object.assign(model, draft);
+  }
+  return result;
+}
+function freeze_slugs(model) {
+  const existingSlugs = /* @__PURE__ */ new Set();
+  for (const [, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      if (el.slugExplicit && el.slug) {
+        existingSlugs.add(el.slug.toLowerCase());
+      }
+    }
+  }
+  for (const [, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      if (!el.slugExplicit) {
+        const baseSlug = el.slug || slugifyHeading2(el.name);
+        let candidate = baseSlug;
+        let counter = 1;
+        while (existingSlugs.has(candidate.toLowerCase())) {
+          candidate = `${baseSlug}-${counter++}`;
+        }
+        el.slug = candidate;
+        el.slugExplicit = true;
+        existingSlugs.add(candidate.toLowerCase());
+      }
+    }
+  }
+  return { success: true };
+}
+function modelHasUnfrozenElements(model) {
+  for (const [, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      if (!el.slugExplicit)
+        return true;
+    }
+  }
+  return false;
+}
+function runMutation(model, op, args, schema) {
+  try {
+    const handler = MUTATION_HANDLERS[op];
+    if (!handler) {
+      return { success: false, errors: [{ path: "", message: `Unknown operation: ${op}` }] };
+    }
+    if (model.frontmatter.read_only === true) {
+      return {
+        success: false,
+        errors: [
+          {
+            path: "frontmatter.read_only",
+            message: `Document is a read-only imported snapshot from "${model.frontmatter.imported_from ?? "origin"}". Direct mutations are prohibited; edit at the origin domain.`
+          }
+        ]
+      };
+    }
+    if (LEVEL2_ONLY_OPS.has(op) && model.frontmatter.level !== 2) {
+      return {
+        success: false,
+        errors: [
+          {
+            path: "frontmatter.level",
+            message: `Operation "${op}" authors template primitives and is only valid on a level-2 template; this document is level ${model.frontmatter.level ?? "unset"}. Use add_element/update_field on a level-3 model, or target the parent template.`
+          }
+        ]
+      };
+    }
+    if (LEVEL3_ONLY_OPS.has(op) && model.frontmatter.level !== 3) {
+      return {
+        success: false,
+        errors: [
+          {
+            path: "frontmatter.level",
+            message: `Operation "${op}" authors a Level-3 matrix table and is only valid on a level-3 kNNowledge model; this document is level ${model.frontmatter.level ?? "unset"}. On a bluepriNNt, declare a matrix with add_element on the "Matrix Definition" concept instead.`
+          }
+        ]
+      };
+    }
+    if (op !== "freeze_slugs" && modelHasUnfrozenElements(model)) {
+      freeze_slugs(model);
+    }
+    return handler(model, args, schema);
+  } catch (err) {
+    return {
+      success: false,
+      errors: [{ path: "", message: err instanceof Error ? err.message : String(err) }]
+    };
+  }
+}
+function addConcept(model, args) {
+  const req = requireArgs(args, ["conceptName"]);
+  if (!req.ok)
+    return req.result;
+  const { conceptName } = req.values;
+  if (RESERVED_CONCEPT_NAMES.has(conceptName)) {
+    return {
+      success: false,
+      errors: [{
+        path: "Concept Definition",
+        message: `"${conceptName}" is a reserved pseudo-concept name and MUST NOT be declared`
+      }]
+    };
+  }
+  const defs = model.elements.get(CONCEPT_DEFINITION) ?? [];
+  if (defs.some((c) => c.name.toLowerCase() === conceptName.toLowerCase())) {
+    return { success: false, errors: [{ path: "", message: `Concept "${conceptName}" already exists` }] };
+  }
+  const fields = { type: args.type ?? "text" };
+  if (args.icon !== void 0)
+    fields["icon"] = args.icon;
+  if (args.color !== void 0)
+    fields["color"] = args.color;
+  if (args.weight !== void 0)
+    fields["weight"] = args.weight;
+  defs.push({ type: CONCEPT_DEFINITION, name: conceptName, description: "", fields, markers: {} });
+  model.elements.set(CONCEPT_DEFINITION, defs);
+  return { success: true };
+}
+function addField(model, args) {
+  const req = requireArgs(args, ["conceptName", "fieldName"]);
+  if (!req.ok)
+    return req.result;
+  const { conceptName, fieldName } = req.values;
+  let conceptVal = conceptName;
+  if (typeof conceptName === "string") {
+    const trimmed = conceptName.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      conceptVal = parsePropertyValue2(trimmed);
+    } else {
+      conceptVal = trimmed;
+    }
+  }
+  const defs = model.elements.get(CONCEPT_DEFINITION) ?? [];
+  const declaredConceptNames = new Set(defs.map((c) => c.name.toLowerCase()));
+  if (conceptVal === "*") {
+  } else if (Array.isArray(conceptVal)) {
+    for (const c of conceptVal) {
+      if (!declaredConceptNames.has(String(c).toLowerCase())) {
+        return { success: false, errors: [{ path: "concept", message: `Concept "${c}" not found` }] };
+      }
+    }
+  } else if (typeof conceptVal === "string") {
+    if (!declaredConceptNames.has(conceptVal.toLowerCase())) {
+      return { success: false, errors: [{ path: "", message: `Concept "${conceptVal}" not found` }] };
+    }
+  }
+  const fds = model.elements.get(FIELD_DEFINITION) ?? [];
+  const existingField = fds.find((f) => f.name.toLowerCase() === fieldName.toLowerCase() && JSON.stringify(f.fields["concept"]) === JSON.stringify(conceptVal));
+  if (existingField) {
+    return {
+      success: false,
+      errors: [{ path: "", message: `Field "${fieldName}" already exists on concept "${String(conceptVal)}"` }]
+    };
+  }
+  const fieldType = args.fieldType ?? args.type ?? "string";
+  const fields = {
+    concept: conceptVal,
+    type: fieldType
+  };
+  if (args.multiple !== void 0) {
+    const mult = args.multiple === true || args.multiple === "true";
+    if (mult && fieldType !== "select") {
+      return {
+        success: false,
+        errors: [{ path: "multiple", message: `Field "${fieldName}" has multiple:: true, which requires type:: select (got "${fieldType}")` }]
+      };
+    }
+    fields["multiple"] = mult;
+  }
+  if (args.widget !== void 0) {
+    const widget = String(args.widget).toLowerCase();
+    if (widget === "scale" && fieldType !== "number") {
+      return {
+        success: false,
+        errors: [{ path: "widget", message: `widget "scale" requires type:: number (got "${fieldType}")` }]
+      };
+    }
+    if (widget === "boolean" && fieldType !== "boolean") {
+      return {
+        success: false,
+        errors: [{ path: "widget", message: `widget "boolean" requires type:: boolean (got "${fieldType}")` }]
+      };
+    }
+    if (widget === "cycle") {
+      const opts = args.options;
+      const hasOptions = Array.isArray(opts) ? opts.length > 0 : Boolean(opts);
+      if (fieldType !== "select" || fields["multiple"] === true || !hasOptions) {
+        return {
+          success: false,
+          errors: [{ path: "widget", message: `widget "cycle" requires a single-valued select with options` }]
+        };
+      }
+    }
+    if (widget === "set") {
+      if (fieldType !== "select" || fields["multiple"] !== true) {
+        return {
+          success: false,
+          errors: [{ path: "widget", message: `widget "set" requires type:: select with multiple:: true` }]
+        };
+      }
+    }
+    if (widget === "text" && fieldType !== "string") {
+      return {
+        success: false,
+        errors: [{ path: "widget", message: `widget "text" requires type:: string (got "${fieldType}")` }]
+      };
+    }
+    fields["widget"] = widget;
+  }
+  if (args.widget_config !== void 0 || args.widgetConfig !== void 0) {
+    const cfg = args.widget_config ?? args.widgetConfig;
+    const widget = fields["widget"];
+    if (!widget) {
+      return {
+        success: false,
+        errors: [{ path: "widget_config", message: `"${fieldName}" declares widget_config but no widget` }]
+      };
+    }
+    const allowed = WIDGET_CONFIG_KEYS[widget] || [];
+    if (typeof cfg === "object" && cfg !== null) {
+      for (const k of Object.keys(cfg)) {
+        if (!allowed.includes(k)) {
+          return {
+            success: false,
+            errors: [{ path: `widget_config.${k}`, message: `"${k}" is not a widget_config key for widget "${widget}". Allowed: ${allowed.join(", ") || "(none)"}` }]
+          };
+        }
+      }
+      if (widget === "scale") {
+        const scaleCfg = cfg;
+        if (scaleCfg["min"] === void 0 || scaleCfg["max"] === void 0) {
+          return {
+            success: false,
+            errors: [{ path: "widget_config", message: `widget "scale" requires widget_config.min and max` }]
+          };
+        }
+        if (Number(scaleCfg["min"]) >= Number(scaleCfg["max"])) {
+          return {
+            success: false,
+            errors: [{ path: "widget_config", message: `widget "scale" min (${scaleCfg["min"]}) must be less than max (${scaleCfg["max"]})` }]
+          };
+        }
+      }
+    }
+    fields["widget_config"] = cfg;
+  }
+  if (args.options !== void 0) {
+    if (typeof args.options === "string" && args.options.trim().startsWith("[")) {
+      fields["options"] = parsePropertyValue2(args.options);
+    } else {
+      fields["options"] = args.options;
+    }
+  }
+  if (args.target_concepts !== void 0)
+    fields["target_concepts"] = args.target_concepts;
+  if (args.description !== void 0)
+    fields["description"] = args.description;
+  const previous = fds[fds.length - 1];
+  if (previous && previous.trailingBlankLine === false)
+    previous.trailingBlankLine = true;
+  fds.push({ type: FIELD_DEFINITION, name: fieldName, description: "", fields, markers: {} });
+  model.elements.set(FIELD_DEFINITION, fds);
+  return { success: true };
+}
+function addElement(model, args, schema) {
+  const req = requireArgs(args, ["conceptName", "elementName"]);
+  if (!req.ok)
+    return req.result;
+  const { conceptName, elementName } = req.values;
+  if (schema) {
+    const declared2 = schema.concepts.find((c) => c.name.toLowerCase() === conceptName.toLowerCase());
+    if (!declared2) {
+      const declaredNames = schema.concepts.map((c) => c.name);
+      return {
+        success: false,
+        errors: [{ path: "conceptName", message: unknownConceptMessage(conceptName, declaredNames) }]
+      };
+    }
+  }
+  const existingElements = model.elements.get(conceptName) ?? [];
+  if (existingElements.some((e) => e.name.toLowerCase() === elementName.toLowerCase())) {
+    return {
+      success: false,
+      errors: [{ path: "", message: `Element "${elementName}" already exists in concept "${conceptName}"` }]
+    };
+  }
+  const requestedSlug = typeof args.slug === "string" && args.slug.trim() ? args.slug.trim() : void 0;
+  if (requestedSlug) {
+    for (const [, elements] of model.elements.entries()) {
+      for (const el of elements) {
+        if (el.slug?.toLowerCase() === requestedSlug.toLowerCase()) {
+          return {
+            success: false,
+            errors: [{ path: "slug", message: `Slug "${requestedSlug}" already exists in this model \u2014 element slugs must be unique model-wide` }]
+          };
+        }
+      }
+    }
+  }
+  const reservedArgsKeys = /* @__PURE__ */ new Set([
+    "conceptName",
+    "elementName",
+    "slug",
+    "description",
+    "fields",
+    "sources",
+    "rationale",
+    "approved_by",
+    "author",
+    "recovered_after",
+    "timestamp",
+    "scope",
+    "change"
+  ]);
+  const fields = {};
+  for (const [k, v] of Object.entries(args)) {
+    if (!reservedArgsKeys.has(k) && v !== void 0) {
+      fields[k] = v;
+    }
+  }
+  if (args.fields && typeof args.fields === "object") {
+    Object.assign(fields, args.fields);
+  }
+  if (args.sources !== void 0) {
+    fields["sources"] = args.sources;
+  }
+  if (existingElements.length > 0) {
+    const prevLast = existingElements[existingElements.length - 1];
+    prevLast.trailingBlankLine = true;
+  }
+  let elementSlug;
+  if (requestedSlug) {
+    elementSlug = requestedSlug;
+  } else {
+    const existingSlugs = /* @__PURE__ */ new Set();
+    for (const [, elements] of model.elements.entries()) {
+      for (const el of elements) {
+        if (el.slug)
+          existingSlugs.add(el.slug.toLowerCase());
+      }
+    }
+    const baseSlug = slugifyHeading2(elementName);
+    let candidate = baseSlug;
+    let counter = 1;
+    while (existingSlugs.has(candidate.toLowerCase())) {
+      candidate = `${baseSlug}-${counter++}`;
+    }
+    elementSlug = candidate;
+  }
+  const newElement = {
+    type: conceptName,
+    name: elementName,
+    description: args.description ?? "",
+    fields,
+    markers: {},
+    slug: elementSlug,
+    slugExplicit: true,
+    trailingBlankLine: true
+  };
+  existingElements.push(newElement);
+  model.elements.set(conceptName, existingElements);
+  return { success: true };
+}
+function matchesElement(e, target) {
+  const tLower = target.toLowerCase();
+  if (e.name.toLowerCase() === tLower)
+    return true;
+  if (e.slug && e.slug.toLowerCase() === tLower)
+    return true;
+  if (slugify2(e.name).toLowerCase() === tLower)
+    return true;
+  if (slugifyHeading2(e.name).toLowerCase() === tLower)
+    return true;
+  return false;
+}
+function coerceFieldValue(existing, incoming) {
+  if (typeof incoming !== "string")
+    return incoming;
+  if (typeof existing === "number") {
+    const trimmed = incoming.trim();
+    if (trimmed !== "") {
+      const asNumber2 = Number(trimmed);
+      if (Number.isFinite(asNumber2))
+        return asNumber2;
+    }
+    return incoming;
+  }
+  if (typeof existing === "boolean") {
+    const lower = incoming.trim().toLowerCase();
+    if (lower === "true")
+      return true;
+    if (lower === "false")
+      return false;
+    return incoming;
+  }
+  if (Array.isArray(existing)) {
+    const parsed = parsePropertyValue2(incoming);
+    if (Array.isArray(parsed))
+      return parsed;
+    return incoming;
+  }
+  return incoming;
+}
+function updateField(model, args, schema) {
+  let elementName = args.elementName || args.elementSlug || args.slug || "";
+  let fieldName = args.fieldName || "";
+  const conceptName = args.conceptName || "";
+  const val = args.value !== void 0 ? args.value : args.to;
+  if (args.target && typeof args.target === "string") {
+    let clean = args.target.trim();
+    if (clean.includes("@")) {
+      clean = clean.slice(clean.indexOf("@") + 1);
+    }
+    const parts = clean.split("&");
+    if (parts.length >= 2) {
+      elementName = parts[0];
+      fieldName = parts[1];
+    } else if (parts.length === 1 && !elementName) {
+      elementName = parts[0];
+    }
+  }
+  if (!elementName || !fieldName) {
+    const missing = [];
+    if (!elementName)
+      missing.push("elementName");
+    if (!fieldName)
+      missing.push("fieldName");
+    return {
+      success: false,
+      errors: [{ path: "", message: `${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} required` }]
+    };
+  }
+  if (val === void 0) {
+    return { success: false, errors: [{ path: "", message: "value is required" }] };
+  }
+  let foundElement;
+  let foundConcept;
+  if (conceptName) {
+    const existingElements = model.elements.get(conceptName);
+    if (!existingElements) {
+      return { success: false, errors: [{ path: "", message: `Concept "${conceptName}" not found` }] };
+    }
+    foundElement = existingElements.find((e) => matchesElement(e, elementName));
+    foundConcept = conceptName;
+  } else {
+    for (const [cName, elements] of model.elements.entries()) {
+      const el = elements.find((e) => matchesElement(e, elementName));
+      if (el) {
+        foundElement = el;
+        foundConcept = cName;
+        break;
+      }
+    }
+  }
+  if (!foundElement || !foundConcept) {
+    return {
+      success: false,
+      errors: [
+        {
+          path: "",
+          message: `Element "${elementName}" not found${conceptName ? ` in concept "${conceptName}"` : ""}`
+        }
+      ]
+    };
+  }
+  if (val === "") {
+    delete foundElement.fields[fieldName];
+    if (foundElement.rawFields) {
+      delete foundElement.rawFields[fieldName];
+    }
+    return { success: true };
+  }
+  let parsedVal = val;
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      parsedVal = parsePropertyValue2(trimmed);
+    }
+  }
+  if (schema && foundConcept) {
+    const conceptObj = schema.concepts?.find((c) => c.name.toLowerCase() === foundConcept.toLowerCase());
+    let fieldDef = conceptObj?.fields?.find((f) => f.name.toLowerCase() === fieldName.toLowerCase());
+    if (!fieldDef && Array.isArray(schema.fields)) {
+      fieldDef = schema.fields.find((f) => f.name.toLowerCase() === fieldName.toLowerCase() && (!f.concept || f.concept === "*" || (Array.isArray(f.concept) ? f.concept.some((c) => c.toLowerCase() === foundConcept.toLowerCase()) : String(f.concept).toLowerCase() === foundConcept.toLowerCase())));
+    }
+    if (fieldDef) {
+      const diags = validateFieldValue(fieldDef, parsedVal, `${foundConcept}.${fieldName}`);
+      const errors = diags.filter((d) => d.severity === "error");
+      if (errors.length > 0) {
+        return {
+          success: false,
+          errors: errors.map((e) => ({ path: e.path, message: e.message }))
+        };
+      }
+    }
+  }
+  foundElement.fields[fieldName] = coerceFieldValue(foundElement.fields[fieldName], parsedVal);
+  if (foundElement.rawFields && fieldName in foundElement.rawFields) {
+    delete foundElement.rawFields[fieldName];
+  }
+  return { success: true };
+}
+function updateMatrixCell(model, args) {
+  const matrixName = args.matrixName || "";
+  let matrixSlug = args.matrixSlug || "";
+  let row = args.row || "";
+  let col = args.col || "";
+  const val = args.value !== void 0 ? String(args.value) : args.to !== void 0 ? String(args.to) : void 0;
+  if (args.target && typeof args.target === "string") {
+    let clean = args.target.trim();
+    if (clean.includes("@")) {
+      clean = clean.slice(clean.indexOf("@") + 1);
+    }
+    const parts = clean.split("&");
+    if (parts.length >= 3) {
+      matrixSlug = parts[0];
+      row = parts[1];
+      col = parts[2];
+    }
+  }
+  if (!row || !col) {
+    return { success: false, errors: [{ path: "", message: "row and col are required" }] };
+  }
+  if (val === void 0) {
+    return { success: false, errors: [{ path: "", message: "value is required" }] };
+  }
+  const normalizeKey2 = (k) => k.replace(/[×xX]/g, "x").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+  const matchesMatrix = (name, candidateSlug) => {
+    if (matrixName && name.toLowerCase() === matrixName.toLowerCase())
+      return true;
+    if (matrixSlug) {
+      if (candidateSlug && candidateSlug.toLowerCase() === matrixSlug.toLowerCase())
+        return true;
+      if (slugify2(name).toLowerCase() === matrixSlug.toLowerCase())
+        return true;
+      if (slugifyHeading2(name).toLowerCase() === matrixSlug.toLowerCase())
+        return true;
+      if (normalizeKey2(name) === normalizeKey2(matrixSlug))
+        return true;
+    }
+    if (matrixName) {
+      if (slugify2(name).toLowerCase() === slugify2(matrixName).toLowerCase())
+        return true;
+      if (slugifyHeading2(name).toLowerCase() === slugifyHeading2(matrixName).toLowerCase())
+        return true;
+      if (normalizeKey2(name) === normalizeKey2(matrixName))
+        return true;
+    }
+    return false;
+  };
+  let matrix = model.matrices.find((m) => matchesMatrix(m.name, m.slug));
+  if (!matrix && model.frontmatter?.matrices) {
+    const decl = model.frontmatter.matrices.find((d) => matchesMatrix(d.name, d.slug));
+    if (decl) {
+      matrix = model.matrices.find((m) => m.name.toLowerCase() === decl.name.toLowerCase());
+    }
+  }
+  if (!matrix) {
+    return {
+      success: false,
+      errors: [{ path: "", message: `Matrix "${matrixName || matrixSlug}" not found` }]
+    };
+  }
+  const matchesCoord = (actual, requested) => {
+    const a = actual.toLowerCase();
+    const r = requested.toLowerCase();
+    return a === r || slugify2(a) === slugify2(r) || slugifyHeading2(a) === slugifyHeading2(r) || normalizeKey2(a) === normalizeKey2(r);
+  };
+  const cell = matrix.cells.find((c) => matchesCoord(c.row, row) && matchesCoord(c.col, col));
+  if (cell) {
+    cell.value = val;
+  } else {
+    matrix.cells.push({ row, col, value: val });
+  }
+  return { success: true };
+}
+function removeElement(model, args) {
+  const req = requireArgs(args, ["conceptName", "elementName"]);
+  if (!req.ok)
+    return req.result;
+  const { conceptName, elementName } = req.values;
+  const existingElements = model.elements.get(conceptName) ?? [];
+  const targetEl = existingElements.find((e) => e.name.toLowerCase() === elementName.toLowerCase() || e.slug && e.slug.toLowerCase() === elementName.toLowerCase() || slugifyHeading2(e.name).toLowerCase() === elementName.toLowerCase());
+  const filtered = existingElements.filter((e) => e.name.toLowerCase() !== elementName.toLowerCase() && (!e.slug || e.slug.toLowerCase() !== elementName.toLowerCase()) && slugifyHeading2(e.name).toLowerCase() !== elementName.toLowerCase());
+  if (filtered.length === existingElements.length) {
+    return { success: false, errors: [{ path: "", message: `Element "${elementName}" not found in concept "${conceptName}"` }] };
+  }
+  model.elements.set(conceptName, filtered);
+  let cascadedCells = 0;
+  if (model.matrices) {
+    const targetIdent = elementName.toLowerCase();
+    const targetSlug = targetEl?.slug?.toLowerCase();
+    const targetHeading = targetEl ? slugifyHeading2(targetEl.name).toLowerCase() : void 0;
+    for (const matrix of model.matrices) {
+      if (!matrix.cells)
+        continue;
+      const initialCount = matrix.cells.length;
+      matrix.cells = matrix.cells.filter((c) => {
+        const rLower = c.row.toLowerCase();
+        const colLower = c.col.toLowerCase();
+        const unbracket = (s) => {
+          const m = s.match(/^\[\[(.*)\]\]$/);
+          return m ? m[1].toLowerCase() : s;
+        };
+        const rClean = unbracket(rLower);
+        const cClean = unbracket(colLower);
+        const rowMatches = rLower === targetIdent || rClean === targetIdent || targetSlug !== void 0 && (rLower === targetSlug || rClean === targetSlug) || targetHeading !== void 0 && (rLower === targetHeading || rClean === targetHeading);
+        const colMatches = colLower === targetIdent || cClean === targetIdent || targetSlug !== void 0 && (colLower === targetSlug || cClean === targetSlug) || targetHeading !== void 0 && (colLower === targetHeading || cClean === targetHeading);
+        return !rowMatches && !colMatches;
+      });
+      cascadedCells += initialCount - matrix.cells.length;
+    }
+  }
+  return { success: true, cascadedMatrixCells: cascadedCells };
+}
+function updateConceptText(model, args, schema) {
+  const req = requireArgs(args, ["conceptName"]);
+  if (!req.ok)
+    return req.result;
+  const { conceptName } = req.values;
+  const text = typeof args.text === "string" ? args.text : typeof args.content === "string" ? args.content : typeof args.value === "string" ? args.value : typeof args.to === "string" ? args.to : "";
+  if (!model.rawSections) {
+    model.rawSections = {};
+  }
+  let targetKey = conceptName;
+  if (schema) {
+    const declared2 = schema.concepts.find((c) => c.name.toLowerCase() === conceptName.toLowerCase());
+    if (declared2)
+      targetKey = declared2.name;
+  }
+  for (const k of Object.keys(model.rawSections)) {
+    if (k.toLowerCase() === conceptName.toLowerCase()) {
+      targetKey = k;
+      break;
+    }
+  }
+  model.rawSections[targetKey] = text;
+  if (model.sectionOrder && !model.sectionOrder.map((s) => s.toLowerCase()).includes(targetKey.toLowerCase())) {
+    model.sectionOrder.push(targetKey);
+  }
+  return { success: true };
+}
+function updateConceptField(model, args, schema) {
+  let conceptName = args.conceptName || "";
+  let fieldName = args.fieldName || "";
+  const val = args.value !== void 0 ? args.value : args.to;
+  if (args.target && typeof args.target === "string") {
+    let clean = args.target.trim();
+    if (clean.includes("@")) {
+      clean = clean.slice(clean.indexOf("@") + 1);
+    }
+    const ampIdx = clean.indexOf("&");
+    if (ampIdx !== -1) {
+      conceptName = clean.slice(0, ampIdx).trim();
+      fieldName = clean.slice(ampIdx + 1).trim();
+    } else if (!conceptName) {
+      conceptName = clean;
+    }
+  }
+  if (conceptName.toLowerCase().startsWith("concept:")) {
+    conceptName = conceptName.slice("concept:".length).trim();
+  }
+  if (!conceptName || !fieldName) {
+    const missing = [];
+    if (!conceptName)
+      missing.push("conceptName");
+    if (!fieldName)
+      missing.push("fieldName");
+    return {
+      success: false,
+      errors: [{ path: "", message: `${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} required` }]
+    };
+  }
+  if (val === void 0) {
+    return { success: false, errors: [{ path: "", message: "value is required" }] };
+  }
+  let targetConceptKey = conceptName;
+  if (schema) {
+    const declared2 = schema.concepts.find((c) => c.name.toLowerCase() === conceptName.toLowerCase());
+    if (declared2)
+      targetConceptKey = declared2.name;
+  } else if (model.conceptFields) {
+    for (const k of Object.keys(model.conceptFields)) {
+      if (k.toLowerCase() === conceptName.toLowerCase()) {
+        targetConceptKey = k;
+        break;
+      }
+    }
+  }
+  let parsedVal = val;
+  let rawValString;
+  if (typeof val === "string") {
+    rawValString = val;
+    const trimmed = val.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      parsedVal = parsePropertyValue2(trimmed);
+    }
+  } else if (Array.isArray(val)) {
+    rawValString = `[${val.join(", ")}]`;
+  } else if (val !== null && val !== void 0) {
+    rawValString = String(val);
+  }
+  if (schema) {
+    const conceptObj = schema.concepts?.find((c) => c.name.toLowerCase() === targetConceptKey.toLowerCase());
+    let fieldDef = conceptObj?.fields?.find((f) => f.name.toLowerCase() === fieldName.toLowerCase());
+    if (!fieldDef && Array.isArray(schema.fields)) {
+      fieldDef = schema.fields.find((f) => f.name.toLowerCase() === fieldName.toLowerCase() && (!f.concept || f.concept === "*" || (Array.isArray(f.concept) ? f.concept.some((c) => c.toLowerCase() === targetConceptKey.toLowerCase()) : String(f.concept).toLowerCase() === targetConceptKey.toLowerCase())));
+    }
+    if (fieldDef) {
+      const diags = validateFieldValue(fieldDef, parsedVal, `${targetConceptKey}.${fieldName}`);
+      const errors = diags.filter((d) => d.severity === "error");
+      if (errors.length > 0) {
+        return {
+          success: false,
+          errors: errors.map((e) => ({ path: e.path, message: e.message }))
+        };
+      }
+    }
+  }
+  if (!model.conceptFields)
+    model.conceptFields = {};
+  if (!model.rawConceptFields)
+    model.rawConceptFields = {};
+  if (!model.conceptFields[targetConceptKey]) {
+    model.conceptFields[targetConceptKey] = {};
+  }
+  if (!model.rawConceptFields[targetConceptKey]) {
+    model.rawConceptFields[targetConceptKey] = {};
+  }
+  model.conceptFields[targetConceptKey][fieldName] = parsedVal;
+  if (rawValString !== void 0) {
+    model.rawConceptFields[targetConceptKey][fieldName] = rawValString;
+  }
+  if (model.sectionOrder && !model.sectionOrder.map((s) => s.toLowerCase()).includes(targetConceptKey.toLowerCase())) {
+    model.sectionOrder.push(targetConceptKey);
+  }
+  return { success: true };
+}
+function matrixIdentMatches(name, ident) {
+  const lower = ident.toLowerCase();
+  return name.toLowerCase() === lower || slugify2(name).toLowerCase() === lower || slugifyHeading2(name).toLowerCase() === lower;
+}
+function addMatrix(model, args) {
+  let matrixName = args.matrixName || args.name || args.matrixSlug || "";
+  if (args.target && typeof args.target === "string") {
+    let clean = args.target.trim();
+    if (clean.includes("@"))
+      clean = clean.slice(clean.indexOf("@") + 1);
+    if (clean.toLowerCase().startsWith("matrix:"))
+      clean = clean.slice("matrix:".length).trim();
+    if (!matrixName)
+      matrixName = clean;
+  }
+  if (matrixName.toLowerCase().startsWith("matrix:")) {
+    matrixName = matrixName.slice("matrix:".length).trim();
+  }
+  if (!matrixName) {
+    return { success: false, errors: [{ path: "", message: "matrixName is required" }] };
+  }
+  const exists = model.matrices && model.matrices.some((m) => matrixIdentMatches(m.name, matrixName)) || model.sectionOrder && model.sectionOrder.some((s) => {
+    const ident = s.toLowerCase().startsWith("matrices: ") ? s.slice("matrices: ".length) : s;
+    return matrixIdentMatches(ident, matrixName);
+  });
+  if (exists) {
+    return { success: false, errors: [{ path: "", message: `Matrix "${matrixName}" already exists` }] };
+  }
+  const source = args.source || args.conceptName || "";
+  const targetConcept = args.targetConcept || args.axisTarget || args.to || "";
+  const listArg = (value) => {
+    if (Array.isArray(value))
+      return value.map((v) => String(v).trim()).filter(Boolean);
+    if (typeof value === "string")
+      return value.split(",").map((v) => v.trim()).filter(Boolean);
+    return [];
+  };
+  const elementNamesOf = (concept) => {
+    if (!concept)
+      return [];
+    const nodes = model.elements.get(concept);
+    return nodes ? nodes.map((n) => n.name) : [];
+  };
+  const columnSeeds = listArg(args.columns);
+  const rowSeeds = listArg(args.rows);
+  const cols = columnSeeds.length > 0 ? columnSeeds : elementNamesOf(targetConcept);
+  const rows = rowSeeds.length > 0 ? rowSeeds : elementNamesOf(source);
+  const cells = [];
+  for (const row of rows) {
+    for (const col of cols)
+      cells.push({ row, col, value: "" });
+  }
+  if (!model.matrices)
+    model.matrices = [];
+  model.matrices.push({ name: matrixName, source, target: targetConcept, cells });
+  if (model.sectionOrder && !model.sectionOrder.some((s) => {
+    const ident = s.toLowerCase().startsWith("matrices: ") ? s.slice("matrices: ".length) : s;
+    return matrixIdentMatches(ident, matrixName);
+  })) {
+    model.sectionOrder.push(`matrices: ${matrixName}`);
+  }
+  return { success: true };
+}
+function removeMatrix(model, args) {
+  let matrixName = args.matrixName || args.matrixSlug || "";
+  if (args.target && typeof args.target === "string") {
+    let clean = args.target.trim();
+    if (clean.includes("@")) {
+      clean = clean.slice(clean.indexOf("@") + 1);
+    }
+    if (clean.toLowerCase().startsWith("matrix:")) {
+      clean = clean.slice("matrix:".length).trim();
+    }
+    matrixName = clean;
+  }
+  if (matrixName.toLowerCase().startsWith("matrix:")) {
+    matrixName = matrixName.slice("matrix:".length).trim();
+  }
+  if (!matrixName) {
+    return { success: false, errors: [{ path: "", message: "matrixName is required" }] };
+  }
+  const mLower = matrixName.toLowerCase();
+  const matchesMatrix = (name) => {
+    return name.toLowerCase() === mLower || slugify2(name).toLowerCase() === mLower || slugifyHeading2(name).toLowerCase() === mLower;
+  };
+  let found = false;
+  if (model.matrices && model.matrices.length > 0) {
+    const beforeLen = model.matrices.length;
+    model.matrices = model.matrices.filter((m) => !matchesMatrix(m.name));
+    if (model.matrices.length < beforeLen) {
+      found = true;
+    }
+  }
+  if (model.sectionOrder) {
+    const beforeSecLen = model.sectionOrder.length;
+    model.sectionOrder = model.sectionOrder.filter((s) => {
+      if (s.toLowerCase().startsWith("matrices: ")) {
+        const namePart = s.slice("matrices: ".length);
+        return !matchesMatrix(namePart);
+      }
+      return !matchesMatrix(s);
+    });
+    if (model.sectionOrder.length < beforeSecLen) {
+      found = true;
+    }
+  }
+  if (!found) {
+    return {
+      success: false,
+      errors: [{ path: "", message: `Matrix "${matrixName}" not found` }]
+    };
+  }
+  return { success: true };
+}
+function renameConcept(model, args) {
+  const req = requireArgs(args, ["conceptName", "newName"]);
+  if (!req.ok)
+    return req.result;
+  const { conceptName, newName } = req.values;
+  if (RESERVED_CONCEPT_NAMES.has(newName)) {
+    return {
+      success: false,
+      errors: [{ path: "Concept Definition", message: `"${newName}" is a reserved pseudo-concept name` }]
+    };
+  }
+  const lowerOld = conceptName.toLowerCase();
+  const lowerNew = newName.toLowerCase();
+  if (lowerOld === lowerNew)
+    return { success: false, errors: [{ path: "", message: "newName must differ from conceptName" }] };
+  const defs = model.elements.get(CONCEPT_DEFINITION) ?? [];
+  const def = defs.find((c) => c.name.toLowerCase() === lowerOld);
+  if (!def) {
+    return { success: false, errors: [{ path: "", message: `Concept "${conceptName}" not found in Concept Definition elements` }] };
+  }
+  if (defs.some((c) => c.name.toLowerCase() === lowerNew && c !== def)) {
+    return { success: false, errors: [{ path: "", message: `Concept "${newName}" already exists in Concept Definition elements` }] };
+  }
+  def.name = newName;
+  const fds = model.elements.get(FIELD_DEFINITION) ?? [];
+  for (const f of fds) {
+    if (typeof f.fields["concept"] === "string" && f.fields["concept"].toLowerCase() === lowerOld) {
+      f.fields["concept"] = newName;
+    }
+  }
+  if (fds.length > 0)
+    model.elements.set(FIELD_DEFINITION, fds);
+  const mds = model.elements.get(MATRIX_DEFINITION) ?? [];
+  for (const m of mds) {
+    if (typeof m.fields["source"] === "string" && m.fields["source"].toLowerCase() === lowerOld) {
+      m.fields["source"] = newName;
+    }
+    if (typeof m.fields["target"] === "string" && m.fields["target"].toLowerCase() === lowerOld) {
+      m.fields["target"] = newName;
+    }
+  }
+  if (mds.length > 0)
+    model.elements.set(MATRIX_DEFINITION, mds);
+  model.elements.set(CONCEPT_DEFINITION, defs);
+  const nodes = model.elements.get(conceptName);
+  if (nodes) {
+    for (const node of nodes)
+      node.type = newName;
+    model.elements.set(newName, nodes);
+    model.elements.delete(conceptName);
+  }
+  for (const edge of model.taxonomy) {
+    if (edge.parent.toLowerCase() === lowerOld)
+      edge.parent = newName;
+    if (edge.child.toLowerCase() === lowerOld)
+      edge.child = newName;
+  }
+  if (model.rawSections) {
+    const raw = model.rawSections[conceptName];
+    if (raw !== void 0) {
+      delete model.rawSections[conceptName];
+      model.rawSections[newName] = raw;
+    }
+  }
+  return { success: true };
+}
+function updateReferenceString(text, oldName, newName) {
+  if (!text || typeof text !== "string")
+    return text;
+  const oldSlug = slugify2(oldName);
+  if (!text.trim().startsWith("[[") && !text.trim().endsWith("]]")) {
+    if (slugify2(text.trim()) === oldSlug) {
+      const leadingSpaces = text.match(/^\s*/)?.[0] || "";
+      const trailingSpaces = text.match(/\s*$/)?.[0] || "";
+      return `${leadingSpaces}${newName}${trailingSpaces}`;
+    }
+  }
+  if (!text.trim().startsWith("[[") && !text.trim().endsWith("]]")) {
+    const qualifiedBracketRegex = new RegExp(`^(\\s*\\[[^\\]]+\\]\\s*)(.+)$`, "i");
+    const matchBracket = text.match(qualifiedBracketRegex);
+    if (matchBracket && slugify2(matchBracket[2].trim()) === oldSlug) {
+      const trailingSpaces = matchBracket[2].match(/\s*$/)?.[0] || "";
+      return `${matchBracket[1]}${newName}${trailingSpaces}`;
+    }
+    const qualifiedColonRegex = new RegExp(`^(\\s*[^:]+::\\s*)(.+)$`, "i");
+    const matchColon = text.match(qualifiedColonRegex);
+    if (matchColon && slugify2(matchColon[2].trim()) === oldSlug) {
+      const trailingSpaces = matchColon[2].match(/\s*$/)?.[0] || "";
+      return `${matchColon[1]}${newName}${trailingSpaces}`;
+    }
+  }
+  return updateWikiLinks(text, oldName, newName);
+}
+function updateWikiLinks(text, oldName, newName) {
+  if (!text || typeof text !== "string")
+    return text;
+  const oldSlug = slugify2(oldName);
+  return text.replace(/\[\[\s*([^\|]+?)(\s*\|[^\]]+)?\s*\]\]/gi, (match, target, alias) => {
+    const trimmedTarget = target.trim();
+    if (slugify2(trimmedTarget) === oldSlug) {
+      return `[[${newName}${alias ?? ""}]]`;
+    }
+    const qBracket = new RegExp(`^(\\[[^\\]]+\\]\\s*)(.+)$`, "i");
+    const mBracket = trimmedTarget.match(qBracket);
+    if (mBracket && slugify2(mBracket[2]) === oldSlug) {
+      return `[[${mBracket[1]}${newName}${alias ?? ""}]]`;
+    }
+    const qColon = new RegExp(`^(.*::\\s*)(.+)$`, "i");
+    const mColon = trimmedTarget.match(qColon);
+    if (mColon && slugify2(mColon[2]) === oldSlug) {
+      return `[[${mColon[1]}${newName}${alias ?? ""}]]`;
+    }
+    return match;
+  });
+}
+function referenceFieldsByConcept(schema) {
+  const map = /* @__PURE__ */ new Map();
+  if (!schema)
+    return map;
+  for (const concept of schema.concepts) {
+    const refs = /* @__PURE__ */ new Set();
+    for (const f of concept.fields ?? []) {
+      if (f.type === "reference" || f.type === "knowledge")
+        refs.add(f.name.toLowerCase());
+    }
+    map.set(concept.name.toLowerCase(), refs);
+  }
+  return map;
+}
+function renameElement(model, args, schema) {
+  const req = requireArgs(args, ["conceptName", "elementName", "newName"]);
+  if (!req.ok)
+    return req.result;
+  const { conceptName, elementName, newName } = req.values;
+  let lowerOld = elementName.toLowerCase();
+  const lowerNew = newName.toLowerCase();
+  if (lowerOld === lowerNew)
+    return { success: false, errors: [{ path: "", message: "newName must differ from elementName" }] };
+  const existingElements = model.elements.get(conceptName);
+  if (!existingElements)
+    return { success: false, errors: [{ path: "", message: `Concept "${conceptName}" not found` }] };
+  const element = existingElements.find((e) => matchesElement(e, elementName));
+  if (!element)
+    return { success: false, errors: [{ path: "", message: `Element "${elementName}" not found in concept "${conceptName}"` }] };
+  const oldDisplayName = element.name;
+  lowerOld = oldDisplayName.toLowerCase();
+  const duplicateSibling = existingElements.find((e) => e !== element && e.name.toLowerCase() === lowerNew);
+  if (duplicateSibling) {
+    return {
+      success: false,
+      errors: [{ path: "", message: `Element "${newName}" already exists in concept "${conceptName}"` }]
+    };
+  }
+  element.name = newName;
+  for (const edge of model.taxonomy) {
+    if (edge.parent.toLowerCase() === lowerOld)
+      edge.parent = newName;
+    if (edge.child.toLowerCase() === lowerOld)
+      edge.child = newName;
+  }
+  for (const matrix of model.matrices) {
+    for (const cell of matrix.cells) {
+      if (cell.row.toLowerCase() === lowerOld)
+        cell.row = newName;
+      if (cell.col.toLowerCase() === lowerOld)
+        cell.col = newName;
+    }
+  }
+  const refsByConcept = referenceFieldsByConcept(schema);
+  for (const [, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      if (el.fields) {
+        const conceptRefs = refsByConcept.get(el.type.toLowerCase());
+        for (const [fKey, fVal] of Object.entries(el.fields)) {
+          const isRefField = conceptRefs?.has(fKey.toLowerCase()) ?? false;
+          const rewrite = (s) => isRefField ? updateReferenceString(s, oldDisplayName, newName) : updateWikiLinks(s, oldDisplayName, newName);
+          if (typeof fVal === "string") {
+            el.fields[fKey] = rewrite(fVal);
+          } else if (Array.isArray(fVal)) {
+            el.fields[fKey] = fVal.map((item) => typeof item === "string" ? rewrite(item) : item);
+          }
+        }
+      }
+      if (el.description && typeof el.description === "string") {
+        el.description = updateWikiLinks(el.description, oldDisplayName, newName);
+      }
+      if (Array.isArray(el.relationships)) {
+        for (const rel of el.relationships) {
+          if (rel && typeof rel.target === "string" && rel.target.toLowerCase() === lowerOld) {
+            rel.target = newName;
+          }
+        }
+      }
+    }
+  }
+  if (model.rawSections) {
+    for (const [sKey, sVal] of Object.entries(model.rawSections)) {
+      if (typeof sVal === "string") {
+        model.rawSections[sKey] = updateWikiLinks(sVal, oldDisplayName, newName);
+      }
+    }
+  }
+  model.elements.set(conceptName, existingElements);
+  return { success: true };
+}
+function generateIndex(model, args) {
+  const templateTaxonomy = args.taxonomy;
+  const presentConcepts = /* @__PURE__ */ new Set();
+  for (const c of model.elements.keys()) {
+    if (c.toLowerCase() !== "concept definition" && c.toLowerCase() !== "field definition" && c.toLowerCase() !== "marker definition" && c.toLowerCase() !== "matrix definition") {
+      presentConcepts.add(c);
+    }
+  }
+  if (model.rawSections) {
+    for (const c of Object.keys(model.rawSections)) {
+      if (c.toLowerCase() !== "index") {
+        presentConcepts.add(c);
+      }
+    }
+  }
+  const conceptDefs = model.elements.get(CONCEPT_DEFINITION);
+  if (conceptDefs) {
+    for (const cd of conceptDefs) {
+      presentConcepts.add(cd.name);
+    }
+  }
+  let finalEdges = [];
+  if (templateTaxonomy && Array.isArray(templateTaxonomy) && templateTaxonomy.length > 0) {
+    const edgesToKeep = templateTaxonomy.filter((edge) => presentConcepts.has(edge.parent) && presentConcepts.has(edge.child));
+    const childNodesInKept = new Set(edgesToKeep.map((e) => e.child));
+    for (const concept of presentConcepts) {
+      if (!childNodesInKept.has(concept)) {
+        edgesToKeep.push({ parent: "", child: concept });
+      }
+    }
+    finalEdges = edgesToKeep;
+  } else {
+    for (const concept of presentConcepts) {
+      finalEdges.push({ parent: "", child: concept });
+    }
+  }
+  model.taxonomy = finalEdges;
+  return { success: true };
+}
+var MUTATION_HANDLERS, LEVEL2_ONLY_OPS, LEVEL3_ONLY_OPS;
+var init_mutate = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/mutate.js"() {
+    "use strict";
+    init_types();
+    init_schema();
+    init_slug();
+    init_sections();
+    init_constants();
+    init_sourceRef();
+    init_field_values();
+    MUTATION_HANDLERS = {
+      add_concept: (model, args) => addConcept(model, args),
+      add_field: (model, args) => addField(model, args),
+      add_element: (model, args, schema) => addElement(model, args, schema),
+      update_field: (model, args, schema) => updateField(model, args, schema),
+      remove_element: (model, args) => removeElement(model, args),
+      rename_concept: (model, args) => renameConcept(model, args),
+      rename_element: (model, args, schema) => renameElement(model, args, schema),
+      update_matrix_cell: (model, args) => updateMatrixCell(model, args),
+      update_concept_text: (model, args, schema) => updateConceptText(model, args, schema),
+      update_concept_field: (model, args, schema) => updateConceptField(model, args, schema),
+      remove_matrix: (model, args) => removeMatrix(model, args),
+      add_matrix: (model, args) => addMatrix(model, args),
+      generate_index: (model, args) => generateIndex(model, args),
+      freeze_slugs: (model) => freeze_slugs(model)
+    };
+    LEVEL2_ONLY_OPS = /* @__PURE__ */ new Set(["add_concept", "add_field"]);
+    LEVEL3_ONLY_OPS = /* @__PURE__ */ new Set(["add_matrix"]);
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/envelope.js
+var init_envelope = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/envelope.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/validator/baseline.js
+var init_baseline = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/validator/baseline.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/merge.js
+var init_merge = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/merge.js"() {
+    "use strict";
+    init_types();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/citations.js
+function normalizeToolId(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+function findEnclosingChangeBlock(headings, idx) {
+  const isChange = (h) => h.concept?.trim().toLowerCase() === CHANGE_CONCEPT.toLowerCase();
+  if (isChange(headings[idx]))
+    return headings[idx];
+  let level = headings[idx].level;
+  for (let j = idx - 1; j >= 0; j--) {
+    if (headings[j].level < level) {
+      if (isChange(headings[j]))
+        return headings[j];
+      level = headings[j].level;
+    }
+  }
+  return void 0;
+}
+function readChangeAuthor(content, changeHeading) {
+  const lines = content.split("\n");
+  let endLine = lines.length;
+  for (let i = changeHeading.line + 1; i < lines.length; i++) {
+    if (/^#{1,6}\s/.test(lines[i])) {
+      endLine = i;
+      break;
+    }
+  }
+  const authorLineRe = /^\s*author\s*::\s*(.*?)\s*$/i;
+  let value = "";
+  for (let i = changeHeading.line + 1; i < endLine; i++) {
+    const match = lines[i].match(authorLineRe);
+    if (match) {
+      value = (match[1] ?? "").trim();
+      break;
+    }
+  }
+  if (!value || value === "_") {
+    return { origin: "agent", author: "unknown" };
+  }
+  if (NORMALIZED_KNOWN_AGENT_TOOL_IDS.has(normalizeToolId(value))) {
+    return { origin: "agent", author: value };
+  }
+  return { origin: "human", author: value };
+}
+function classifyFromFrontmatter(_fm) {
+  return { origin: "document" };
+}
+function headingMatcher(ref) {
+  const unit = ref.unit;
+  if (!unit)
+    return (h) => h.slug === ref.slug;
+  switch (unit.kind) {
+    case "header":
+      return (h) => h.slug === ref.slug && h.level === unit.level;
+    case "row":
+    case "pointer":
+      return (h) => h.slug === ref.slug;
+    case "element":
+      return (h) => h.slug === ref.slug || h.element === unit.slug;
+    case "matrix":
+      return (h) => h.slug === ref.slug || h.slug === unit.matrixSlug;
+    default:
+      return assertNever2(unit, "knowledge unit kind");
+  }
+}
+function anchorOf(ref) {
+  const unit = ref.unit;
+  if (!unit)
+    return ref.slug;
+  switch (unit.kind) {
+    case "header":
+      return ref.slug;
+    case "row":
+      return ref.slug ?? unit.id;
+    case "pointer":
+      return unit.pointer;
+    case "element":
+      return ref.slug ?? unit.slug;
+    case "matrix":
+      return ref.slug ?? unit.matrixSlug;
+    default:
+      return assertNever2(unit, "knowledge unit kind");
+  }
+}
+function classifyOrigin(content, fm, ref) {
+  if (ref.slug) {
+    const headings = extractHeadings(content);
+    const idx = headings.findIndex(headingMatcher(ref));
+    if (idx !== -1) {
+      const changeHeading = findEnclosingChangeBlock(headings, idx);
+      if (changeHeading)
+        return readChangeAuthor(content, changeHeading);
+    }
+  }
+  return classifyFromFrontmatter(fm);
+}
+function capExcerpt(text) {
+  if (text.length <= EXCERPT_CHAR_CAP)
+    return { text, truncated: false };
+  return { text: text.slice(0, EXCERPT_CHAR_CAP), truncated: true };
+}
+function extractExcerpt(content, unit) {
+  const lines = content.split("\n");
+  switch (unit.kind) {
+    case "section":
+      return capExcerpt(lines.slice(unit.startLine, unit.endLine).join("\n"));
+    case "field":
+      return capExcerpt(unit.lines.map((i) => lines[i]).join("\n"));
+    case "cell":
+      return capExcerpt(String(unit.value));
+    case "row": {
+      const row = parseCsvTable(content).rows[unit.index];
+      return capExcerpt(row ? row.join(",") : "");
+    }
+    case "pointer":
+      return capExcerpt(typeof unit.value === "string" ? unit.value : JSON.stringify(unit.value));
+    default:
+      return assertNever2(unit, "resolved unit kind");
+  }
+}
+function resolveCitation(raw, field, resolver, modelPath = "") {
+  const ref = parseCitation2(raw);
+  if (!ref) {
+    return { path: raw, exists: false, field, origin: "document", error: "MALFORMED" };
+  }
+  const anchor = anchorOf(ref);
+  const resolved = resolver(ref.filePath, modelPath);
+  if (!resolved || !resolved.exists) {
+    return { path: ref.filePath, anchor, exists: false, field, origin: "document", error: "DANGLING_FILE" };
+  }
+  const content = resolved.content;
+  if (!content) {
+    return { path: ref.filePath, href: ref.filePath, anchor, exists: true, field, origin: "document" };
+  }
+  const fm = parseFrontmatter2(content);
+  const sha2562 = fm?.sha256;
+  const mediaSha256 = fm?.media_sha256;
+  const version = fm?.version ?? fm?.knowledge_version;
+  let excerpt;
+  if (ref.unit) {
+    const unitResult = resolveUnit(content, ref);
+    if (!unitResult) {
+      const fmOnly = classifyFromFrontmatter(fm);
+      return {
+        path: ref.filePath,
+        anchor,
+        exists: true,
+        field,
+        origin: fmOnly.origin,
+        ...fmOnly.author ? { author: fmOnly.author } : {},
+        error: "UNKNOWN_ANCHOR"
+      };
+    }
+    excerpt = extractExcerpt(content, unitResult);
+  } else if (ref.slug) {
+    const section = resolveHeadingSection(content, ref.slug);
+    if (!section) {
+      const fmOnly = classifyFromFrontmatter(fm);
+      return {
+        path: ref.filePath,
+        anchor,
+        exists: true,
+        field,
+        origin: fmOnly.origin,
+        ...fmOnly.author ? { author: fmOnly.author } : {},
+        error: "UNKNOWN_ANCHOR"
+      };
+    }
+    const lines = content.split("\n");
+    excerpt = capExcerpt(lines.slice(section.startLine, section.endLine).join("\n"));
+  }
+  const classified = classifyOrigin(content, fm, ref);
+  return {
+    path: ref.filePath,
+    href: ref.filePath,
+    anchor,
+    exists: true,
+    field,
+    origin: classified.origin,
+    ...classified.author ? { author: classified.author } : {},
+    ...excerpt ? { excerpt: excerpt.text, ...excerpt.truncated ? { truncated: true } : {} } : {},
+    ...sha2562 ? { sha256: sha2562 } : {},
+    ...mediaSha256 ? { media_sha256: mediaSha256 } : {},
+    ...version ? { version } : {}
+  };
+}
+var EXCERPT_CHAR_CAP, CHANGE_CONCEPT, KNOWN_AGENT_TOOL_IDS, NORMALIZED_KNOWN_AGENT_TOOL_IDS;
+var init_citations = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/citations.js"() {
+    "use strict";
+    init_dist();
+    init_assertNever();
+    EXCERPT_CHAR_CAP = 500;
+    CHANGE_CONCEPT = "NN Change";
+    KNOWN_AGENT_TOOL_IDS = ["agent", "ClaudeCode", "OpenCode", "Antigravity"];
+    NORMALIZED_KNOWN_AGENT_TOOL_IDS = new Set(KNOWN_AGENT_TOOL_IDS.map(normalizeToolId));
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/types.js
+function isBumpLevel(val) {
+  return typeof val === "string" && BUMP_LEVELS.includes(val);
+}
+function isChangeStatus2(val) {
+  return typeof val === "string" && ["proposed", "applied", "partially_applied", "rejected", "conflict"].includes(val);
+}
+function isChangeOp2(val) {
+  return typeof val === "string" && CHANGE_OPS2.includes(val);
+}
+function addModelProblems2(change) {
+  if (change.op !== "add_model")
+    return [];
+  const problems = [];
+  const id = change.id;
+  for (const key of ["from", "to", "base_hash"]) {
+    if (change[key] !== void 0) {
+      problems.push(`change "${id}": add_model must not carry "${key}"`);
+    }
+  }
+  if (change.concept !== void 0 || change.fields !== void 0 || change.slug !== void 0) {
+    problems.push(`change "${id}": add_model must not carry element payload (concept, slug, fields)`);
+  }
+  if (!change.blueprint_name)
+    problems.push(`change "${id}": add_model requires "blueprint_name"`);
+  if (!change.blueprint_url)
+    problems.push(`change "${id}": add_model requires "blueprint_url"`);
+  const target = change.target;
+  if (!target || target.includes("@") || target.includes("&") || target.includes("..") || /^[a-zA-Z]:/.test(target) || /[\\/]/.test(target)) {
+    problems.push(`change "${id}": add_model target must be a plain model id (no "@", "&", "..", path separators, or absolute path)`);
+  }
+  return problems;
+}
+var CHANGE_OPS2, BUMP_LEVELS;
+var init_types2 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/types.js"() {
+    "use strict";
+    CHANGE_OPS2 = [
+      "update_field",
+      "add_element",
+      "remove_element",
+      "rename_element",
+      "rename_concept",
+      "update_matrix_cell",
+      "update_concept_text",
+      "update_concept_field",
+      "remove_matrix",
+      "add_matrix",
+      "comment",
+      "add_model",
+      "freeze_slugs",
+      "bump_version"
+    ];
+    BUMP_LEVELS = ["patch", "minor", "major"];
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/parser.js
+function stripQuotes2(str3) {
+  const trimmed = str3.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "string")
+        return parsed;
+    } catch {
+    }
+    return trimmed.slice(1, -1);
+  }
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+function parseFieldsValue2(str3) {
+  const trimmed = str3.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "object" && parsed !== null) {
+        const out = {};
+        for (const [k, v] of Object.entries(parsed)) {
+          out[k] = String(v);
+        }
+        return out;
+      }
+    } catch {
+    }
+  }
+  return void 0;
+}
+function invalidFrontmatter2(detail) {
+  throw new Error(`${CHANGESET_FRONTMATTER_INVALID2}: ${detail}`);
+}
+function validateFrontmatter2(fm) {
+  if (fm.level !== 3) {
+    invalidFrontmatter2("level must be 3");
+  }
+  const parent = fm.parent_spec;
+  if (typeof parent !== "object" || parent === null || Array.isArray(parent)) {
+    invalidFrontmatter2("parent_spec must be an object with name and url");
+  }
+  const parentObj = parent;
+  if (parentObj.name !== "changes") {
+    invalidFrontmatter2('parent_spec.name must be "changes"');
+  }
+  if (typeof parentObj.url !== "string" || parentObj.url.length === 0) {
+    invalidFrontmatter2("missing parent_spec.url");
+  }
+  if (typeof fm.spec_version !== "string" || fm.spec_version.length === 0) {
+    invalidFrontmatter2("missing spec_version");
+  }
+  if (typeof fm.blueprint_version !== "string" || fm.blueprint_version.length === 0) {
+    invalidFrontmatter2("missing blueprint_version");
+  }
+  if (!isChangeStatus2(fm.status)) {
+    invalidFrontmatter2("status must be one of proposed|applied|partially_applied|rejected|conflict");
+  }
+  return fm;
+}
+function parseChangeset2(rawContent) {
+  const frontmatterMatch = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(rawContent.trimStart());
+  if (!frontmatterMatch) {
+    invalidFrontmatter2("missing frontmatter block");
+  }
+  const yamlText = frontmatterMatch[1];
+  const body = frontmatterMatch[2];
+  let parsedYaml;
+  try {
+    parsedYaml = (0, import_yaml14.parse)(yamlText);
+  } catch {
+    invalidFrontmatter2("frontmatter is not valid YAML");
+  }
+  if (typeof parsedYaml !== "object" || parsedYaml === null || Array.isArray(parsedYaml)) {
+    invalidFrontmatter2("missing frontmatter block");
+  }
+  const frontmatter = validateFrontmatter2(parsedYaml);
+  const changeHeadingRegex = /^##\s+NN\s+Change:\s*(.+)$/i;
+  const lines = body.split(/\r?\n/);
+  const changes = [];
+  let currentChange = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headingMatch = changeHeadingRegex.exec(line.trim());
+    if (headingMatch) {
+      if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
+        changes.push(currentChange);
+      }
+      currentChange = {
+        id: headingMatch[1].trim()
+      };
+      continue;
+    }
+    if (!currentChange)
+      continue;
+    const propMatch = /^([a-zA-Z0-9_-]+)::\s*(.*)$/.exec(line.trim());
+    if (!propMatch)
+      continue;
+    const key = propMatch[1].trim();
+    const rawVal = propMatch[2].trim();
+    switch (key) {
+      case "op":
+        if (!isChangeOp2(rawVal)) {
+          throw new Error(`Invalid changeset op: "${rawVal}"`);
+        }
+        currentChange.op = rawVal;
+        break;
+      case "target":
+        currentChange.target = rawVal;
+        break;
+      case "from":
+        currentChange.from = stripQuotes2(rawVal);
+        break;
+      case "to":
+        currentChange.to = stripQuotes2(rawVal);
+        break;
+      case "base_hash":
+        currentChange.base_hash = stripQuotes2(rawVal);
+        break;
+      case "concept":
+        currentChange.concept = rawVal;
+        break;
+      case "name":
+        currentChange.name = stripQuotes2(rawVal);
+        break;
+      case "slug":
+        currentChange.slug = rawVal;
+        break;
+      case "fields": {
+        const parsedObj = parseFieldsValue2(rawVal);
+        if (parsedObj) {
+          currentChange.fields = parsedObj;
+        }
+        break;
+      }
+      case "author":
+        currentChange.author = stripQuotes2(rawVal);
+        break;
+      case "notes":
+        currentChange.notes = stripQuotes2(rawVal);
+        break;
+      case "evidence":
+        currentChange.evidence = stripQuotes2(rawVal);
+        break;
+      case "blueprint_name":
+        currentChange.blueprint_name = stripQuotes2(rawVal);
+        break;
+      case "blueprint_url":
+        currentChange.blueprint_url = stripQuotes2(rawVal);
+        break;
+      case "knowledge_version":
+        currentChange.knowledge_version = stripQuotes2(rawVal);
+        break;
+      case "applied_at":
+        currentChange.applied_at = stripQuotes2(rawVal);
+        break;
+      case "batch":
+        currentChange.batch = stripQuotes2(rawVal);
+        break;
+      case "status":
+        if (!isChangeStatus2(rawVal)) {
+          throw new Error(`Invalid changeset status: "${rawVal}"`);
+        }
+        currentChange.status = rawVal;
+        break;
+      case "resolution":
+        currentChange.resolution = stripQuotes2(rawVal);
+        break;
+      case "resolved_slug":
+        currentChange.resolved_slug = rawVal;
+        break;
+      default:
+        break;
+    }
+  }
+  if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
+    changes.push(currentChange);
+  }
+  const problems = changes.flatMap(addModelProblems2);
+  if (problems.length > 0) {
+    throw new Error(`Invalid add_model change: ${problems.join("; ")}`);
+  }
+  return {
+    frontmatter,
+    changes,
+    rawContent
+  };
+}
+var import_yaml14, CHANGESET_FRONTMATTER_INVALID2;
+var init_parser3 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/parser.js"() {
+    "use strict";
+    import_yaml14 = __toESM(require_dist(), 1);
+    init_types2();
+    CHANGESET_FRONTMATTER_INVALID2 = "CHANGESET_FRONTMATTER_INVALID";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/element-history.js
+var init_element_history = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/element-history.js"() {
+    "use strict";
+    init_parser3();
+    init_contract();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/fs-source-resolver.js
+function createFsSourceResolver(rootDir) {
+  const rootResolved = (0, import_node_path7.resolve)(rootDir);
+  return (refPath, referringPath) => {
+    const candidateDirs = [];
+    if (referringPath) {
+      const absReferring = (0, import_node_path7.isAbsolute)(referringPath) ? referringPath : (0, import_node_path7.resolve)(rootDir, referringPath);
+      let cur = (0, import_node_path7.dirname)(absReferring);
+      while (true) {
+        const sourcesDir = (0, import_node_path7.join)(cur, "sources");
+        if ((0, import_node_fs7.existsSync)(sourcesDir)) {
+          candidateDirs.push(cur);
+        }
+        if (cur === rootResolved || (0, import_node_path7.dirname)(cur) === cur) {
+          break;
+        }
+        const relToRoot = (0, import_node_path7.relative)(rootResolved, cur);
+        if (relToRoot.startsWith("..")) {
+          break;
+        }
+        cur = (0, import_node_path7.dirname)(cur);
+      }
+    }
+    if (!candidateDirs.includes(rootResolved)) {
+      candidateDirs.push(rootResolved);
+    }
+    for (const dir of candidateDirs) {
+      const abs = (0, import_node_path7.resolve)(dir, refPath);
+      const rel = (0, import_node_path7.relative)(dir, abs);
+      if (rel === "" || rel.startsWith("..") || (0, import_node_path7.isAbsolute)(rel)) {
+        continue;
+      }
+      if ((0, import_node_fs7.existsSync)(abs)) {
+        try {
+          const content = (0, import_node_fs7.readFileSync)(abs, "utf-8");
+          return {
+            exists: true,
+            headings: extractHeadings(content).map((h) => h.slug),
+            content
+          };
+        } catch {
+          return { exists: false };
+        }
+      }
+    }
+    const primaryDir = candidateDirs[0] ?? rootResolved;
+    const targetAbs = (0, import_node_path7.resolve)(primaryDir, refPath);
+    const targetParent = (0, import_node_path7.dirname)(targetAbs);
+    const parentExists = (0, import_node_fs7.existsSync)(targetParent);
+    if (!parentExists) {
+      return { exists: false, parentExists: false };
+    }
+    let suggestions;
+    try {
+      const entries = (0, import_node_fs7.readdirSync)(targetParent, { withFileTypes: true });
+      const targetBase = (0, import_node_path7.basename)(refPath);
+      const targetStem = targetBase.replace(/\.[^.]+$/, "");
+      const files = entries.filter((e) => e.isFile()).map((e) => e.name);
+      const maxAllowed = Math.max(1, Math.min(3, Math.floor(targetStem.length / 3)));
+      const scored = files.map((name) => {
+        const candStem = name.replace(/\.[^.]+$/, "");
+        return { name, dist: levenshteinDistance(targetStem, candStem) };
+      }).filter((item) => item.dist > 0 && item.dist <= maxAllowed).sort((a, b) => a.dist - b.dist);
+      if (scored.length > 0) {
+        suggestions = scored.map((s) => s.name);
+      }
+    } catch {
+    }
+    return {
+      exists: false,
+      parentExists: true,
+      suggestions
+    };
+  };
+}
+var import_node_fs7, import_node_path7;
+var init_fs_source_resolver = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/fs-source-resolver.js"() {
+    "use strict";
+    import_node_fs7 = require("node:fs");
+    import_node_path7 = require("node:path");
+    init_sourceRef();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/output-path.js
+var init_output_path = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/output-path.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/element-hash.js
+function canonicalJsonStringify(value) {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return "[" + value.map(canonicalJsonStringify).join(",") + "]";
+  }
+  const obj = value;
+  const sortedKeys2 = Object.keys(obj).sort();
+  const pairs = [];
+  for (const k of sortedKeys2) {
+    if (obj[k] !== void 0) {
+      pairs.push(JSON.stringify(k) + ":" + canonicalJsonStringify(obj[k]));
+    }
+  }
+  return "{" + pairs.join(",") + "}";
+}
+function computeElementHash(element) {
+  const canonical = canonicalJsonStringify({
+    concept: element.concept,
+    description: element.description ?? "",
+    fields: element.fields ?? {},
+    name: element.name
+  });
+  return computeSha2562(canonical).slice(0, 16);
+}
+function hashParsedElement2(concept, node) {
+  const fields = { ...node.fields || {} };
+  delete fields.concept;
+  delete fields.name;
+  const description = node.description || fields.description || "";
+  if (fields.description)
+    delete fields.description;
+  return computeElementHash({
+    concept,
+    name: node.name || "Element",
+    description,
+    fields
+  });
+}
+var init_element_hash = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/element-hash.js"() {
+    "use strict";
+    init_crypto();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/slot.js
+var init_slot = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/slot.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/payload-builder.js
+var init_payload_builder = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/payload-builder.js"() {
+    "use strict";
+    init_dist();
+    init_crypto();
+    init_canonical_registry();
+    init_nature();
+    init_contract();
+    init_citations();
+    init_element_hash();
+    init_slot();
+    init_field_values();
+    init_compose();
+    init_element_history();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/provenance.js
+var init_provenance = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/provenance.js"() {
+    "use strict";
+    init_element_history();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/schema-resolution.js
+var init_schema_resolution = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/schema-resolution.js"() {
+    "use strict";
+    init_parser2();
+    init_resolver();
+    init_canonical_registry();
+    init_compose();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/unit-address.js
+var init_unit_address = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/unit-address.js"() {
+    "use strict";
+    init_sourceRef();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/writeOnce/plan.js
+var init_plan = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/writeOnce/plan.js"() {
+    "use strict";
+    init_contract();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/cognitivize/sidecar.js
+var import_yaml15, SIDECAR_SPEC_URL;
+var init_sidecar = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/cognitivize/sidecar.js"() {
+    "use strict";
+    import_yaml15 = __toESM(require_dist(), 1);
+    init_contract();
+    SIDECAR_SPEC_URL = `https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/${SIDECAR_BLUEPRINT}/${SPEC_FILENAME2}`;
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/writeOnce/fs.js
+var init_fs = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/writeOnce/fs.js"() {
+    "use strict";
+    init_sidecar();
+    init_contract();
+    init_plan();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/console/index.js
+var init_console = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/console/index.js"() {
+    "use strict";
+    init_citations();
+    init_element_history();
+    init_fs_source_resolver();
+    init_output_path();
+    init_payload_builder();
+    init_provenance();
+    init_schema_resolution();
+    init_slot();
+    init_unit_address();
+    init_parser2();
+    init_contract();
+    init_plan();
+    init_fs();
+    init_element_hash();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/lineage/render.js
+var init_render = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/lineage/render.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/lineage/record.js
+var RECORD_BLUEPRINT;
+var init_record = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/lineage/record.js"() {
+    "use strict";
+    init_core();
+    init_contract();
+    RECORD_BLUEPRINT = "cogNNitive";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/lineage/drift.js
+var init_drift = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/lineage/drift.js"() {
+    "use strict";
+    init_record();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/lineage/index.js
+var init_lineage = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/lineage/index.js"() {
+    "use strict";
+    init_project();
+    init_render();
+    init_record();
+    init_drift();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/lineage/fs-snapshot.js
+var init_fs_snapshot = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/lineage/fs-snapshot.js"() {
+    "use strict";
+    init_core();
+    init_contract();
+    init_record();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/writeOnce/index.js
+var init_writeOnce = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/writeOnce/index.js"() {
+    "use strict";
+    init_plan();
+    init_fs();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/cognitivize/cognitivize.js
+var init_cognitivize = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/cognitivize/cognitivize.js"() {
+    "use strict";
+    init_contract();
+    init_fs();
+    init_sidecar();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/cognitivize/index.js
+var init_cognitivize2 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/cognitivize/index.js"() {
+    "use strict";
+    init_cognitivize();
+    init_sidecar();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/utils.js
+function escapeRegex2(str3) {
+  return str3.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function extractModelSlug2(target) {
+  const atIdx = target.indexOf("@");
+  if (atIdx !== -1) {
+    return target.slice(0, atIdx).trim();
+  }
+  return target.trim();
+}
+var init_utils = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/utils.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/hasher.js
+function canonicalizeValue2(val) {
+  if (val === null || val === void 0)
+    return void 0;
+  if (typeof val !== "object")
+    return val;
+  if (Array.isArray(val)) {
+    return val.map(canonicalizeValue2);
+  }
+  const obj = val;
+  const sortedKeys2 = Object.keys(obj).sort();
+  const out = {};
+  for (const k of sortedKeys2) {
+    const v = canonicalizeValue2(obj[k]);
+    if (v !== void 0) {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+function canonicalizeChangeItem2(change) {
+  const result = {};
+  for (const key of PROPOSAL_KEYS2) {
+    const val = change[key];
+    if (val !== void 0 && val !== null) {
+      result[key] = canonicalizeValue2(val);
+    }
+  }
+  return result;
+}
+function computeProposalSha2(changes) {
+  const canonicalItems = changes.map(canonicalizeChangeItem2);
+  const serialized = JSON.stringify(canonicalItems);
+  return (0, import_node_crypto2.createHash)("sha256").update(serialized, "utf8").digest("hex").toLowerCase();
+}
+function verifyProposalSha(doc) {
+  if (!doc.frontmatter?.proposal_sha)
+    return false;
+  const expectedSha = doc.frontmatter.proposal_sha.trim().toLowerCase();
+  const computedSha = computeProposalSha2(doc.changes);
+  return expectedSha === computedSha;
+}
+var import_node_crypto2, PROPOSAL_KEYS2;
+var init_hasher = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/hasher.js"() {
+    "use strict";
+    import_node_crypto2 = require("node:crypto");
+    PROPOSAL_KEYS2 = [
+      "id",
+      "op",
+      "target",
+      "from",
+      "to",
+      "concept",
+      "name",
+      "slug",
+      "fields",
+      "author",
+      "notes",
+      "base_hash",
+      "evidence",
+      "blueprint_name",
+      "blueprint_url",
+      "knowledge_version"
+    ];
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/serializer.js
+function detectEol2(text) {
+  return text.includes("\r\n") ? "\r\n" : "\n";
+}
+function formatPropertyValue2(val) {
+  if (val.includes('"') || val.includes("\n")) {
+    return JSON.stringify(val);
+  }
+  return val;
+}
+function annotationLines2(item) {
+  const lines = [];
+  if (item.status !== void 0) {
+    lines.push(`status:: ${item.status}`);
+  }
+  if (item.resolution !== void 0) {
+    lines.push(`resolution:: ${formatPropertyValue2(item.resolution)}`);
+  }
+  if (item.resolved_slug !== void 0) {
+    lines.push(`resolved_slug:: ${item.resolved_slug}`);
+  }
+  if (item.applied_at !== void 0) {
+    lines.push(`applied_at:: ${formatPropertyValue2(item.applied_at)}`);
+  }
+  if (item.batch !== void 0) {
+    lines.push(`batch:: ${formatPropertyValue2(item.batch)}`);
+  }
+  return lines;
+}
+function formatChangeItem2(item) {
+  const lines = [];
+  lines.push(`## NN Change: ${item.id}`);
+  lines.push(`op:: ${item.op}`);
+  lines.push(`target:: ${item.target}`);
+  if (item.from !== void 0) {
+    lines.push(`from:: ${formatPropertyValue2(item.from)}`);
+  }
+  if (item.to !== void 0) {
+    lines.push(`to:: ${formatPropertyValue2(item.to)}`);
+  }
+  if (item.base_hash !== void 0) {
+    lines.push(`base_hash:: ${item.base_hash}`);
+  }
+  if (item.concept !== void 0) {
+    lines.push(`concept:: ${item.concept}`);
+  }
+  if (item.name !== void 0) {
+    lines.push(`name:: ${formatPropertyValue2(item.name)}`);
+  }
+  if (item.slug !== void 0) {
+    lines.push(`slug:: ${item.slug}`);
+  }
+  if (item.blueprint_name !== void 0) {
+    lines.push(`blueprint_name:: ${formatPropertyValue2(item.blueprint_name)}`);
+  }
+  if (item.blueprint_url !== void 0) {
+    lines.push(`blueprint_url:: ${formatPropertyValue2(item.blueprint_url)}`);
+  }
+  if (item.knowledge_version !== void 0) {
+    lines.push(`knowledge_version:: ${formatPropertyValue2(item.knowledge_version)}`);
+  }
+  if (item.fields !== void 0) {
+    lines.push(`fields:: ${JSON.stringify(item.fields)}`);
+  }
+  if (item.author !== void 0) {
+    lines.push(`author:: ${item.author}`);
+  }
+  if (item.notes !== void 0) {
+    lines.push(`notes:: ${formatPropertyValue2(item.notes)}`);
+  }
+  if (item.evidence !== void 0) {
+    lines.push(`evidence:: ${formatPropertyValue2(item.evidence)}`);
+  }
+  lines.push(...annotationLines2(item));
+  return lines.join("\n");
+}
+function rewriteFrontmatter2(yamlText, fm, eol) {
+  const lines = yamlText.split(/\r?\n/);
+  const blockEnd = (start) => {
+    let end = start + 1;
+    while (end < lines.length && /^[ \t]+\S/.test(lines[end]))
+      end++;
+    return end;
+  };
+  const findKey = (key) => lines.findIndex((l) => new RegExp(`^${key}[ \\t]*:`).test(l));
+  const upsert = (key, valueLines) => {
+    const idx = findKey(key);
+    if (valueLines === null) {
+      if (idx >= 0)
+        lines.splice(idx, blockEnd(idx) - idx);
+      return;
+    }
+    if (idx >= 0) {
+      lines.splice(idx, blockEnd(idx) - idx, ...valueLines);
+    } else {
+      lines.push(...valueLines);
+    }
+  };
+  upsert("proposal_sha", fm.proposal_sha !== void 0 && fm.proposal_sha !== "" ? [`proposal_sha: ${fm.proposal_sha}`] : null);
+  upsert("status", [`status: ${fm.status}`]);
+  upsert("resolution", fm.resolution !== void 0 ? [`resolution: ${JSON.stringify(fm.resolution)}`] : null);
+  upsert("applied_at", fm.applied_at !== void 0 ? [`applied_at: ${fm.applied_at}`] : null);
+  upsert("models", fm.models !== void 0 ? (0, import_yaml16.stringify)({ models: fm.models }).trim().split(/\r?\n/) : null);
+  return lines.join(eol);
+}
+function rewriteBodyAnnotations2(body, changes, eol) {
+  const lines = body.split(/\r?\n/);
+  const byId = new Map(changes.map((c) => [c.id, c]));
+  const heads = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (CHANGE_HEADING_RE2.test(lines[i].trim()))
+      heads.push(i);
+  }
+  if (heads.length === 0)
+    return body;
+  const out = [];
+  for (let i = 0; i < heads[0]; i++)
+    out.push(lines[i]);
+  for (let h = 0; h < heads.length; h++) {
+    const start = heads[h];
+    const end = h + 1 < heads.length ? heads[h + 1] : lines.length;
+    const id = CHANGE_HEADING_RE2.exec(lines[start].trim())[1].trim();
+    const blockLines = [];
+    for (let i = start; i < end; i++) {
+      const t = lines[i].replace(/\r$/, "").trim();
+      if (i > start && ANNOTATION_RE2.test(t))
+        continue;
+      blockLines.push(lines[i]);
+    }
+    let trailingBlanks = 0;
+    while (blockLines.length > 0 && blockLines[blockLines.length - 1].replace(/\r$/, "").trim() === "") {
+      blockLines.pop();
+      trailingBlanks++;
+    }
+    const item = byId.get(id);
+    if (item)
+      blockLines.push(...annotationLines2(item));
+    out.push(...blockLines);
+    for (let b = 0; b < trailingBlanks; b++)
+      out.push("");
+  }
+  return out.join(eol);
+}
+function serializePreservingRaw2(doc) {
+  const raw = doc.rawContent;
+  const m = /^---\r?\n([\s\S]*?)\r?\n---(\r?\n?)([\s\S]*)$/.exec(raw);
+  if (!m)
+    return serializeStructural2(doc);
+  const eol = detectEol2(raw);
+  const yamlText = m[1];
+  const afterFmEol = m[2];
+  const body = m[3];
+  const newYaml = rewriteFrontmatter2(yamlText, doc.frontmatter, eol);
+  const newBody = rewriteBodyAnnotations2(body, doc.changes, eol);
+  return `---${eol}${newYaml}${eol}---${afterFmEol}${newBody}`;
+}
+function serializeStructural2(doc) {
+  const frontmatterClean = {};
+  for (const [k, v] of Object.entries(doc.frontmatter)) {
+    if (v !== void 0) {
+      frontmatterClean[k] = v;
+    }
+  }
+  const yamlPart = (0, import_yaml16.stringify)(frontmatterClean).trim();
+  const sections = [
+    `---`,
+    yamlPart,
+    `---`,
+    ``,
+    `# NN index`,
+    ``,
+    `* [[Change]]`,
+    ``,
+    `# NN Change`,
+    ``
+  ];
+  const changeBlocks = doc.changes.map(formatChangeItem2);
+  sections.push(changeBlocks.join("\n\n"));
+  sections.push("");
+  return sections.join("\n");
+}
+function serializeChangeset2(doc) {
+  if (doc.rawContent !== void 0) {
+    return serializePreservingRaw2(doc);
+  }
+  return serializeStructural2(doc);
+}
+var import_yaml16, ANNOTATION_RE2, CHANGE_HEADING_RE2;
+var init_serializer2 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/serializer.js"() {
+    "use strict";
+    import_yaml16 = __toESM(require_dist(), 1);
+    ANNOTATION_RE2 = /^(status|resolution|resolved_slug|applied_at|batch)::/;
+    CHANGE_HEADING_RE2 = /^##\s+NN\s+Change:\s*(.+)$/i;
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/lock.js
+async function acquireLock(rootDir, changesetName, timeoutMs = 6e4) {
+  const lockDir = (0, import_node_path8.join)(rootDir, "changes");
+  await (0, import_promises.mkdir)(lockDir, { recursive: true });
+  const lockPath = (0, import_node_path8.join)(lockDir, ".lock");
+  const payload = {
+    pid: process.pid,
+    timestamp: Date.now(),
+    changeset: changesetName
+  };
+  const payloadStr = JSON.stringify(payload);
+  const tryCreate = async () => {
+    try {
+      await (0, import_promises.writeFile)(lockPath, payloadStr, { flag: "wx" });
+      return true;
+    } catch (err2) {
+      if (err2?.code === "EEXIST") {
+        return false;
+      }
+      throw err2;
+    }
+  };
+  if (await tryCreate()) {
+    return {
+      lockPath,
+      payload,
+      release: async () => {
+        try {
+          await (0, import_promises.unlink)(lockPath);
+        } catch {
+        }
+      }
+    };
+  }
+  let existing = null;
+  let corrupt = false;
+  try {
+    const raw = await (0, import_promises.readFile)(lockPath, "utf8");
+    existing = JSON.parse(raw);
+  } catch (readErr) {
+    if (readErr?.code === "ENOENT") {
+      if (await tryCreate()) {
+        return {
+          lockPath,
+          payload,
+          release: async () => {
+            await (0, import_promises.unlink)(lockPath).catch(() => void 0);
+          }
+        };
+      }
+    } else {
+      corrupt = true;
+    }
+  }
+  const age = existing ? Date.now() - existing.timestamp : 0;
+  if (corrupt || age > timeoutMs) {
+    console.warn(corrupt ? `[ChangesetLock] Breaking corrupt lock at ${lockPath} (unreadable payload)` : `[ChangesetLock] Breaking stale lock at ${lockPath} held by pid ${existing.pid} for changeset ${existing.changeset} (age: ${age}ms > ${timeoutMs}ms)`);
+    try {
+      await (0, import_promises.unlink)(lockPath);
+    } catch {
+    }
+    if (await tryCreate()) {
+      return {
+        lockPath,
+        payload,
+        release: async () => {
+          await (0, import_promises.unlink)(lockPath).catch(() => void 0);
+        }
+      };
+    }
+  }
+  const err = new Error(`CONCURRENT_APPLY_ACTIVE: Changeset apply lock is currently held at ${lockPath}`);
+  err.code = "CONCURRENT_APPLY_ACTIVE";
+  throw err;
+}
+var import_promises, import_node_path8;
+var init_lock = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/lock.js"() {
+    "use strict";
+    import_promises = require("node:fs/promises");
+    import_node_path8 = require("node:path");
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/slugs.js
+function getClaimedSlugsForModel(modelSlug, loadedModels) {
+  const claimed = /* @__PURE__ */ new Set();
+  const model = loadedModels.get(modelSlug) || Array.from(loadedModels.values()).find((m) => m.frontmatter.knowledge_slug?.toLowerCase() === modelSlug.toLowerCase());
+  if (model?.elements) {
+    for (const [, elements] of model.elements.entries()) {
+      for (const el of elements) {
+        if (el.slug) {
+          claimed.add(el.slug.toLowerCase());
+        } else if (el.name) {
+          claimed.add(slugify2(el.name).toLowerCase());
+        }
+      }
+    }
+  }
+  return claimed;
+}
+function rewriteReferencesInString(text, candidate, resolved, modelSlug) {
+  if (!text)
+    return text;
+  const escapedCand = escapeRegex2(candidate);
+  const wikilinkRe = new RegExp(`\\[\\[${escapedCand}(\\|[^\\]]+)?\\]\\]`, "g");
+  let rewritten = text.replace(wikilinkRe, (_match, alias) => `[[${resolved}${alias || ""}]]`);
+  if (modelSlug) {
+    const crossModelRe = new RegExp(`\\b${escapeRegex2(modelSlug)}@${escapedCand}\\b`, "g");
+    rewritten = rewritten.replace(crossModelRe, `${modelSlug}@${resolved}`);
+  }
+  if (rewritten === candidate) {
+    return resolved;
+  }
+  return rewritten;
+}
+function resolveBatchSlugs(changes, loadedModels) {
+  const updatedChanges = changes.map((c) => ({ ...c }));
+  const assignedSlugs = /* @__PURE__ */ new Map();
+  const conflictedChanges = /* @__PURE__ */ new Map();
+  const claimedByModel = /* @__PURE__ */ new Map();
+  const getModelSet = (modelSlug) => {
+    let set = claimedByModel.get(modelSlug.toLowerCase());
+    if (!set) {
+      set = getClaimedSlugsForModel(modelSlug, loadedModels);
+      claimedByModel.set(modelSlug.toLowerCase(), set);
+    }
+    return set;
+  };
+  for (let i = 0; i < updatedChanges.length; i++) {
+    const change = updatedChanges[i];
+    if (change.op !== "add_element") {
+      continue;
+    }
+    const modelSlug = extractModelSlug2(change.target);
+    const modelClaimed = getModelSet(modelSlug);
+    const explicitSlug = typeof change.slug === "string" && change.slug.trim() ? change.slug.trim() : void 0;
+    const rawCandidate = explicitSlug ?? (change.name ? slugify2(change.name) : "");
+    if (!rawCandidate || !rawCandidate.trim()) {
+      const reason = "EMPTY_SLUG: Element name produces an empty slug; explicit slug:: required";
+      conflictedChanges.set(change.id, reason);
+      change.status = "conflict";
+      change.resolution = reason;
+      continue;
+    }
+    const candidate = rawCandidate.trim().toLowerCase();
+    let resolved = candidate;
+    if (modelClaimed.has(resolved)) {
+      let counter = 1;
+      while (modelClaimed.has(`${candidate}-${counter}`)) {
+        counter++;
+      }
+      resolved = `${candidate}-${counter}`;
+    }
+    modelClaimed.add(resolved);
+    change.resolved_slug = resolved;
+    assignedSlugs.set(candidate, resolved);
+    if (resolved !== candidate) {
+      for (let j = i + 1; j < updatedChanges.length; j++) {
+        const next = updatedChanges[j];
+        const nextModelSlug = extractModelSlug2(next.target);
+        if (nextModelSlug.toLowerCase() === modelSlug.toLowerCase()) {
+          const targetPrefixWithAmp = `${modelSlug}@${candidate}&`;
+          const targetExact = `${modelSlug}@${candidate}`;
+          if (next.target.startsWith(targetPrefixWithAmp)) {
+            next.target = `${modelSlug}@${resolved}&` + next.target.slice(targetPrefixWithAmp.length);
+          } else if (next.target === targetExact) {
+            next.target = `${modelSlug}@${resolved}`;
+          } else if (next.target.startsWith(`${candidate}&`)) {
+            next.target = `${resolved}&` + next.target.slice(`${candidate}&`.length);
+          } else if (next.target === candidate) {
+            next.target = resolved;
+          }
+        }
+        if (typeof next.to === "string") {
+          next.to = rewriteReferencesInString(next.to, candidate, resolved, modelSlug);
+        }
+        if (next.fields && typeof next.fields === "object") {
+          const updatedFields = {};
+          for (const [k, v] of Object.entries(next.fields)) {
+            if (typeof v === "string") {
+              updatedFields[k] = rewriteReferencesInString(v, candidate, resolved, modelSlug);
+            } else {
+              updatedFields[k] = v;
+            }
+          }
+          next.fields = updatedFields;
+        }
+      }
+    }
+  }
+  return {
+    changes: updatedChanges,
+    assignedSlugs,
+    conflictedChanges
+  };
+}
+var init_slugs = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/slugs.js"() {
+    "use strict";
+    init_slug();
+    init_utils();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/impact.js
+function computeMatrixCascade(model, elementSlug, elementName) {
+  const cascaded = [];
+  const slugLower = elementSlug.toLowerCase();
+  const nameLower = elementName.toLowerCase();
+  if (!model.matrices)
+    return cascaded;
+  for (const matrix of model.matrices) {
+    if (!matrix.cells)
+      continue;
+    for (const cell of matrix.cells) {
+      const rowLower = cell.row.toLowerCase();
+      const colLower = cell.col.toLowerCase();
+      if (rowLower === slugLower || rowLower === nameLower || colLower === slugLower || colLower === nameLower) {
+        cascaded.push({
+          matrixName: matrix.name,
+          row: cell.row,
+          col: cell.col
+        });
+      }
+    }
+  }
+  return cascaded;
+}
+function scanIncomingReferences(workspaceModels, targetModelSlug, targetElementSlug, targetElementName, batchChanges) {
+  const hits = [];
+  const tModelLower = targetModelSlug.toLowerCase();
+  const tSlugLower = targetElementSlug.toLowerCase();
+  const tNameLower = targetElementName.toLowerCase();
+  const companionRemovals = /* @__PURE__ */ new Set();
+  const companionFieldUpdates = /* @__PURE__ */ new Map();
+  for (const change of batchChanges) {
+    if (change.op === "remove_element") {
+      const mSlug = extractModelSlug2(change.target).toLowerCase();
+      const atIdx = change.target.indexOf("@");
+      const targetRemainder = atIdx !== -1 ? change.target.slice(atIdx + 1).toLowerCase() : "";
+      const elIdent = (change.slug || change.name || targetRemainder).toLowerCase();
+      companionRemovals.add(`${mSlug}@${elIdent}`);
+    } else if (change.op === "update_field") {
+      const mSlug = extractModelSlug2(change.target).toLowerCase();
+      const atIdx = change.target.indexOf("@");
+      const targetRemainder = atIdx !== -1 ? change.target.slice(atIdx + 1) : "";
+      const ampIdx = targetRemainder.indexOf("&");
+      if (ampIdx !== -1) {
+        const elIdent = targetRemainder.slice(0, ampIdx).toLowerCase();
+        const fieldIdent = targetRemainder.slice(ampIdx + 1);
+        companionFieldUpdates.set(`${mSlug}@${elIdent}&${fieldIdent}`, String(change.to ?? ""));
+      }
+    }
+  }
+  const crossModelTarget = `${tModelLower}@${tSlugLower}`;
+  const crossModelTargetName = `${tModelLower}@${tNameLower}`;
+  for (const [mKey, model] of workspaceModels.entries()) {
+    const currentModelSlug = (model.frontmatter.knowledge_slug || mKey).toLowerCase();
+    if (!model.elements)
+      continue;
+    for (const [, elements] of model.elements.entries()) {
+      for (const el of elements) {
+        const elIdent = (el.slug || slugify2(el.name) || el.name).toLowerCase();
+        const elKey = `${currentModelSlug}@${elIdent}`;
+        if (companionRemovals.has(elKey) || companionRemovals.has(`${currentModelSlug}@${el.name.toLowerCase()}`)) {
+          continue;
+        }
+        const checkContent = (fieldName, valStr) => {
+          const fieldKey = `${currentModelSlug}@${elIdent}&${fieldName}`;
+          if (companionFieldUpdates.has(fieldKey)) {
+            const newVal = companionFieldUpdates.get(fieldKey);
+            const stillMatches = newVal.toLowerCase().includes(crossModelTarget) || newVal.toLowerCase().includes(`[[${tSlugLower}]]`) || currentModelSlug === tModelLower && newVal.toLowerCase() === tSlugLower;
+            if (!stillMatches) {
+              return null;
+            }
+          }
+          const valLower = valStr.toLowerCase();
+          if (valLower.includes(crossModelTarget) || valLower.includes(crossModelTargetName)) {
+            return {
+              referencingModelSlug: currentModelSlug,
+              referencingElementIdent: elIdent,
+              field: fieldName,
+              referenceType: "cross-model",
+              rawReference: valStr
+            };
+          }
+          const wikilinkRe = /\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g;
+          let match;
+          while ((match = wikilinkRe.exec(valStr)) !== null) {
+            const linkTarget = match[1].trim().toLowerCase();
+            if (linkTarget === tSlugLower || linkTarget === tNameLower || linkTarget === crossModelTarget || linkTarget === crossModelTargetName) {
+              return {
+                referencingModelSlug: currentModelSlug,
+                referencingElementIdent: elIdent,
+                field: fieldName,
+                referenceType: "wikilink",
+                rawReference: match[0]
+              };
+            }
+          }
+          if (currentModelSlug === tModelLower) {
+            if (valLower === tSlugLower || valLower === tNameLower) {
+              return {
+                referencingModelSlug: currentModelSlug,
+                referencingElementIdent: elIdent,
+                field: fieldName,
+                referenceType: "field",
+                rawReference: valStr
+              };
+            }
+          }
+          return null;
+        };
+        if (el.description) {
+          const hit = checkContent("description", el.description);
+          if (hit)
+            hits.push(hit);
+        }
+        if (el.fields) {
+          for (const [fName, fVal] of Object.entries(el.fields)) {
+            if (typeof fVal === "string") {
+              const hit = checkContent(fName, fVal);
+              if (hit)
+                hits.push(hit);
+            } else if (Array.isArray(fVal)) {
+              for (const item of fVal) {
+                if (typeof item === "string") {
+                  const hit = checkContent(fName, item);
+                  if (hit) {
+                    hits.push(hit);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return hits;
+}
+function evaluateBatchDeleteImpact(changes, loadedModels, workspaceModels) {
+  const matrixCascades = /* @__PURE__ */ new Map();
+  const referenceConflicts = /* @__PURE__ */ new Map();
+  const seenConceptFields = /* @__PURE__ */ new Map();
+  const seenMatrices = /* @__PURE__ */ new Map();
+  for (const change of changes) {
+    if (change.op === "update_concept_field") {
+      const atIdx2 = change.target.indexOf("@");
+      const mSlug = extractModelSlug2(change.target).toLowerCase();
+      const remainder = atIdx2 !== -1 ? change.target.slice(atIdx2 + 1) : "";
+      const ampIdx = remainder.indexOf("&");
+      let conceptIdent = ampIdx !== -1 ? remainder.slice(0, ampIdx).trim() : remainder.trim();
+      if (conceptIdent.toLowerCase().startsWith("concept:")) {
+        conceptIdent = conceptIdent.slice("concept:".length).trim();
+      }
+      const fieldIdent = ampIdx !== -1 ? remainder.slice(ampIdx + 1).trim() : "";
+      const key = `${mSlug}@${conceptIdent.toLowerCase()}&${fieldIdent.toLowerCase()}`;
+      if (seenConceptFields.has(key)) {
+        referenceConflicts.set(change.id, `CONFLICT: Multiple changes in the same batch target concept field "${key}" (conflicts with change "${seenConceptFields.get(key)}")`);
+      } else {
+        seenConceptFields.set(key, change.id);
+      }
+    } else if (change.op === "remove_matrix") {
+      const atIdx2 = change.target.indexOf("@");
+      const mSlug = extractModelSlug2(change.target).toLowerCase();
+      let remainder = atIdx2 !== -1 ? change.target.slice(atIdx2 + 1).trim() : "";
+      if (remainder.toLowerCase().startsWith("matrix:")) {
+        remainder = remainder.slice("matrix:".length).trim();
+      }
+      const key = `${mSlug}@${remainder.toLowerCase()}`;
+      if (seenMatrices.has(key)) {
+        referenceConflicts.set(change.id, `CONFLICT: Multiple changes in the same batch target matrix "${key}" (conflicts with change "${seenMatrices.get(key)}")`);
+      } else {
+        seenMatrices.set(key, change.id);
+      }
+    }
+    if (change.op !== "remove_element")
+      continue;
+    const targetModelSlug = extractModelSlug2(change.target);
+    const model = loadedModels.get(targetModelSlug) || Array.from(loadedModels.values()).find((m) => m.frontmatter.knowledge_slug?.toLowerCase() === targetModelSlug.toLowerCase());
+    let elementIdent = "";
+    const atIdx = change.target.indexOf("@");
+    if (atIdx !== -1) {
+      const rem = change.target.slice(atIdx + 1).trim();
+      const ampIdx = rem.indexOf("&");
+      elementIdent = ampIdx !== -1 ? rem.slice(0, ampIdx) : rem;
+    }
+    if (change.slug)
+      elementIdent = change.slug;
+    else if (change.name)
+      elementIdent = change.name;
+    let targetSlug = elementIdent;
+    let targetName = elementIdent;
+    if (model?.elements) {
+      for (const [, elements] of model.elements.entries()) {
+        const found = elements.find((e) => e.name.toLowerCase() === elementIdent.toLowerCase() || e.slug && e.slug.toLowerCase() === elementIdent.toLowerCase() || slugify2(e.name).toLowerCase() === elementIdent.toLowerCase());
+        if (found) {
+          targetSlug = found.slug || slugify2(found.name) || found.name;
+          targetName = found.name;
+          break;
+        }
+      }
+    }
+    if (model) {
+      const cascades = computeMatrixCascade(model, targetSlug, targetName);
+      matrixCascades.set(change.id, cascades);
+    }
+    const hits = scanIncomingReferences(workspaceModels, targetModelSlug, targetSlug, targetName, changes);
+    if (hits.length > 0) {
+      const details = hits.map((h) => `${h.referencingModelSlug}@${h.referencingElementIdent}&${h.field}`).join(", ");
+      referenceConflicts.set(change.id, `REFERENCED_BY: ${details}`);
+    }
+  }
+  return {
+    matrixCascades,
+    referenceConflicts
+  };
+}
+var init_impact = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/impact.js"() {
+    "use strict";
+    init_slug();
+    init_utils();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/history.js
+function matchesElement2(targetStr, changeSlug, changeName, resolvedSlug, targetElementSlug) {
+  const tLower = targetElementSlug.toLowerCase();
+  if (resolvedSlug && resolvedSlug.toLowerCase() === tLower)
+    return true;
+  if (changeSlug && changeSlug.toLowerCase() === tLower)
+    return true;
+  if (changeName) {
+    if (changeName.toLowerCase() === tLower)
+      return true;
+    if (slugify2(changeName).toLowerCase() === tLower)
+      return true;
+  }
+  const atIdx = targetStr.indexOf("@");
+  const remainder = atIdx !== -1 ? targetStr.slice(atIdx + 1).trim() : targetStr.trim();
+  const ampIdx = remainder.indexOf("&");
+  const elIdent = ampIdx !== -1 ? remainder.slice(0, ampIdx) : remainder;
+  if (elIdent.toLowerCase() === tLower)
+    return true;
+  return false;
+}
+async function checkStaleTarget2(changesDir, modelSlug, elementSlug, baseVersion, maxScan = 50) {
+  let entries;
+  try {
+    entries = await (0, import_promises2.readdir)(changesDir);
+  } catch {
+    return { stale: false };
+  }
+  const changesetFiles = entries.filter((file) => file.endsWith(".md") && !file.startsWith("."));
+  changesetFiles.sort((a, b) => b.localeCompare(a));
+  const boundedFiles = changesetFiles.slice(0, maxScan);
+  for (const filename of boundedFiles) {
+    const fullPath = (0, import_node_path9.join)(changesDir, filename);
+    let content;
+    try {
+      content = await (0, import_promises2.readFile)(fullPath, "utf-8");
+    } catch {
+      continue;
+    }
+    let csDoc;
+    try {
+      csDoc = parseChangeset2(content);
+    } catch {
+      continue;
+    }
+    const status = csDoc.frontmatter.status;
+    if (status !== "applied" && status !== "partially_applied") {
+      continue;
+    }
+    for (let i = csDoc.changes.length - 1; i >= 0; i--) {
+      const change = csDoc.changes[i];
+      const changeModelSlug = extractModelSlug2(change.target);
+      if (changeModelSlug.toLowerCase() !== modelSlug.toLowerCase()) {
+        continue;
+      }
+      const matches = matchesElement2(change.target, change.slug, change.name, change.resolved_slug, elementSlug);
+      if (!matches) {
+        continue;
+      }
+      if (change.op === "add_element") {
+        return { stale: false };
+      }
+      if (change.op === "remove_element") {
+        const models = csDoc.frontmatter.models;
+        let appliedBase;
+        let appliedResult;
+        if (models) {
+          for (const [mKey, trans] of Object.entries(models)) {
+            if (mKey.toLowerCase() === modelSlug.toLowerCase()) {
+              appliedBase = trans.base_version;
+              appliedResult = trans.result_version;
+              break;
+            }
+          }
+        }
+        if (appliedBase && baseVersion) {
+          if (compareVersions2(appliedBase, baseVersion) >= 0 || appliedResult && compareVersions2(appliedResult, baseVersion) > 0) {
+            return {
+              stale: true,
+              code: "STALE_TARGET_DELETED",
+              message: `Target element "${elementSlug}" in model "${modelSlug}" was deleted after base_version ${baseVersion}`
+            };
+          }
+        } else {
+          return {
+            stale: true,
+            code: "STALE_TARGET_DELETED",
+            message: `Target element "${elementSlug}" in model "${modelSlug}" was deleted`
+          };
+        }
+      }
+    }
+  }
+  return { stale: false };
+}
+var import_promises2, import_node_path9;
+var init_history = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/history.js"() {
+    "use strict";
+    import_promises2 = require("node:fs/promises");
+    import_node_path9 = require("node:path");
+    init_parser3();
+    init_versionStatus();
+    init_slug();
+    init_utils();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/conflicts.js
+async function partitionChangeset(changes, loadedModels, changesDir, modelBaseVersions, referenceConflicts, blockedChanges) {
+  const cleanSubset = [];
+  const conflictedSubset = [];
+  const conflictDiagnostics = /* @__PURE__ */ new Map();
+  for (const change of changes) {
+    if (change.op === "comment") {
+      cleanSubset.push(change);
+      continue;
+    }
+    const blocked = blockedChanges?.get(change.id);
+    if (blocked) {
+      conflictDiagnostics.set(change.id, blocked);
+      change.status = "conflict";
+      change.resolution = blocked.message;
+      conflictedSubset.push(change);
+      continue;
+    }
+    if (change.op === "add_model") {
+      cleanSubset.push(change);
+      continue;
+    }
+    if (referenceConflicts?.has(change.id)) {
+      const msg = referenceConflicts.get(change.id);
+      conflictDiagnostics.set(change.id, { code: "REFERENCED_BY", message: msg });
+      change.status = "conflict";
+      change.resolution = msg;
+      conflictedSubset.push(change);
+      continue;
+    }
+    if (change.status === "conflict" && change.resolution?.includes("EMPTY_SLUG")) {
+      conflictDiagnostics.set(change.id, { code: "EMPTY_SLUG", message: change.resolution });
+      conflictedSubset.push(change);
+      continue;
+    }
+    const targetModelSlug = extractModelSlug2(change.target);
+    if (!targetModelSlug) {
+      cleanSubset.push(change);
+      continue;
+    }
+    const model = loadedModels.get(targetModelSlug) || Array.from(loadedModels.values()).find((m) => m.frontmatter.knowledge_slug?.toLowerCase() === targetModelSlug.toLowerCase());
+    if (!model) {
+      const msg = `PRECONDITION_FAILED: Model "${targetModelSlug}" not found in workspace`;
+      conflictDiagnostics.set(change.id, { code: "PRECONDITION_FAILED", message: msg });
+      change.status = "conflict";
+      change.resolution = msg;
+      conflictedSubset.push(change);
+      continue;
+    }
+    const atIdx = change.target.indexOf("@");
+    const remainder = atIdx !== -1 ? change.target.slice(atIdx + 1) : "";
+    const ampIdx = remainder.indexOf("&");
+    const rawElementIdent = ampIdx !== -1 ? remainder.slice(0, ampIdx) : remainder;
+    const elementIdent = (rawElementIdent || change.slug || change.name || "").trim();
+    if (changesDir && (change.op === "update_field" || change.op === "remove_element" || change.op === "rename_element")) {
+      const baseVer = modelBaseVersions?.get(targetModelSlug) || model.frontmatter.knowledge_version || "";
+      if (baseVer && elementIdent) {
+        const staleRes = await checkStaleTarget2(changesDir, targetModelSlug, elementIdent, baseVer);
+        if (staleRes.stale) {
+          const msg = staleRes.message || `STALE_TARGET_DELETED: Target element was deleted after base_version ${baseVer}`;
+          conflictDiagnostics.set(change.id, { code: "STALE_TARGET_DELETED", message: msg });
+          change.status = "conflict";
+          change.resolution = msg;
+          conflictedSubset.push(change);
+          continue;
+        }
+      }
+    }
+    if (change.op === "update_field" || change.op === "remove_element" || change.op === "rename_element") {
+      let foundElement = null;
+      let foundConcept = "";
+      let foundIsLive = false;
+      if (model.elements) {
+        const candidates = [];
+        if (change.concept && model.elements.has(change.concept)) {
+          const list = model.elements.get(change.concept);
+          for (const el of list) {
+            if (el.name.toLowerCase() === elementIdent.toLowerCase() || el.slug && el.slug.toLowerCase() === elementIdent.toLowerCase() || slugify2(el.name).toLowerCase() === elementIdent.toLowerCase()) {
+              candidates.push({ concept: change.concept, element: el });
+            }
+          }
+        }
+        if (candidates.length === 0) {
+          for (const [conceptName, elements] of model.elements.entries()) {
+            if (change.concept && conceptName === change.concept)
+              continue;
+            for (const el of elements) {
+              if (el.name.toLowerCase() === elementIdent.toLowerCase() || el.slug && el.slug.toLowerCase() === elementIdent.toLowerCase() || slugify2(el.name).toLowerCase() === elementIdent.toLowerCase()) {
+                candidates.push({ concept: conceptName, element: el });
+              }
+            }
+          }
+        }
+        if (candidates.length === 1) {
+          foundElement = candidates[0].element;
+          foundConcept = candidates[0].concept;
+          foundIsLive = true;
+        } else if (candidates.length > 1) {
+          if (change.base_hash) {
+            const normalizedBaseHash = change.base_hash.trim().toLowerCase();
+            const matchByHash = candidates.find((c) => hashParsedElement2(c.concept, c.element) === normalizedBaseHash);
+            if (matchByHash) {
+              foundElement = matchByHash.element;
+              foundConcept = matchByHash.concept;
+              foundIsLive = true;
+            }
+          }
+          if (!foundElement) {
+            foundElement = candidates[0].element;
+            foundConcept = candidates[0].concept;
+            foundIsLive = true;
+          }
+        }
+      }
+      if (!foundElement) {
+        const earlierAdd = changes.slice(0, changes.indexOf(change)).find((c) => c.op === "add_element" && extractModelSlug2(c.target).toLowerCase() === targetModelSlug.toLowerCase() && (!change.concept || !c.concept || c.concept.toLowerCase() === change.concept.toLowerCase()) && (c.resolved_slug && c.resolved_slug.toLowerCase() === elementIdent.toLowerCase() || c.slug && c.slug.toLowerCase() === elementIdent.toLowerCase() || c.name && slugify2(c.name).toLowerCase() === elementIdent.toLowerCase()));
+        if (earlierAdd) {
+          foundElement = {
+            name: earlierAdd.name || earlierAdd.slug || "",
+            slug: earlierAdd.resolved_slug || earlierAdd.slug,
+            fields: earlierAdd.fields || {}
+          };
+        }
+      }
+      if (!foundElement) {
+        const msg = `PRECONDITION_FAILED: Target element "${elementIdent}" not found in model "${targetModelSlug}"`;
+        conflictDiagnostics.set(change.id, { code: "PRECONDITION_FAILED", message: msg });
+        change.status = "conflict";
+        change.resolution = msg;
+        conflictedSubset.push(change);
+        continue;
+      }
+      if (change.base_hash && foundIsLive) {
+        const currentHash = hashParsedElement2(foundConcept, foundElement);
+        if (currentHash !== change.base_hash.trim().toLowerCase()) {
+          const msg = `PRECONDITION_FAILED: Target element "${elementIdent}" changed since the change was written (base_hash ${change.base_hash} does not match current ${currentHash})`;
+          conflictDiagnostics.set(change.id, { code: "STALE_BASE_HASH", message: msg });
+          change.status = "conflict";
+          change.resolution = msg;
+          conflictedSubset.push(change);
+          continue;
+        }
+      }
+      if (change.op === "update_field" && change.from !== void 0) {
+        const fieldName = ampIdx !== -1 ? remainder.slice(ampIdx + 1).trim() : "";
+        const currentVal = foundElement.fields?.[fieldName] !== void 0 ? String(foundElement.fields[fieldName]) : fieldName === "description" ? foundElement.description : void 0;
+        if (currentVal !== change.from) {
+          const hint = fieldName.toLowerCase() === "name" ? " Hint: name is the element identity, not a field \u2014 to rename an element use rename_element on the bare unit target, not update_field on &name." : "";
+          const msg = `PRECONDITION_FAILED: Precondition failed: current value "${currentVal ?? ""}" does not match from "${change.from}".${hint}`;
+          conflictDiagnostics.set(change.id, { code: "PRECONDITION_FAILED", message: msg });
+          change.status = "conflict";
+          change.resolution = msg;
+          conflictedSubset.push(change);
+          continue;
+        }
+      }
+    }
+    if (change.op === "update_matrix_cell" && change.from !== void 0) {
+      const parts = remainder.split("&");
+      if (parts.length >= 3 && model.matrices) {
+        const mName = parts[0].trim();
+        const row = parts[1].trim();
+        const col = parts[2].trim();
+        const mat = model.matrices.find((m) => m.name.toLowerCase() === mName.toLowerCase() || slugify2(m.name) === mName.toLowerCase() || slugifyHeading2(m.name) === mName.toLowerCase());
+        const matchesCoord = (actual, requested) => {
+          const a = actual.toLowerCase();
+          const r = requested.toLowerCase();
+          return a === r || slugify2(a) === slugify2(r) || slugifyHeading2(a) === slugifyHeading2(r);
+        };
+        const cell = mat?.cells?.find((c) => matchesCoord(c.row, row) && matchesCoord(c.col, col));
+        const currentVal = cell?.value !== void 0 ? String(cell.value) : void 0;
+        if (currentVal !== change.from) {
+          const msg = `PRECONDITION_FAILED: Precondition failed: current value "${currentVal ?? ""}" does not match from "${change.from}"`;
+          conflictDiagnostics.set(change.id, { code: "PRECONDITION_FAILED", message: msg });
+          change.status = "conflict";
+          change.resolution = msg;
+          conflictedSubset.push(change);
+          continue;
+        }
+      }
+    }
+    if (change.op === "update_concept_field") {
+      let conceptIdent = remainder;
+      let fieldIdent = "";
+      if (ampIdx !== -1) {
+        conceptIdent = remainder.slice(0, ampIdx).trim();
+        fieldIdent = remainder.slice(ampIdx + 1).trim();
+      }
+      if (conceptIdent.toLowerCase().startsWith("concept:")) {
+        conceptIdent = conceptIdent.slice("concept:".length).trim();
+      }
+      const cFields = model.conceptFields?.[conceptIdent] || (Object.keys(model.conceptFields || {}).find((k) => k.toLowerCase() === conceptIdent.toLowerCase()) ? model.conceptFields?.[Object.keys(model.conceptFields || {}).find((k) => k.toLowerCase() === conceptIdent.toLowerCase())] : void 0);
+      const currentRawVal = cFields?.[fieldIdent];
+      const formatCanonical = (val) => {
+        if (val === void 0 || val === null)
+          return "";
+        if (Array.isArray(val))
+          return `[${val.join(", ")}]`;
+        return String(val);
+      };
+      const currentCanonical = formatCanonical(currentRawVal);
+      const expectedFrom = formatCanonical(change.from !== void 0 ? change.from.trim().startsWith("[") ? parsePropertyValue2(change.from) : change.from : void 0);
+      if (change.from !== void 0 && currentCanonical !== expectedFrom && currentCanonical !== change.from.trim()) {
+        const msg = `PRECONDITION_FAILED: Precondition failed: current value "${currentCanonical}" does not match from "${change.from}"`;
+        conflictDiagnostics.set(change.id, { code: "PRECONDITION_FAILED", message: msg });
+        change.status = "conflict";
+        change.resolution = msg;
+        conflictedSubset.push(change);
+        continue;
+      }
+    }
+    if (change.op === "remove_matrix") {
+      let matrixIdent = remainder.trim();
+      if (matrixIdent.toLowerCase().startsWith("matrix:")) {
+        matrixIdent = matrixIdent.slice("matrix:".length).trim();
+      }
+      const mIdentLower = matrixIdent.toLowerCase();
+      const exists = model.matrices && model.matrices.some((m) => m.name.toLowerCase() === mIdentLower || slugify2(m.name).toLowerCase() === mIdentLower || slugifyHeading2(m.name).toLowerCase() === mIdentLower) || model.sectionOrder && model.sectionOrder.some((s) => s.toLowerCase() === `matrices: ${mIdentLower}` || s.toLowerCase() === mIdentLower);
+      if (!exists) {
+        const msg = `PRECONDITION_FAILED: Matrix "${matrixIdent}" not found in model "${targetModelSlug}"`;
+        conflictDiagnostics.set(change.id, { code: "PRECONDITION_FAILED", message: msg });
+        change.status = "conflict";
+        change.resolution = msg;
+        conflictedSubset.push(change);
+        continue;
+      }
+    }
+    cleanSubset.push(change);
+  }
+  return {
+    cleanSubset,
+    conflictedSubset,
+    conflictDiagnostics
+  };
+}
+var init_conflicts = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/conflicts.js"() {
+    "use strict";
+    init_slug();
+    init_sourceRef();
+    init_sections();
+    init_element_hash();
+    init_history();
+    init_utils();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/changeset/index.js
+var init_changeset = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/changeset/index.js"() {
+    "use strict";
+    init_types2();
+    init_utils();
+    init_hasher();
+    init_parser3();
+    init_serializer2();
+    init_lock();
+    init_slugs();
+    init_impact();
+    init_history();
+    init_conflicts();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scaffold/knowledge.js
+function scaffoldBodyFromSchema(schema) {
+  const lines = [];
+  const listConcepts = schema.concepts.filter((c) => c.type !== "text");
+  const exampleFor = (concept) => concept ? `Example ${concept}` : "Example";
+  for (const c of schema.concepts) {
+    lines.push(`# NN ${c.name}`);
+    if (c.type === "text") {
+      if (listConcepts.length === 0) {
+        const ex2 = exampleFor(c.name);
+        lines.push(`## NN ${c.name}: ${ex2}`);
+        lines.push(`slug:: ${slugify2(ex2)}`);
+      }
+      lines.push(`_Describe ${c.name} here._`, "");
+      continue;
+    }
+    const ex = exampleFor(c.name);
+    lines.push(`## NN ${c.name}: ${ex}`);
+    lines.push(`slug:: ${slugify2(ex)}`);
+    for (const f of c.fields ?? []) {
+      if (f.type === "reference" || f.type === "number" || f.type === "boolean" || f.type === "address") {
+        continue;
+      }
+      const hint = f.type === "select" && f.options && f.options.length > 0 ? f.options[0] : `<${f.type}>`;
+      lines.push(`${f.name}:: ${hint}`);
+    }
+    lines.push("");
+  }
+  for (const m of schema.matrices) {
+    const row = exampleFor(m.source);
+    const col = exampleFor(m.target);
+    lines.push(`# NN matrices: ${m.name}`, `| ${m.source ?? "Row"} \\ ${m.target ?? "Col"} | ${col} |`, "| :--- | :---: |", `| ${row} | - |`, "");
+  }
+  return lines.join("\n").trimEnd() + "\n";
+}
+function resolveScaffoldSpec(blueprintFrontmatter) {
+  const parent = blueprintFrontmatter?.parent_spec;
+  if (parent && typeof parent === "object") {
+    const { name, url } = parent;
+    const version = typeof name === "string" ? /_(V_\d+-\d+-\d+)$/i.exec(name.trim())?.[1] : void 0;
+    if (version && typeof url === "string" && url.trim() !== "")
+      return { version, url: url.trim() };
+  }
+  return { version: FALLBACK_SPEC_VERSION, url: FALLBACK_SPEC_URL };
+}
+function inferKnowledgeVersion(explicit, blueprintFrontmatter) {
+  if (explicit)
+    return explicit;
+  const inferred = blueprintFrontmatter?.blueprint_version ?? blueprintFrontmatter?.spec_version;
+  return typeof inferred === "string" && inferred !== "" ? inferred : DEFAULT_KNOWLEDGE_VERSION;
+}
+function scaffoldKnowledgeDocument(input) {
+  const body = input.schema ? scaffoldBodyFromSchema(input.schema) : "";
+  const knowledgeVersion = inferKnowledgeVersion(input.knowledgeVersion, input.blueprintFrontmatter);
+  const title = input.title || input.id;
+  const modelSlug = input.modelSlug || slugify2(input.id);
+  const spec = resolveScaffoldSpec(input.blueprintFrontmatter);
+  const esc = (s) => JSON.stringify(s);
+  const frontmatter = [
+    "---",
+    `spec_version: ${esc(spec.version)}`,
+    `spec_url: ${esc(spec.url)}`,
+    `knowledge_slug: ${esc(modelSlug)}`,
+    "level: 3",
+    "parent_spec:",
+    `  name: ${esc(input.blueprintName)}`,
+    `  url: ${esc(input.blueprintUrl)}`,
+    `knowledge_version: ${esc(knowledgeVersion)}`,
+    `title: ${esc(title)}`,
+    "---"
+  ].join("\n");
+  return frontmatter + "\n\n" + body.trim() + "\n";
+}
+var DEFAULT_KNOWLEDGE_VERSION, FALLBACK_SPEC_VERSION, FALLBACK_SPEC_URL;
+var init_knowledge3 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scaffold/knowledge.js"() {
+    "use strict";
+    init_slug();
+    DEFAULT_KNOWLEDGE_VERSION = "V_0-1-0";
+    FALLBACK_SPEC_VERSION = "V_0-4-0";
+    FALLBACK_SPEC_URL = "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-4-0_NN.md";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scaffold/domain.js
+var init_domain = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scaffold/domain.js"() {
+    "use strict";
+    init_slug();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scaffold/index.js
+var init_scaffold = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scaffold/index.js"() {
+    "use strict";
+    init_knowledge3();
+    init_domain();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/imports/types.js
+var init_types3 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/imports/types.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/imports/parser.js
+var init_parser4 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/imports/parser.js"() {
+    "use strict";
+    init_parser2();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/imports/snapshot.js
+var init_snapshot = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/imports/snapshot.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/imports/diff.js
+var init_diff = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/imports/diff.js"() {
+    "use strict";
+    init_snapshot();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/imports/index.js
+var init_imports = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/imports/index.js"() {
+    "use strict";
+    init_types3();
+    init_parser4();
+    init_snapshot();
+    init_diff();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/model-index.js
+function stemOf2(path) {
+  const base = path.slice(path.lastIndexOf("/") + 1);
+  return base.replace(/\.md$/i, "");
+}
+function cleanStemOf2(stem) {
+  let s = stem;
+  while (/_NN$/i.test(s)) {
+    s = s.replace(/_NN$/i, "");
+  }
+  return s;
+}
+function packageStemOf2(path) {
+  const parts = path.split("/");
+  if (parts.length >= 2) {
+    const fileName = parts[parts.length - 1];
+    if (/^spec(_NN)?(\.md)?$/i.test(fileName)) {
+      const parent = parts[parts.length - 2];
+      if (parent && parent !== "specs" && parent !== "bluepriNNts") {
+        return cleanStemOf2(parent);
+      }
+    }
+  }
+  return void 0;
+}
+function buildModelIndex2(relativePaths) {
+  const entries = [];
+  const byStem = /* @__PURE__ */ new Map();
+  const byCleanStem = /* @__PURE__ */ new Map();
+  const byPath = /* @__PURE__ */ new Map();
+  for (const raw of relativePaths) {
+    const path = raw.replace(/\\/g, "/");
+    const stem = stemOf2(path);
+    const cleanStem = cleanStemOf2(stem);
+    const entry = { path, stem, cleanStem };
+    entries.push(entry);
+    byPath.set(path.toLowerCase(), entry);
+    const stemKey = stem.toLowerCase();
+    const stemList = byStem.get(stemKey) ?? [];
+    stemList.push(entry);
+    byStem.set(stemKey, stemList);
+    const cleanKey = cleanStem.toLowerCase();
+    const cleanList = byCleanStem.get(cleanKey) ?? [];
+    cleanList.push(entry);
+    byCleanStem.set(cleanKey, cleanList);
+    const pkg = packageStemOf2(path);
+    if (pkg) {
+      const pkgKey = pkg.toLowerCase();
+      const pkgStemList = byStem.get(pkgKey) ?? [];
+      if (!pkgStemList.some((e) => e.path === entry.path)) {
+        pkgStemList.push(entry);
+        byStem.set(pkgKey, pkgStemList);
+      }
+      const pkgCleanList = byCleanStem.get(pkgKey) ?? [];
+      if (!pkgCleanList.some((e) => e.path === entry.path)) {
+        pkgCleanList.push(entry);
+        byCleanStem.set(pkgKey, pkgCleanList);
+      }
+    }
+  }
+  return { entries, byStem, byCleanStem, byPath };
+}
+function resolveModelId2(index, arg) {
+  const normalized = arg.trim().replace(/\\/g, "/");
+  if (!normalized)
+    return { ok: false, code: "MODEL_NOT_FOUND" };
+  if (normalized.includes("/")) {
+    const lower = normalized.toLowerCase();
+    const direct = index.byPath.get(lower);
+    if (direct)
+      return { ok: true, path: direct.path };
+    const withMd = index.byPath.get(`${lower}.md`);
+    if (withMd)
+      return { ok: true, path: withMd.path };
+    const withNN = index.byPath.get(`${lower}_nn.md`);
+    if (withNN)
+      return { ok: true, path: withNN.path };
+    const matched = index.entries.filter((e) => {
+      const eLower = e.path.toLowerCase();
+      if (eLower === lower)
+        return true;
+      if (eLower.replace(/\.md$/i, "") === lower)
+        return true;
+      if (eLower.replace(/_nn\.md$/i, "") === lower)
+        return true;
+      return false;
+    });
+    if (matched.length === 1)
+      return { ok: true, path: matched[0].path };
+    if (matched.length > 1) {
+      const candidates = [...new Set(matched.map((m) => m.path))].sort();
+      return { ok: false, code: "AMBIGUOUS_MODEL_ID", candidates };
+    }
+    return { ok: false, code: "MODEL_NOT_FOUND" };
+  }
+  const bare = normalized.replace(/\.md$/i, "");
+  const key = bare.toLowerCase();
+  const cleanKey = cleanStemOf2(bare).toLowerCase();
+  const stemMatches = index.byStem.get(key) ?? [];
+  let matches = stemMatches;
+  if (matches.length === 0) {
+    matches = index.byCleanStem.get(cleanKey) ?? [];
+  }
+  const unique = /* @__PURE__ */ new Map();
+  for (const m of matches)
+    unique.set(m.path, m);
+  const candidateList = [...unique.values()];
+  if (candidateList.length === 1) {
+    return { ok: true, path: candidateList[0].path };
+  }
+  if (candidateList.length > 1) {
+    const candidates = candidateList.map((m) => m.path).sort();
+    return { ok: false, code: "AMBIGUOUS_MODEL_ID", candidates };
+  }
+  return { ok: false, code: "MODEL_NOT_FOUND" };
+}
+var init_model_index = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/model-index.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/stem-collision.js
+var init_stem_collision = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/stem-collision.js"() {
+    "use strict";
+    init_model_index();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/chain.js
+var init_chain = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/chain.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/fs-chain.js
+var init_fs_chain = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/fs-chain.js"() {
+    "use strict";
+    init_contract();
+    init_parser2();
+    init_chain();
+    init_root();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/json.js
+var init_json = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/json.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/fs-layers.js
+var init_fs_layers = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/fs-layers.js"() {
+    "use strict";
+    init_parser2();
+    init_json();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/fs-procedures.js
+var init_fs_procedures = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/fs-procedures.js"() {
+    "use strict";
+    init_contract();
+    init_parser2();
+    init_json();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/resolve.js
+var init_resolve = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/resolve.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/procedures.js
+var init_procedures = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/procedures.js"() {
+    "use strict";
+    init_resolve();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/elements.js
+var init_elements = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/elements.js"() {
+    "use strict";
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/fs-elements.js
+var init_fs_elements = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/fs-elements.js"() {
+    "use strict";
+    init_parser2();
+    init_elements();
+    init_fs_chain();
+    init_fs_layers();
+    init_json();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/drift.js
+var init_drift2 = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/drift.js"() {
+    "use strict";
+    init_resolve();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/scope/index.js
+var init_scope = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/scope/index.js"() {
+    "use strict";
+    init_root();
+    init_stem_collision();
+    init_model_index();
+    init_chain();
+    init_fs_chain();
+    init_fs_layers();
+    init_fs_procedures();
+    init_resolve();
+    init_procedures();
+    init_elements();
+    init_fs_elements();
+    init_drift2();
+  }
+});
+
+// ../cogNNitive/iNNfo/packages/nn-core/dist/index.js
+var init_dist = __esm({
+  "../cogNNitive/iNNfo/packages/nn-core/dist/index.js"() {
+    "use strict";
+    init_types();
+    init_layout();
+    init_parser2();
+    init_schema();
+    init_resolver();
+    init_validator();
+    init_sourceRef();
+    init_sourceRef();
+    init_sourceRef();
+    init_assertNever();
+    init_jsonPointer();
+    init_csvTable();
+    init_unitResolve();
+    init_queryUnits();
+    init_querySections();
+    init_identity();
+    init_metamodel();
+    init_recursiveParser();
+    init_fs_types();
+    init_reconcileManifest();
+    init_discoverModels();
+    init_versionStatus();
+    init_report();
+    init_helpers();
+    init_mutate();
+    init_envelope();
+    init_diagnostics();
+    init_baseline();
+    init_matrix();
+    init_merge();
+    init_console();
+    init_lineage();
+    init_fs_snapshot();
+    init_naming();
+    init_writeOnce();
+    init_cognitivize2();
+    init_changeset();
+    init_scaffold();
+    init_imports();
+    init_scope();
+  }
+});
+
+// iNNfo/packages/nn-mcp/src/tools/floor-doc.ts
+var init_floor_doc = __esm({
+  "iNNfo/packages/nn-mcp/src/tools/floor-doc.ts"() {
+    "use strict";
+    init_dist();
+  }
+});
+
+// iNNfo/packages/nn-mcp/src/tools/floor-procedures.ts
+var init_floor_procedures = __esm({
+  "iNNfo/packages/nn-mcp/src/tools/floor-procedures.ts"() {
+    "use strict";
+    init_dist();
+    init_floor_doc();
+  }
+});
+
+// iNNfo/packages/nn-mcp/src/tools/resolve-effective.ts
+var init_resolve_effective = __esm({
+  "iNNfo/packages/nn-mcp/src/tools/resolve-effective.ts"() {
+    "use strict";
+    init_dist();
+    init_floor_doc();
+  }
+});
+
+// iNNfo/packages/nn-mcp/src/tools/scoped-procedures.ts
+var init_scoped_procedures = __esm({
+  "iNNfo/packages/nn-mcp/src/tools/scoped-procedures.ts"() {
+    "use strict";
+    init_dist();
+    init_floor_procedures();
+    init_resolve_effective();
+  }
+});
+
+// iNNfo/packages/nn-mcp/src/tools/path-guard.ts
+function isInsideRoot(rootDir, candidate) {
+  const abs = (0, import_node_path10.resolve)(rootDir, candidate);
+  const rel = (0, import_node_path10.relative)((0, import_node_path10.resolve)(rootDir), abs);
+  return rel !== "" && !rel.startsWith("..") && !(0, import_node_path10.isAbsolute)(rel);
+}
+function isSafeRelativeId(id) {
+  if (!id) return false;
+  const normalized = id.replace(/\\/g, "/");
+  if (normalized.split("/").includes("..")) return false;
+  if (normalized.startsWith("/")) return false;
+  if ((0, import_node_path10.isAbsolute)(id)) return false;
+  if (/^[a-zA-Z]:[/\\]/.test(id)) return false;
+  if (/^[/\\]{2}/.test(id)) return false;
+  return true;
+}
+function isDriveQualified(path) {
+  return /^\/?[a-zA-Z]:[/\\]/.test(path);
+}
+function normalizeDrivePath(p) {
+  return p.replace(/\\/g, "/").replace(/^\/(?=[a-zA-Z]:\/)/, "");
+}
+function isDriveContained(rootDir, candidate) {
+  if (!rootDir) return false;
+  const root = normalizeDrivePath(rootDir).replace(/\/+$/, "");
+  if (!isDriveQualified(root) || root.endsWith(":")) return false;
+  const path = normalizeDrivePath(candidate);
+  return path.length > root.length && path.toLowerCase().startsWith(`${root.toLowerCase()}/`);
+}
+var import_node_path10;
+var init_path_guard = __esm({
+  "iNNfo/packages/nn-mcp/src/tools/path-guard.ts"() {
+    "use strict";
+    import_node_path10 = require("node:path");
+  }
+});
+
+// iNNfo/packages/nn-mcp/src/tools/resolver-node.ts
+function defaultCacheDir() {
+  return process.env.INNFO_CACHE_DIR ?? (0, import_node_path11.join)((0, import_node_os.tmpdir)(), "innfo-specs");
+}
+function isLocalPath(url) {
+  if (!url) return false;
+  if (url.startsWith("http://") || url.startsWith("https://")) return false;
+  if (url.startsWith("file://")) return true;
+  if ((0, import_node_path11.isAbsolute)(url)) return true;
+  if (/^[a-zA-Z]:[/\\]/.test(url)) return true;
+  if (url.startsWith(".") || url.endsWith(".md") || url.includes("/") || url.includes("\\"))
+    return true;
+  return false;
+}
+function toLocalFilePath(url, rootDir) {
+  if (/^[/\\]{2}/.test(url)) return null;
+  let candidate;
+  if (url.startsWith("file://")) {
+    try {
+      candidate = (0, import_node_url.fileURLToPath)(url);
+    } catch {
+      return null;
+    }
+  } else {
+    candidate = url;
+  }
+  if (isDriveQualified(candidate)) {
+    return isDriveContained(rootDir, candidate) ? candidate : null;
+  }
+  if (!rootDir) {
+    return (0, import_node_path11.isAbsolute)(candidate) ? null : candidate;
+  }
+  const resolved = (0, import_node_path11.isAbsolute)(candidate) ? candidate : (0, import_node_path11.join)(rootDir, candidate);
+  return isInsideRoot(rootDir, resolved) ? resolved : null;
+}
+function resolveAuthToken() {
+  const env = process.env.COGNNITIVE_TOKEN;
+  if (env && env.trim()) return env.trim();
+  try {
+    const credPath = process.env.COGNNITIVE_CREDENTIALS ?? (0, import_node_path11.join)((0, import_node_os.homedir)(), ".agents", "credentials.json");
+    const raw = (0, import_node_fs8.readFileSync)(credPath, "utf-8");
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.token === "string" && parsed.token.trim()) return parsed.token.trim();
+  } catch {
+  }
+  return null;
+}
+function redactToken(text, token) {
+  if (!token) return text;
+  return text.split(token).join("***");
+}
+async function download(url, timeout, headers) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const resp = await fetch(url, { signal: controller.signal, headers });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    return await resp.text();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+function sha256(content) {
+  return (0, import_node_crypto3.createHash)("sha256").update(content, "utf-8").digest("hex");
+}
+async function freshnessVerdict(url, localContent, timeout) {
+  try {
+    const remote = await download(url, timeout);
+    return sha256(localContent) === sha256(remote) ? "fresh" : "stale";
+  } catch (err) {
+    console.warn(`[resolver-node] Freshness check failed for ${url}: ${err}`);
+    return "unknown";
+  }
+}
+function canonicalSpecFilename(requestName, content) {
+  const fmVersion = versionFromFrontmatter(content);
+  if (!fmVersion) return requestName;
+  const base = requestName.replace(/\.(md|markdown)$/i, "").replace(/_(NN|FORMAT|F)$/i, "").split(/_V_/i)[0];
+  return `${base}_V_${fmVersion.replace(/\./g, "-")}`;
+}
+async function writeStagedTree(stagingDir, subdir, files) {
+  if (!files) return;
+  for (const [rel, content] of Object.entries(files)) {
+    const dest = (0, import_node_path11.join)(stagingDir, subdir, rel);
+    await (0, import_promises3.mkdir)((0, import_node_path11.join)(dest, ".."), { recursive: true });
+    await (0, import_promises3.writeFile)(dest, content, "utf-8");
+  }
+}
+function uniqueSuffix() {
+  return `${process.pid}-${Date.now()}-${stagingCounter++}`;
+}
+async function hydrateBlueprintPackageAtomically(rootDir, base, version, payload, opts) {
+  const pkg = typeof payload === "string" ? { spec: payload } : payload;
+  const verSegment = `V_${normalizeVersion(version).replace(/\./g, "-")}`;
+  const templatesBase = opts?.baseDir ?? (0, import_node_path11.join)(rootDir, "specs", "bluepriNNts");
+  const targetPkgDir = (0, import_node_path11.join)(templatesBase, base, verSegment);
+  try {
+    const existing = await (0, import_promises3.readdir)(targetPkgDir);
+    if (existing.length > 0) {
+      return targetPkgDir;
+    }
+  } catch (err) {
+    if (err?.code !== "ENOENT") {
+      console.warn(`[resolver-node] Failed to inspect package dir ${targetPkgDir}: ${err}`);
+    }
+  }
+  const baseBlueprintsDir = (0, import_node_path11.join)(templatesBase, base);
+  await (0, import_promises3.mkdir)(baseBlueprintsDir, { recursive: true });
+  const stagingDir = (0, import_node_path11.join)(baseBlueprintsDir, `.staging-${uniqueSuffix()}`);
+  await (0, import_promises3.mkdir)(stagingDir, { recursive: true });
+  const specFileName = SPEC_FILENAME2;
+  const namedFileName = `${base}_${verSegment}_NN.md`;
+  await (0, import_promises3.writeFile)((0, import_node_path11.join)(stagingDir, specFileName), pkg.spec, "utf-8");
+  await (0, import_promises3.writeFile)((0, import_node_path11.join)(stagingDir, namedFileName), pkg.spec, "utf-8");
+  await writeStagedTree(stagingDir, "procedures", pkg.procedures);
+  await writeStagedTree(stagingDir, "samples", pkg.samples);
+  await writeStagedTree(stagingDir, "assets", pkg.assets);
+  await writeStagedTree(stagingDir, "skills", pkg.skills);
+  try {
+    await (0, import_promises3.rename)(stagingDir, targetPkgDir);
+  } catch (err) {
+    console.warn(`[resolver-node] Staging rename failed (${err}); falling back to copy`);
+    try {
+      const { cp } = await import("node:fs/promises");
+      await (0, import_promises3.mkdir)(targetPkgDir, { recursive: true });
+      await cp(stagingDir, targetPkgDir, { recursive: true });
+      await (0, import_promises3.rm)(stagingDir, { recursive: true, force: true }).catch(() => {
+      });
+    } catch (err2) {
+      console.warn(`[resolver-node] Copy fallback failed for ${targetPkgDir}: ${err2}`);
+    }
+  }
+  return targetPkgDir;
+}
+async function fetchBlueprintPackageFromRemote(base, version, options = {}) {
+  if (!options.ref) {
+    throw new Error("ref is required for fetchBlueprintPackageFromRemote");
+  }
+  if (!/^blueprints-v\d+\.\d+\.\d+$/.test(options.ref)) {
+    throw new Error(
+      `Invalid blueprint ref "${options.ref}": must match ^blueprints-v\\d+\\.\\d+\\.\\d+$`
+    );
+  }
+  const ref = options.ref;
+  const repo = options.repo ?? "cogNNitive/cogNNitive-web";
+  const timeout = options.timeout ?? 1e4;
+  const dirInRepo = `iNNfo/specs/bluepriNNts/${base}`;
+  const specName = SPEC_FILENAME2;
+  const rawBase = `https://raw.githubusercontent.com/${repo}/${ref}/${dirInRepo}`;
+  const token = options.token ?? resolveAuthToken() ?? void 0;
+  if (options.access === "authenticated" && !token) {
+    throw new BlueprintAuthError(
+      `Blueprint "${base}" requires authentication but no token was found. Set COGNNITIVE_TOKEN or add { "token": "\u2026" } to ~/.agents/credentials.json.`
+    );
+  }
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : void 0;
+  try {
+    const spec = await download(`${rawBase}/${specName}`, timeout, authHeaders);
+    const fetchSubdir = async (name, opts = {}) => {
+      let entries;
+      try {
+        const apiUrl = `https://api.github.com/repos/${repo}/contents/${dirInRepo}/${name}?ref=${encodeURIComponent(ref)}`;
+        const listing = JSON.parse(await download(apiUrl, timeout, authHeaders));
+        entries = Array.isArray(listing) ? listing : [];
+      } catch (err) {
+        if (opts.strict && (opts.nested || !/HTTP 404/.test(String(err)))) {
+          throw new IncompleteSkillsTreeError(`listing ${dirInRepo}/${name} failed: ${redactToken(String(err), token)}`);
+        }
+        console.warn(`[resolver-node] Failed to list subdir ${dirInRepo}/${name}: ${redactToken(String(err), token)}`);
+        return void 0;
+      }
+      const out = {};
+      for (const entry of entries) {
+        if (entry.type === "dir" && opts.recursive) {
+          const nested = await fetchSubdir(`${name}/${entry.name}`, { ...opts, nested: true });
+          for (const [rel, body] of Object.entries(nested ?? {})) {
+            out[`${entry.name}/${rel}`] = body;
+          }
+          continue;
+        }
+        if (entry.type !== "file") continue;
+        try {
+          out[entry.name] = await download(`${rawBase}/${name}/${entry.name}`, timeout, authHeaders);
+        } catch (err) {
+          if (opts.strict) {
+            throw new IncompleteSkillsTreeError(`fetching ${name}/${entry.name} failed: ${redactToken(String(err), token)}`);
+          }
+          console.warn(`[resolver-node] Failed to fetch asset ${name}/${entry.name}: ${redactToken(String(err), token)}`);
+        }
+      }
+      return Object.keys(out).length > 0 ? out : void 0;
+    };
+    return {
+      spec,
+      procedures: await fetchSubdir("procedures"),
+      samples: await fetchSubdir("samples"),
+      assets: await fetchSubdir("assets"),
+      skills: await fetchSubdir("skills", { recursive: true, strict: true })
+    };
+  } catch (err) {
+    const message = redactToken(err instanceof Error ? err.message : String(err), token);
+    if (authHeaders && /HTTP 40[13]/.test(message)) {
+      throw new BlueprintAuthError(
+        `${message} \u2014 blueprint authentication failed. Verify COGNNITIVE_TOKEN or ~/.agents/credentials.json.`
+      );
+    }
+    if (err instanceof Error) {
+      err.message = message;
+      throw err;
+    }
+    throw new Error(message);
+  }
+}
+async function atomicWriteFile(path, content) {
+  const tmpPath = `${path}.tmp-${uniqueSuffix()}`;
+  await (0, import_promises3.writeFile)(tmpPath, content, "utf-8");
+  await (0, import_promises3.rename)(tmpPath, path);
+}
+async function saveSpecOnce(specsDir, filename, content) {
+  await (0, import_promises3.mkdir)(specsDir, { recursive: true });
+  const path = (0, import_node_path11.join)(specsDir, filename);
+  try {
+    await (0, import_promises3.readFile)(path, "utf-8");
+    return;
+  } catch (err) {
+    if (err?.code !== "ENOENT") {
+      console.warn(`[resolver-node] Failed to probe write-once spec ${path}: ${err}`);
+    }
+  }
+  await atomicWriteFile(path, content);
+}
+async function resolveParentChainNode(rootDir, parentUrl, parentName, options = {}) {
+  const maxDepth = options.maxDepth ?? MAX_DEPTH_DEFAULT;
+  const timeout = options.timeout ?? 1e4;
+  const specsDir = (0, import_node_path11.join)(rootDir, "specs");
+  const cacheDir = options.inPlace === true ? specsDir : options.cacheDir ?? defaultCacheDir();
+  const writeDir = cacheDir;
+  const blueprintsBaseDir = (0, import_node_path11.join)(cacheDir, "bluepriNNts");
+  const specs = /* @__PURE__ */ new Map();
+  const chain = [];
+  const freshness = /* @__PURE__ */ new Map();
+  let currentUrl = parentUrl;
+  let currentName = parentName;
+  let depth = 0;
+  await (0, import_promises3.mkdir)(writeDir, { recursive: true });
+  while (currentUrl && currentName && depth < maxDepth) {
+    let content = null;
+    let resolvedFromLocalTier = false;
+    const attempted = [];
+    const localPath = isLocalPath(currentUrl) ? toLocalFilePath(currentUrl, rootDir) : null;
+    if (localPath) {
+      attempted.push(`local path "${localPath}"`);
+      try {
+        content = await (0, import_promises3.readFile)(localPath, "utf-8");
+        const specName = canonicalSpecFilename(currentName, content);
+        await saveSpecOnce(writeDir, `${specName}_NN.md`, content).catch(() => {
+        });
+      } catch (err) {
+        console.warn(`[resolver-node] Local tier missed for ${currentName}: ${err}`);
+        content = null;
+      }
+    }
+    if (content === null && !isLocalPath(currentUrl)) {
+      attempted.push(`4-tier package resolver for "${currentName}" in "${specsDir}"`);
+      const pkg = await resolveBlueprintPackage(rootDir, currentName, void 0, options);
+      if (pkg) {
+        content = await (0, import_promises3.readFile)(pkg.specFilePath, "utf-8");
+        resolvedFromLocalTier = true;
+      }
+    }
+    if (content === null && cacheDir !== specsDir && !isLocalPath(currentUrl)) {
+      attempted.push(`temp cache dir "${cacheDir}"`);
+      const hit = await findLocalSpec(cacheDir, currentName);
+      if (hit) {
+        content = await (0, import_promises3.readFile)(hit, "utf-8").catch(() => null);
+      }
+    }
+    if (content === null && /^https?:\/\//i.test(currentUrl)) {
+      attempted.push(`network url "${currentUrl}"`);
+      try {
+        content = await download(currentUrl, timeout);
+        const fmVer = versionFromFrontmatter(content) || "0.1.0";
+        const baseName = parseSpecName(currentName).base;
+        let payload = content;
+        const tagMatch = currentUrl.match(/raw\.githubusercontent\.com\/([^/]+\/[^/]+)\/([^/]+)\//);
+        if (tagMatch && /^blueprints-v\d+\.\d+\.\d+$/.test(tagMatch[2])) {
+          payload = await fetchBlueprintPackageFromRemote(baseName, fmVer, {
+            repo: tagMatch[1],
+            ref: tagMatch[2],
+            timeout
+          }).catch((err) => {
+            if (err instanceof IncompleteSkillsTreeError) throw err;
+            return content;
+          });
+        }
+        await hydrateBlueprintPackageAtomically(rootDir, baseName, fmVer, payload, {
+          baseDir: blueprintsBaseDir
+        });
+        const specName = canonicalSpecFilename(currentName, content);
+        await saveSpecOnce(writeDir, `${specName}_NN.md`, content);
+      } catch (err) {
+        console.warn(`[resolver-node] Network tier missed for ${currentName}: ${err}`);
+        content = null;
+      }
+    }
+    if (content === null && !isLocalPath(currentUrl)) {
+      const isRemote = /^https?:\/\//i.test(currentUrl);
+      const isCanonicalRemote = isRemote && /raw\.githubusercontent\.com\/cogNNitive\/[^/]+\/(main|v[\d.]+)\//i.test(currentUrl);
+      if (!isRemote || isCanonicalRemote) {
+        attempted.push(`canonical fallback registry for "${currentName}"`);
+        const canonical = findCanonicalBlueprint(currentName) || (currentUrl ? findCanonicalBlueprint(currentUrl) : null);
+        if (canonical) {
+          content = canonical.specContent;
+          resolvedFromLocalTier = true;
+        }
+      }
+    }
+    if (content === null) {
+      throw new SpecResolutionError(
+        `Failed to resolve parent "${currentName}" from "${currentUrl}". Attempted: ${attempted.join("; ")}`,
+        currentUrl
+      );
+    }
+    const fm = parseFrontmatter2(content);
+    if (fm === null) {
+      throw new SpecResolutionError(
+        `Unparseable frontmatter in resolved spec "${currentName}" (${attempted[attempted.length - 1]})`,
+        currentUrl
+      );
+    }
+    const doc = {
+      name: currentName,
+      level: fm.level ?? 0,
+      parentName: fm.parent_spec?.name,
+      parentUrl: fm.parent_spec?.url,
+      frontmatter: fm,
+      rawContent: content
+    };
+    specs.set(currentName, doc);
+    chain.push(currentName);
+    if (options.checkFreshness === true && depth === 0 && resolvedFromLocalTier && /^https?:\/\//i.test(currentUrl)) {
+      freshness.set(currentName, {
+        name: currentName,
+        url: currentUrl,
+        verdict: await freshnessVerdict(currentUrl, content, timeout)
+      });
+    }
+    currentName = doc.parentName;
+    currentUrl = doc.parentUrl;
+    depth++;
+  }
+  if (depth >= maxDepth && currentUrl) {
+    throw new Error(`Circular parent chain detected at depth ${maxDepth}`);
+  }
+  await resolveIncludesInto(specs, specsDir, timeout, void 0, cacheDir);
+  const result = { specs, chain };
+  if (options.checkFreshness === true) result.freshness = freshness;
+  return result;
+}
+async function fetchSpecContent(name, url, specsDir, timeout, cacheDir) {
+  const localPath = url && isLocalPath(url) ? toLocalFilePath(url, specsDir.replace(/[/\\]specs[/\\]?$/, "")) : null;
+  if (localPath) {
+    const direct = await (0, import_promises3.readFile)(localPath, "utf-8").catch(() => null);
+    if (direct !== null) return direct;
+  }
+  const local = await findLocalSpec(specsDir, name);
+  if (local) return (0, import_promises3.readFile)(local, "utf-8").catch(() => null);
+  if (cacheDir && cacheDir !== specsDir) {
+    const hit = await findLocalSpec(cacheDir, name);
+    if (hit) return (0, import_promises3.readFile)(hit, "utf-8").catch(() => null);
+  }
+  const rootDir = specsDir.replace(/[/\\]specs[/\\]?$/, "");
+  const pkg = await resolveBlueprintPackage(rootDir, name).catch(() => null);
+  if (pkg) return (0, import_promises3.readFile)(pkg.specFilePath, "utf-8").catch(() => null);
+  if (url && /^https?:\/\//i.test(url)) {
+    try {
+      const content = await download(url, timeout);
+      await saveSpecOnce(
+        cacheDir ?? specsDir,
+        `${canonicalSpecFilename(name, content)}_NN.md`,
+        content
+      ).catch(() => {
+      });
+      return content;
+    } catch (err) {
+      console.warn(`[resolver-node] Network fetch failed for ${name}: ${err}`);
+    }
+  }
+  const isRemote = url && /^https?:\/\//i.test(url);
+  const isCanonicalRemote = isRemote && /raw\.githubusercontent\.com\/cogNNitive\/[^/]+\/(main|v[\d.]+)\//i.test(url);
+  if (!isRemote || isCanonicalRemote) {
+    const canonical = findCanonicalBlueprint(name) || (url ? findCanonicalBlueprint(url) : null);
+    if (canonical) return canonical.specContent;
+  }
+  return null;
+}
+async function resolveIncludesInto(specs, specsDir, timeout, seen = /* @__PURE__ */ new Set(), cacheDir) {
+  const queue = [...specs.values()];
+  while (queue.length > 0) {
+    const doc = queue.shift();
+    const includes = doc.frontmatter?.includes ?? [];
+    for (const ref of includes) {
+      const key = ref.name.toLowerCase();
+      if (seen.has(key) || specs.has(ref.name)) continue;
+      seen.add(key);
+      const content = await fetchSpecContent(
+        ref.name,
+        ref.url || void 0,
+        specsDir,
+        timeout,
+        cacheDir
+      );
+      if (content === null) continue;
+      const fm = parseFrontmatter2(content);
+      if (fm === null) continue;
+      const included = {
+        name: ref.name,
+        level: fm.level ?? 2,
+        parentName: fm.parent_spec?.name,
+        parentUrl: fm.parent_spec?.url,
+        frontmatter: fm,
+        rawContent: content
+      };
+      specs.set(ref.name, included);
+      queue.push(included);
+    }
+  }
+}
+var import_node_crypto3, import_promises3, import_node_fs8, import_node_path11, import_node_url, import_node_os, MAX_DEPTH_DEFAULT, BlueprintAuthError, stagingCounter, IncompleteSkillsTreeError;
+var init_resolver_node = __esm({
+  "iNNfo/packages/nn-mcp/src/tools/resolver-node.ts"() {
+    "use strict";
+    import_node_crypto3 = require("node:crypto");
+    import_promises3 = require("node:fs/promises");
+    import_node_fs8 = require("node:fs");
+    import_node_path11 = require("node:path");
+    init_path_guard();
+    import_node_url = require("node:url");
+    import_node_os = require("node:os");
+    init_dist();
+    init_dist();
+    MAX_DEPTH_DEFAULT = 10;
+    BlueprintAuthError = class extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "BlueprintAuthError";
+      }
+    };
+    stagingCounter = 0;
+    IncompleteSkillsTreeError = class extends Error {
+      constructor(detail) {
+        super(`skills/ tree is incomplete: ${detail}`);
+        this.name = "IncompleteSkillsTreeError";
+      }
+    };
+  }
+});
+
+// iNNfo/packages/nn-mcp/src/tools/list-read.ts
+function normalizeId(id) {
+  if (!id) return "";
+  let normalized = id.trim();
+  normalized = normalized.replace(/\.(md|markdown)$/i, "");
+  while (/_NN$/i.test(normalized)) {
+    normalized = normalized.replace(/_NN$/i, "");
+  }
+  return normalized;
+}
+var init_list_read = __esm({
+  "iNNfo/packages/nn-mcp/src/tools/list-read.ts"() {
+    "use strict";
+    init_dist();
+  }
+});
+
+// iNNfo/packages/nn-mcp/src/tools/spec.ts
+async function collectDomainFiles(dir, rootDir, relPaths, opts, depth = 0) {
+  if (depth > 8) return;
+  const entries = await (0, import_promises4.readdir)(dir, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    const nameLower = entry.name.toLowerCase();
+    if (entry.isDirectory()) {
+      if (entry.name.startsWith(".")) continue;
+      const skip = opts?.includeSpecs ? ["node_modules", ".git", "dist", ".spec-cache", "backups", "archive"] : ["node_modules", ".git", "dist", ".spec-cache", "specs", "backups", "archive"];
+      if (skip.includes(nameLower)) continue;
+      const child = (0, import_node_path12.join)(dir, entry.name);
+      if (isDomainRoot2(child)) continue;
+      await collectDomainFiles(child, rootDir, relPaths, opts, depth + 1);
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    if (entry.name.startsWith(".")) continue;
+    const rel = (0, import_node_path12.relative)(rootDir, (0, import_node_path12.join)(dir, entry.name)).replace(/\\/g, "/");
+    relPaths.push(rel);
+  }
+}
+async function findKnowledgeFile(rootDir, id, opts) {
+  if (!isSafeRelativeId(id)) return null;
+  const relPaths = [];
+  await collectDomainFiles(rootDir, rootDir, relPaths, opts);
+  const index = buildModelIndex2(relPaths);
+  const resolution = resolveModelId2(index, id);
+  if (resolution.ok) {
+    return (0, import_node_path12.join)(rootDir, resolution.path);
+  }
+  if (resolution.code === "AMBIGUOUS_MODEL_ID") {
+    throw new AmbiguousModelIdError(id, [...resolution.candidates]);
+  }
+  return null;
+}
+async function resolveBlueprintWithCache(rootDir, url, name, options) {
+  let cache = null;
+  try {
+    cache = await resolveParentChainNode(rootDir, url, name, options);
+  } catch (err) {
+    if (err instanceof Error && (err.name === "SpecResolutionError" || err instanceof SpecResolutionError)) {
+      throw err;
+    }
+    cache = null;
+  }
+  const template = cache ? getBlueprint(cache) ?? cache.specs.get(name) ?? null : null;
+  const resolveInclude = (ref) => {
+    if (!cache) return null;
+    const direct = cache.specs.get(ref.name);
+    if (direct) return direct.rawContent;
+    for (const doc of cache.specs.values()) {
+      if (doc.name.toLowerCase() === ref.name.toLowerCase()) return doc.rawContent;
+    }
+    return null;
+  };
+  const freshness = cache?.freshness?.get(name) ?? null;
+  return { template, cache, resolveInclude, freshness };
+}
+var import_node_path12, import_promises4, AmbiguousModelIdError;
+var init_spec = __esm({
+  "iNNfo/packages/nn-mcp/src/tools/spec.ts"() {
+    "use strict";
+    import_node_path12 = require("node:path");
+    init_dist();
+    init_scoped_procedures();
+    import_promises4 = require("node:fs/promises");
+    init_resolver_node();
+    init_list_read();
+    init_path_guard();
+    AmbiguousModelIdError = class extends Error {
+      code = "AMBIGUOUS_MODEL_ID";
+      id;
+      candidates;
+      constructor(id, candidates) {
+        super(`Model id "${id}" is ambiguous. Candidates: ${candidates.join(", ")}`);
+        this.name = "AmbiguousModelIdError";
+        this.id = id;
+        this.candidates = candidates;
+      }
+    };
+  }
+});
+
+// scripts/core-mirrors/video-script.ts
+var video_script_exports = {};
+__export(video_script_exports, {
   buildModelIndex: () => buildModelIndex,
   buildScopeChain: () => buildScopeChain,
+  computeProposalSha: () => computeProposalSha,
   driftReport: () => driftReport,
   elementChain: () => elementChain,
+  executeChangesetApply: () => executeChangesetApply,
   findDomainRoot: () => findDomainRoot,
   findInChain: () => findInChain,
   findScopeChain: () => findScopeChain,
@@ -7389,12 +16280,18 @@ __export(index_exports, {
   loadElementChain: () => loadElementChain,
   loadElementChains: () => loadElementChains,
   loadScopeProcedures: () => loadScopeProcedures,
+  parseChangeset: () => parseChangeset,
+  parseKnowledge: () => parseKnowledge,
   resolve: () => resolve3,
   resolveModelId: () => resolveModelId,
   resolveProcedures: () => resolveProcedures,
-  stemCollisionMessage: () => stemCollisionMessage
+  serializeChangeset: () => serializeChangeset,
+  serializeKnowledge: () => serializeKnowledge,
+  slugify: () => slugify,
+  stemCollisionMessage: () => stemCollisionMessage,
+  writeProposedChangeset: () => writeProposedChangeset
 });
-module.exports = __toCommonJS(index_exports);
+module.exports = __toCommonJS(video_script_exports);
 
 // iNNfo/packages/nn-core/src/scope/root.ts
 var import_node_fs = require("node:fs");
@@ -7402,6 +16299,7 @@ var import_node_path = require("node:path");
 
 // iNNfo/packages/nn-core/src/naming/contract.ts
 var ENTRYPOINT_FILENAME = "domaiNN_NN.md";
+var SPEC_FILENAME = "spec_NN.md";
 var NN_SUFFIX_RE = /_NN\.md$/i;
 var SIDECAR_PATH_RE = /^(.*\.[^./\\]+)_sidecar_NN\.md$/i;
 var STAMP_SUFFIX_RE = /^(.+)_(\d{8}T\d{6}Z)(?:-(\d+))?$/;
@@ -7409,32 +16307,57 @@ function baseOf(path) {
   const i = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
   return i < 0 ? path : path.slice(i + 1);
 }
-function parseName(basename2) {
-  if (NN_SUFFIX_RE.test(basename2)) {
-    const stem2 = basename2.replace(NN_SUFFIX_RE, "");
-    const sidecar = SIDECAR_PATH_RE.exec(basename2);
-    return sidecar ? { kind: "nn", basename: basename2, stem: stem2, sidecarOf: sidecar[1] } : { kind: "nn", basename: basename2, stem: stem2 };
+function parseName(basename9) {
+  if (NN_SUFFIX_RE.test(basename9)) {
+    const stem2 = basename9.replace(NN_SUFFIX_RE, "");
+    const sidecar = SIDECAR_PATH_RE.exec(basename9);
+    return sidecar ? { kind: "nn", basename: basename9, stem: stem2, sidecarOf: sidecar[1] } : { kind: "nn", basename: basename9, stem: stem2 };
   }
-  const dot = basename2.lastIndexOf(".");
+  const dot = basename9.lastIndexOf(".");
   const hasExt = dot > 0;
-  const stem = hasExt ? basename2.slice(0, dot) : basename2;
-  const ext = hasExt ? basename2.slice(dot + 1) : "";
+  const stem = hasExt ? basename9.slice(0, dot) : basename9;
+  const ext = hasExt ? basename9.slice(dot + 1) : "";
   const m = STAMP_SUFFIX_RE.exec(stem);
-  if (!m) return { kind: "file", basename: basename2, key: stem, ext };
+  if (!m) return { kind: "file", basename: basename9, key: stem, ext };
   return {
     kind: "file",
-    basename: basename2,
+    basename: basename9,
     key: m[1],
     ext,
     stamp: { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 }
   };
 }
-function displayStem(basename2) {
-  if (NN_SUFFIX_RE.test(basename2)) return basename2.replace(NN_SUFFIX_RE, "");
-  return basename2.replace(/\.md$/i, "");
+function displayStem(basename9) {
+  if (NN_SUFFIX_RE.test(basename9)) return basename9.replace(NN_SUFFIX_RE, "");
+  return basename9.replace(/\.md$/i, "");
 }
-function procedureIdOf(basename2) {
-  return displayStem(baseOf(basename2)).replace(/_procedures$/i, "").toLowerCase().replace(/_/g, "-");
+function procedureIdOf(basename9) {
+  return displayStem(baseOf(basename9)).replace(/_procedures$/i, "").toLowerCase().replace(/_/g, "-");
+}
+var CORE_BLUEPRINT_ROLE = {
+  cognnitive: "lineage-record",
+  sidecar: "sidecar",
+  changes: "changeset",
+  workspace: "catalog",
+  sources: "catalog",
+  artifacts: "catalog"
+};
+function coreBlueprintKey(parentSpecName) {
+  return (parentSpecName ?? "").trim().toLowerCase().split("_")[0];
+}
+function roleOf(i) {
+  const base = baseOf(i.path);
+  const parsed = parseName(base);
+  if (parsed.kind === "file") return i.hasSidecar ? "source" : "artifact";
+  if (parsed.sidecarOf !== void 0) return "sidecar";
+  const lower = base.toLowerCase();
+  if (lower === ENTRYPOINT_FILENAME.toLowerCase()) return "entrypoint";
+  if (lower === SPEC_FILENAME.toLowerCase()) return "spec";
+  const bp = coreBlueprintKey(i.parentSpecName);
+  if (bp === "procedures") {
+    return parsed.stem.toLowerCase() === "procedures" ? "catalog" : "procedure";
+  }
+  return CORE_BLUEPRINT_ROLE[bp] ?? "knowledge";
 }
 function isProcedureDocument(nameOrPath) {
   const parsed = parseName(baseOf(nameOrPath));
@@ -7623,6 +16546,12 @@ var import_node_fs2 = require("node:fs");
 var import_node_path2 = require("node:path");
 
 // iNNfo/packages/nn-core/src/parser/slug.ts
+function nfc(text) {
+  return text.normalize("NFC");
+}
+function stripCombiningMarks(text) {
+  return text.normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
 function slugify(name) {
   return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
 }
@@ -7818,6 +16747,18 @@ function parseIndexBlock(content) {
     stack.push({ name, indent });
   }
   return edges;
+}
+function printTaxonomyNode(name, allEdges, lines, depth, ancestors = /* @__PURE__ */ new Set()) {
+  if (name !== "") {
+    if (ancestors.has(name)) return;
+    const indent = "  ".repeat(depth);
+    lines.push(`${indent}* [[${name}]]`);
+  }
+  const nextAncestors = name === "" ? ancestors : /* @__PURE__ */ new Set([...ancestors, name]);
+  const children = allEdges.filter((e) => e.parent === name);
+  for (const child of children) {
+    printTaxonomyNode(child.child, allEdges, lines, depth + 1, nextAncestors);
+  }
 }
 
 // iNNfo/packages/nn-core/src/parser/sections.ts
@@ -8046,6 +16987,637 @@ function getSectionType(rawTitle) {
 
 // iNNfo/packages/nn-core/src/parser/serializer.ts
 var import_yaml3 = __toESM(require_dist(), 1);
+
+// iNNfo/packages/nn-core/src/assertNever.ts
+function assertNever(value, context = "value") {
+  throw new Error(`Unhandled ${context}: ${JSON.stringify(value)}`);
+}
+
+// iNNfo/packages/nn-core/src/jsonPointer.ts
+var POINTER_RE = /^(?:\/(?:[^~/]|~[01])*)*$/;
+function isJsonPointer(pointer) {
+  return POINTER_RE.test(pointer);
+}
+
+// iNNfo/packages/nn-core/src/sourceRef.ts
+var SLUG = "[a-z0-9]+(?:-[a-z0-9]+)*";
+var MODEL_ID = "[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*";
+var SOURCE_FIELD_NAMES = /* @__PURE__ */ new Set(["sources", "source"]);
+function parseSourceRef(input) {
+  if (!input || typeof input !== "string") return null;
+  const clean = input.trim();
+  if (/#L\d+(-L\d+)?$/i.test(clean)) return null;
+  if (/^src-\d+/i.test(clean)) return null;
+  const legacy = clean.match(new RegExp(`^([^#:]+?)(?:#(${SLUG}))?$`));
+  if (!legacy) return null;
+  const resolved = resolveUnitPath(legacy[1]);
+  if (!resolved) return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename(resolved.filePath),
+    slug: legacy[2] || void 0,
+    kind: resolved.kind,
+    raw: clean
+  };
+}
+function parseCitation(input) {
+  if (!input || typeof input !== "string") return null;
+  const clean = input.trim();
+  if (!clean) return null;
+  if (/[#@]L\d+(-L\d+)?$/i.test(clean)) return null;
+  if (/^src-\d+/i.test(clean)) return null;
+  if (clean.includes("@")) {
+    return parseKnowledgeUnitRef(clean);
+  }
+  if (clean.includes("#")) {
+    const ref = parseSourceRef(clean);
+    if (ref && ref.slug) {
+      return { ...ref, legacyHash: true };
+    }
+    return null;
+  }
+  const resolved = resolveUnitPath(clean);
+  if (!resolved) return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename(resolved.filePath),
+    kind: resolved.kind,
+    raw: clean
+  };
+}
+function basename(p) {
+  return p.split(/[/\\]/).pop() || p;
+}
+function slugifyHeading(text) {
+  const stripped = nfc(text).replace(/^\s*#{1,6}\s*/, "").replace(/[*_`]/g, "");
+  return stripped.split(/(?<=[\p{L}\p{N}])--(?=[\p{L}\p{N}])/gu).map(slugifyFlat).join("--");
+}
+function slugifyFlat(part) {
+  const transliterated = stripCombiningMarks(part);
+  const dashed = transliterated.trim().toLowerCase().replace(/\s+/g, "-");
+  const filtered = dashed.replace(/[^\p{L}\p{N}-]+/gu, "");
+  return filtered.replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+}
+function headingSlugParts(text) {
+  const clean = text.trim();
+  const boundary = clean.indexOf(":");
+  if (boundary > 0) {
+    const concept = clean.slice(0, boundary).trim();
+    const element = clean.slice(boundary + 1).trim();
+    if (concept && element) {
+      return {
+        slug: `${slugifyHeading(concept)}--${slugifyHeading(element)}`,
+        concept,
+        element
+      };
+    }
+  }
+  return { slug: slugifyHeading(clean) };
+}
+function slugifyUnitHeading(level, text) {
+  const clean = text.trim();
+  const { slug } = headingSlugParts(clean);
+  const clamped = Math.min(6, Math.max(1, Math.floor(level) || 1));
+  return { level: clamped, text: clean, slug };
+}
+function normalizeName(name) {
+  return nfc(name).trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_\-\p{L}\p{N}]+/gu, "");
+}
+function resolveUnitPath(rawPath) {
+  const trimmed = rawPath.trim();
+  if (!trimmed || /^https?:\/\//i.test(trimmed)) return null;
+  const segments = trimmed.split(/[/\\]/);
+  if (segments.some((s) => s === "..")) return null;
+  const forward = segments.join("/");
+  const isMd = /\.md$/i.test(forward);
+  const isCsv = /\.csv$/i.test(forward);
+  const isJson = /\.json$/i.test(forward);
+  if (!isMd && !isCsv && !isJson) {
+    if (new RegExp(`^${MODEL_ID}$`).test(trimmed)) {
+      return { filePath: trimmed, kind: "model" };
+    }
+    return null;
+  }
+  if (/^[a-zA-Z]:[/\\]/.test(trimmed) || trimmed.startsWith("/")) return null;
+  return { filePath: forward, kind: roleOf({ path: forward }) === "knowledge" ? "model" : "source" };
+}
+function decodeSegment(segment) {
+  try {
+    return decodeURIComponent(segment);
+  } catch (err) {
+    return null;
+  }
+}
+var HEADER_UNIT = /^(#{1,6})\s*(.+?)\s*$/;
+function parsePointerRef(resolved, rawPointer, raw) {
+  if (rawPointer.includes("&")) return null;
+  const pointer = decodeSegment(rawPointer);
+  if (pointer === null || !isJsonPointer(pointer)) return null;
+  return {
+    filePath: resolved.filePath,
+    fileName: basename(resolved.filePath),
+    kind: resolved.kind,
+    unit: { kind: "pointer", pointer },
+    subunits: [],
+    raw
+  };
+}
+function parseKnowledgeUnitRef(input) {
+  if (!input || typeof input !== "string") return null;
+  const clean = input.trim();
+  const at = clean.indexOf("@");
+  if (at === -1) return null;
+  const resolved = resolveUnitPath(clean.slice(0, at));
+  if (!resolved) return null;
+  if (/\.json$/i.test(resolved.filePath)) return parsePointerRef(resolved, clean.slice(at + 1), clean);
+  const rawSegments = clean.slice(at + 1).split("&");
+  if (rawSegments.some((s) => s.trim() === "")) return null;
+  const decoded = [];
+  for (const part of rawSegments) {
+    const text = decodeSegment(part.trim());
+    if (text === null || text.trim() === "") return null;
+    decoded.push(text.trim());
+  }
+  const [unitRaw, ...subunits] = decoded;
+  if (!/\.(md|csv|json)$/i.test(resolved.filePath)) {
+    if (unitRaw.startsWith("concept:")) {
+      const slug = unitRaw.slice("concept:".length);
+      if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
+      const unit3 = {
+        kind: "header",
+        level: 1,
+        text: slug,
+        slug
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename(resolved.filePath),
+        slug,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    if (unitRaw.startsWith("matrix:")) {
+      const slug = unitRaw.slice("matrix:".length);
+      if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
+      const unit3 = {
+        kind: "matrix",
+        matrixSlug: slug,
+        ...subunits.length === 2 ? { rowSlug: subunits[0], colSlug: subunits[1] } : {}
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename(resolved.filePath),
+        slug,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    if (!new RegExp(`^${SLUG}$`).test(unitRaw)) return null;
+    if (subunits.length === 2) {
+      const unit3 = {
+        kind: "matrix",
+        matrixSlug: unitRaw,
+        rowSlug: subunits[0],
+        colSlug: subunits[1]
+      };
+      return {
+        filePath: resolved.filePath,
+        fileName: basename(resolved.filePath),
+        slug: unitRaw,
+        kind: "model",
+        unit: unit3,
+        subunits,
+        raw: clean
+      };
+    }
+    const unit2 = {
+      kind: "element",
+      slug: unitRaw
+    };
+    return {
+      filePath: resolved.filePath,
+      fileName: basename(resolved.filePath),
+      slug: unitRaw,
+      kind: "model",
+      unit: unit2,
+      subunits,
+      raw: clean
+    };
+  }
+  const isCsv = /\.csv$/i.test(resolved.filePath);
+  if (isCsv) {
+    if (resolved.kind === "model") return null;
+    return {
+      filePath: resolved.filePath,
+      fileName: basename(resolved.filePath),
+      kind: "source",
+      unit: { kind: "row", id: unitRaw },
+      subunits,
+      raw: clean
+    };
+  }
+  const heading = unitRaw.match(HEADER_UNIT);
+  if (!heading) return null;
+  const headed = slugifyUnitHeading(heading[1].length, heading[2]);
+  if (!headed.text || !headed.slug) return null;
+  const unit = {
+    kind: "header",
+    level: headed.level,
+    text: headed.text,
+    slug: headed.slug
+  };
+  return {
+    filePath: resolved.filePath,
+    fileName: basename(resolved.filePath),
+    slug: headed.slug,
+    kind: resolved.kind,
+    unit,
+    subunits,
+    raw: clean
+  };
+}
+function serializeKnowledgeUnitRef(filePath, unit, subunits = []) {
+  let head;
+  switch (unit.kind) {
+    case "header":
+      head = `${"#".repeat(unit.level)} ${unit.text}`;
+      break;
+    case "row":
+      head = unit.id;
+      break;
+    case "pointer":
+      return `${filePath}@${unit.pointer.replace(/%/g, "%25").replace(/&/g, "%26")}`;
+    case "element":
+      head = unit.slug;
+      break;
+    case "matrix": {
+      const row = unit.rowSlug ?? subunits[0];
+      const col = unit.colSlug ?? subunits[1];
+      if (row && col) {
+        return `${filePath}@${unit.matrixSlug}&${normalizeName(row)}&${normalizeName(col)}`;
+      }
+      return `${filePath}@${unit.matrixSlug}`;
+    }
+    default:
+      return assertNever(unit, "knowledge unit kind");
+  }
+  const tail = subunits.map((s) => normalizeName(s)).filter((s) => s !== "");
+  return tail.length > 0 ? `${filePath}@${head}&${tail.join("&")}` : `${filePath}@${head}`;
+}
+
+// iNNfo/packages/nn-core/src/parser/serializer.ts
+function serializePropertyValue(value, rawText) {
+  if (rawText !== void 0 && rawTextStillMatches(rawText, value)) {
+    return rawText;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.startsWith("[[") && trimmed.endsWith("]]")) {
+      return trimmed;
+    }
+    return serializeScalarString(value);
+  }
+  if (Array.isArray(value)) {
+    const hasWikiLink = value.some(
+      (v) => typeof v === "string" && v.trim().startsWith("[[") && v.trim().endsWith("]]")
+    );
+    if (hasWikiLink) {
+      return `[${value.map((v) => serializePropertyValue(v)).join(", ")}]`;
+    }
+    const list = serializeListValue(value);
+    if (list !== null) return list;
+  }
+  return JSON.stringify(value);
+}
+function rawTextStillMatches(rawText, value) {
+  try {
+    return JSON.stringify(parsePropertyValue(rawText)) === JSON.stringify(value);
+  } catch {
+    return false;
+  }
+}
+function serializeScalarString(value) {
+  if (needsQuoting(value)) return JSON.stringify(value);
+  return value;
+}
+function needsQuoting(value) {
+  if (value === "") return true;
+  if (value !== value.trim()) return true;
+  if (/\n/.test(value)) return true;
+  if (/^[[{"']/.test(value)) return true;
+  const lower = value.toLowerCase();
+  if (lower === "true" || lower === "false" || lower === "null") return true;
+  if (/^-?\d+$/.test(value) || /^-?\d+\.\d+$/.test(value)) return true;
+  return false;
+}
+function serializeListValue(value) {
+  if (value.length === 0) return "[]";
+  if (!value.every(isSafeListItem)) return null;
+  return `[${value.map(String).join(", ")}]`;
+}
+function dedupeCitationList(value) {
+  if (!Array.isArray(value)) return value;
+  const seen = /* @__PURE__ */ new Set();
+  const kept = [];
+  for (const item of value) {
+    const text = String(item).trim();
+    const parsed = parseCitation(text);
+    const key = parsed?.unit ? serializeKnowledgeUnitRef(parsed.filePath, parsed.unit, parsed.subunits ?? []) : parsed?.filePath ? parsed.slug ? `${parsed.filePath}#${parsed.slug}` : parsed.filePath : text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    kept.push(item);
+  }
+  return kept.length === value.length ? value : kept;
+}
+function isSafeListItem(v) {
+  if (typeof v === "number" || typeof v === "boolean") return true;
+  return typeof v === "string" && !/[,[\]]/.test(v);
+}
+function rawFrontmatterStillMatches(rawFrontmatter, fm) {
+  try {
+    const reparsed = parseFrontmatter(rawFrontmatter, () => {
+    });
+    return JSON.stringify(reparsed) === JSON.stringify(fm);
+  } catch {
+    return false;
+  }
+}
+var CONSTRUCTED_FRONTMATTER_KEYS = /* @__PURE__ */ new Set([
+  "spec_version",
+  "spec_url",
+  "knowledge_slug",
+  "workspace_id",
+  "level",
+  "parent_spec",
+  "parent",
+  "knowledge_version",
+  "blueprint_version",
+  "blueprint_name",
+  "knowledge_dir",
+  "blueprints_dir",
+  "title",
+  "mode",
+  "template",
+  "last_saved",
+  "last_updated",
+  "matrices",
+  "concepts"
+]);
+function serializeKnowledge(model) {
+  const lines = [];
+  const fm = model.frontmatter;
+  const useRawFrontmatter = model.rawFrontmatter !== void 0 && rawFrontmatterStillMatches(model.rawFrontmatter, fm);
+  if (useRawFrontmatter) {
+    lines.push(...model.rawFrontmatter.split("\n"));
+  } else {
+    lines.push("---");
+    if (fm.level !== 3 || fm.spec_version) {
+      lines.push(`spec_version: "${fm.spec_version || "V_0-5-0"}"`);
+    }
+    if (fm.spec_url) {
+      lines.push(`spec_url: "${fm.spec_url}"`);
+    }
+    if (fm.knowledge_slug) {
+      lines.push(`knowledge_slug: "${fm.knowledge_slug}"`);
+    }
+    if (fm.workspace_id) {
+      lines.push(`workspace_id: "${fm.workspace_id}"`);
+    }
+    if (fm.level !== void 0) lines.push(`level: ${fm.level}`);
+    if (fm.parent_spec) {
+      lines.push("parent_spec:");
+      lines.push(`  name: "${fm.parent_spec.name}"`);
+      lines.push(`  url: "${fm.parent_spec.url}"`);
+    } else if (fm.parent !== void 0) {
+      const val = fm.parent;
+      if (typeof val === "string") {
+        lines.push(`parent: "${val}"`);
+      } else {
+        lines.push((0, import_yaml3.stringify)({ parent: val }).trim());
+      }
+    }
+    if (fm.knowledge_version) {
+      lines.push(`knowledge_version: "${fm.knowledge_version}"`);
+    }
+    if (fm.blueprint_version) lines.push(`blueprint_version: "${fm.blueprint_version}"`);
+    if (fm.blueprint_name) lines.push(`blueprint_name: "${fm.blueprint_name}"`);
+    if (fm.knowledge_dir) lines.push(`knowledge_dir: "${fm.knowledge_dir}"`);
+    if (fm.blueprints_dir) lines.push(`blueprints_dir: "${fm.blueprints_dir}"`);
+    if (fm.title) lines.push(`title: "${fm.title}"`);
+    if (fm.mode) lines.push(`mode: "${fm.mode}"`);
+    if (fm.template !== void 0) {
+      const val = fm.template;
+      lines.push((0, import_yaml3.stringify)({ template: val }).trim());
+    }
+    if (fm.last_saved !== void 0) {
+      lines.push(`last_saved: "${fm.last_saved}"`);
+    }
+    if (fm.last_updated !== void 0) {
+      lines.push(`last_updated: "${fm.last_updated}"`);
+    }
+    const matrices = fm.matrices;
+    if (matrices && matrices.length > 0) {
+      lines.push("matrices:");
+      for (const m of matrices) {
+        lines.push(`  - name: "${m.name}"`);
+        if (m.slug) lines.push(`    slug: "${m.slug}"`);
+        lines.push(`    source: "${m.source}"`);
+        lines.push(`    target: "${m.target}"`);
+        if (m.values && m.values.length > 0) {
+          lines.push(`    values: [${m.values.join(", ")}]`);
+        } else if (m.params) {
+          lines.push(`    params: "${m.params}"`);
+        }
+        if (m.widgetType) lines.push(`    widget: "${m.widgetType}"`);
+        if (m.description) lines.push(`    description: "${m.description}"`);
+        if (m.label) lines.push(`    label: "${m.label}"`);
+        if (m.min_color) lines.push(`    min_color: "${m.min_color}"`);
+        if (m.max_color) lines.push(`    max_color: "${m.max_color}"`);
+      }
+    }
+    if (fm.concepts && fm.concepts.length > 0) {
+      lines.push("concepts:");
+      for (const c of fm.concepts) {
+        lines.push(`  - name: "${c.name}"`);
+        if (c.slug) lines.push(`    slug: "${c.slug}"`);
+        if (c.icon) lines.push(`    icon: "${c.icon}"`);
+        if (c.type) lines.push(`    type: "${c.type}"`);
+        if (c.color) lines.push(`    color: "${c.color}"`);
+        if (c.weight !== void 0) lines.push(`    weight: ${c.weight}`);
+      }
+    }
+    for (const [key, value] of Object.entries(fm)) {
+      if (CONSTRUCTED_FRONTMATTER_KEYS.has(key) || value === void 0) continue;
+      lines.push((0, import_yaml3.stringify)({ [key]: value }).trim());
+    }
+    lines.push("---");
+  }
+  lines.push("");
+  if (model.rawPreamble) {
+    lines.push(...model.rawPreamble.split("\n"));
+    lines.push("");
+  }
+  const headingBlankLine = (sectionKey, fallback) => model.sectionBlankLine?.[sectionKey.toLowerCase()] ?? fallback;
+  let indexEmitted = false;
+  const emitIndex = () => {
+    if (indexEmitted) return;
+    indexEmitted = true;
+    if (model.taxonomy.length === 0) return;
+    lines.push("# NN index");
+    if (headingBlankLine("index", false)) lines.push("");
+    const hasEmptyParent = model.taxonomy.some((e) => e.parent === "");
+    if (hasEmptyParent) {
+      printTaxonomyNode("", model.taxonomy, lines, -1);
+    } else {
+      const allParents = new Set(model.taxonomy.map((e) => e.parent));
+      const allChildren = new Set(model.taxonomy.map((e) => e.child));
+      const rootNames = [...allParents].filter((p) => !allChildren.has(p));
+      for (const rootName of rootNames) {
+        printTaxonomyNode(rootName, model.taxonomy, lines, 0);
+      }
+    }
+    lines.push("");
+  };
+  const emittedConcepts = /* @__PURE__ */ new Set();
+  const emittedElements = /* @__PURE__ */ new Set();
+  const allElements = [];
+  for (const [, list] of model.elements.entries()) {
+    allElements.push(...list);
+  }
+  const emitElement = (node, depth, isLast) => {
+    emittedElements.add(node);
+    const hDepth = node.headingDepth || depth;
+    const hashes = "#".repeat(hDepth);
+    lines.push(`${hashes} NN ${node.type}: ${node.name}`);
+    if (node.slugExplicit && node.slug) lines.push(`slug:: ${node.slug}`);
+    for (const [k, v] of Object.entries(node.fields)) {
+      const value = SOURCE_FIELD_NAMES.has(k.toLowerCase()) ? dedupeCitationList(v) : v;
+      const raw = value === v ? node.rawFields?.[k] : void 0;
+      lines.push(`${k}:: ${serializePropertyValue(value, raw)}`);
+    }
+    if (node.description) {
+      if (node.descriptionBlankLine) lines.push("");
+      for (const descLine of node.description.split("\n")) {
+        lines.push(descLine);
+      }
+    }
+    const children = allElements.filter(
+      (ch) => !emittedElements.has(ch) && (ch.parentSlug && node.slug && ch.parentSlug.toLowerCase() === node.slug.toLowerCase() || ch.parentElement && ch.parentElement.concept.toLowerCase() === node.type.toLowerCase() && (ch.parentElement.name.toLowerCase() === node.name.toLowerCase() || ch.parentElement.slug && node.slug && ch.parentElement.slug.toLowerCase() === node.slug.toLowerCase()))
+    );
+    if (children.length > 0) {
+      if (lines.length > 0 && lines[lines.length - 1] !== "") {
+        lines.push("");
+      }
+      children.forEach((child, cIdx) => {
+        const isChildLast = cIdx === children.length - 1;
+        emitElement(child, hDepth + 1, isChildLast);
+      });
+    }
+    if (isLast || node.trailingBlankLine !== false) {
+      if (lines.length > 0 && lines[lines.length - 1] !== "") {
+        lines.push("");
+      }
+    }
+  };
+  const emitConceptSection = (conceptName) => {
+    const key = conceptName.toLowerCase();
+    if (emittedConcepts.has(key)) return;
+    emittedConcepts.add(key);
+    const elementNodes = model.elements.get(conceptName);
+    const rawBody = model.rawSections?.[conceptName];
+    const unEmitted = elementNodes?.filter((n) => !emittedElements.has(n)) ?? [];
+    const hasUnEmitted = unEmitted.length > 0;
+    const cFields = model.conceptFields?.[conceptName];
+    const hasConceptFields = cFields && Object.keys(cFields).length > 0;
+    if (!hasUnEmitted && (!rawBody || !rawBody.trim()) && !hasConceptFields) return;
+    lines.push(`# NN ${conceptName}`);
+    const hasProperties = Boolean(hasConceptFields);
+    if (headingBlankLine(conceptName, true) && !hasProperties) {
+      lines.push("");
+    }
+    if (hasConceptFields) {
+      for (const [k, v] of Object.entries(cFields)) {
+        const raw = model.rawConceptFields?.[conceptName]?.[k];
+        lines.push(`${k}:: ${serializePropertyValue(v, raw)}`);
+      }
+    }
+    if (hasProperties && (hasUnEmitted || rawBody && rawBody.trim())) {
+      lines.push("");
+    }
+    if (hasUnEmitted) {
+      unEmitted.forEach((node, idx) => {
+        const isLast = idx === unEmitted.length - 1;
+        emitElement(node, 2, isLast);
+      });
+    } else if (rawBody) {
+      lines.push(rawBody);
+      lines.push("");
+    } else {
+      lines.push("");
+    }
+  };
+  const matrixBlankLine = (name) => headingBlankLine(`matrices: ${name}`, false);
+  const emitMatrixTable = (matrix) => {
+    lines.push(`# NN matrices: ${matrix.name}`);
+    if (matrixBlankLine(matrix.name)) lines.push("");
+    const colSet = new Set(matrix.cells.map((c) => c.col));
+    const rowSet = new Set(matrix.cells.map((c) => c.row));
+    const cols = Array.from(colSet);
+    const rows = Array.from(rowSet);
+    const cellMap = new Map(matrix.cells.map((c) => [`${c.row}||${c.col}`, c.value]));
+    const headerLine = `| ${matrix.source} \\ ${matrix.target} | ${cols.join(" | ")} |`;
+    const sepLine = `| :--- | ${cols.map(() => ":---:").join(" | ")} |`;
+    lines.push(headerLine);
+    lines.push(sepLine);
+    for (const row of rows) {
+      const vals = cols.map((c) => cellMap.get(`${row}||${c}`) || "-");
+      lines.push(`| ${row} | ${vals.join(" | ")} |`);
+    }
+    lines.push("");
+  };
+  const emittedMatrices = /* @__PURE__ */ new Set();
+  const emitMatrixSection = (matrixName) => {
+    const key = matrixName.toLowerCase();
+    if (emittedMatrices.has(key)) return;
+    emittedMatrices.add(key);
+    const matrix = model.matrices.find((m) => m.name.toLowerCase() === key);
+    if (matrix) emitMatrixTable(matrix);
+  };
+  const emittedOpaque = /* @__PURE__ */ new Set();
+  const emitOpaqueSection = (title) => {
+    if (emittedOpaque.has(title)) return;
+    emittedOpaque.add(title);
+    const text = model.rawOtherSections?.[title];
+    if (!text || !text.trim()) return;
+    for (const line of text.split("\n")) lines.push(line);
+    lines.push("");
+  };
+  const isOpaque = (entry) => model.rawOtherSections !== void 0 && Object.prototype.hasOwnProperty.call(model.rawOtherSections, entry);
+  for (const entry of model.sectionOrder ?? []) {
+    if (entry === "index") emitIndex();
+    else if (entry.startsWith("matrices: ")) emitMatrixSection(entry.slice("matrices: ".length));
+    else if (isOpaque(entry)) emitOpaqueSection(entry);
+    else emitConceptSection(entry);
+  }
+  emitIndex();
+  for (const [conceptName] of model.elements.entries()) emitConceptSection(conceptName);
+  if (model.conceptFields) {
+    for (const conceptName of Object.keys(model.conceptFields)) emitConceptSection(conceptName);
+  }
+  if (model.rawSections) {
+    for (const conceptName of Object.keys(model.rawSections)) emitConceptSection(conceptName);
+  }
+  for (const matrix of model.matrices) emitMatrixSection(matrix.name);
+  if (model.rawOtherSections) {
+    for (const title of Object.keys(model.rawOtherSections)) emitOpaqueSection(title);
+  }
+  return lines.join("\n");
+}
 
 // iNNfo/packages/nn-core/src/types/parser.ts
 var ElementsMap = class {
@@ -9195,12 +18767,1697 @@ function driftReport(input) {
   }
   return { v: 1, rows, skipped };
 }
+
+// iNNfo/packages/nn-core/src/changeset/types.ts
+var CHANGE_OPS = [
+  "update_field",
+  "add_element",
+  "remove_element",
+  "rename_element",
+  "rename_concept",
+  "update_matrix_cell",
+  "update_concept_text",
+  "update_concept_field",
+  "remove_matrix",
+  "add_matrix",
+  "comment",
+  "add_model",
+  "freeze_slugs",
+  "bump_version"
+];
+function isChangeStatus(val) {
+  return typeof val === "string" && ["proposed", "applied", "partially_applied", "rejected", "conflict"].includes(val);
+}
+function isChangeOp(val) {
+  return typeof val === "string" && CHANGE_OPS.includes(val);
+}
+function addModelProblems(change) {
+  if (change.op !== "add_model") return [];
+  const problems = [];
+  const id = change.id;
+  for (const key of ["from", "to", "base_hash"]) {
+    if (change[key] !== void 0) {
+      problems.push(`change "${id}": add_model must not carry "${key}"`);
+    }
+  }
+  if (change.concept !== void 0 || change.fields !== void 0 || change.slug !== void 0) {
+    problems.push(`change "${id}": add_model must not carry element payload (concept, slug, fields)`);
+  }
+  if (!change.blueprint_name) problems.push(`change "${id}": add_model requires "blueprint_name"`);
+  if (!change.blueprint_url) problems.push(`change "${id}": add_model requires "blueprint_url"`);
+  const target = change.target;
+  if (!target || target.includes("@") || target.includes("&") || target.includes("..") || /^[a-zA-Z]:/.test(target) || /[\\/]/.test(target)) {
+    problems.push(`change "${id}": add_model target must be a plain model id (no "@", "&", "..", path separators, or absolute path)`);
+  }
+  return problems;
+}
+
+// iNNfo/packages/nn-core/src/changeset/hasher.ts
+var import_node_crypto = require("node:crypto");
+var PROPOSAL_KEYS = [
+  "id",
+  "op",
+  "target",
+  "from",
+  "to",
+  "concept",
+  "name",
+  "slug",
+  "fields",
+  "author",
+  "notes",
+  "base_hash",
+  "evidence",
+  "blueprint_name",
+  "blueprint_url",
+  "knowledge_version"
+];
+function canonicalizeValue(val) {
+  if (val === null || val === void 0) return void 0;
+  if (typeof val !== "object") return val;
+  if (Array.isArray(val)) {
+    return val.map(canonicalizeValue);
+  }
+  const obj = val;
+  const sortedKeys2 = Object.keys(obj).sort();
+  const out = {};
+  for (const k of sortedKeys2) {
+    const v = canonicalizeValue(obj[k]);
+    if (v !== void 0) {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+function canonicalizeChangeItem(change) {
+  const result = {};
+  for (const key of PROPOSAL_KEYS) {
+    const val = change[key];
+    if (val !== void 0 && val !== null) {
+      result[key] = canonicalizeValue(val);
+    }
+  }
+  return result;
+}
+function computeProposalSha(changes) {
+  const canonicalItems = changes.map(canonicalizeChangeItem);
+  const serialized = JSON.stringify(canonicalItems);
+  return (0, import_node_crypto.createHash)("sha256").update(serialized, "utf8").digest("hex").toLowerCase();
+}
+
+// iNNfo/packages/nn-core/src/changeset/parser.ts
+var import_yaml6 = __toESM(require_dist(), 1);
+function stripQuotes(str3) {
+  const trimmed = str3.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "string") return parsed;
+    } catch {
+    }
+    return trimmed.slice(1, -1);
+  }
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+function parseFieldsValue(str3) {
+  const trimmed = str3.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "object" && parsed !== null) {
+        const out = {};
+        for (const [k, v] of Object.entries(parsed)) {
+          out[k] = String(v);
+        }
+        return out;
+      }
+    } catch {
+    }
+  }
+  return void 0;
+}
+var CHANGESET_FRONTMATTER_INVALID = "CHANGESET_FRONTMATTER_INVALID";
+function invalidFrontmatter(detail) {
+  throw new Error(`${CHANGESET_FRONTMATTER_INVALID}: ${detail}`);
+}
+function validateFrontmatter(fm) {
+  if (fm.level !== 3) {
+    invalidFrontmatter("level must be 3");
+  }
+  const parent = fm.parent_spec;
+  if (typeof parent !== "object" || parent === null || Array.isArray(parent)) {
+    invalidFrontmatter("parent_spec must be an object with name and url");
+  }
+  const parentObj = parent;
+  if (parentObj.name !== "changes") {
+    invalidFrontmatter('parent_spec.name must be "changes"');
+  }
+  if (typeof parentObj.url !== "string" || parentObj.url.length === 0) {
+    invalidFrontmatter("missing parent_spec.url");
+  }
+  if (typeof fm.spec_version !== "string" || fm.spec_version.length === 0) {
+    invalidFrontmatter("missing spec_version");
+  }
+  if (typeof fm.blueprint_version !== "string" || fm.blueprint_version.length === 0) {
+    invalidFrontmatter("missing blueprint_version");
+  }
+  if (!isChangeStatus(fm.status)) {
+    invalidFrontmatter(
+      "status must be one of proposed|applied|partially_applied|rejected|conflict"
+    );
+  }
+  return fm;
+}
+function parseChangeset(rawContent) {
+  const frontmatterMatch = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(rawContent.trimStart());
+  if (!frontmatterMatch) {
+    invalidFrontmatter("missing frontmatter block");
+  }
+  const yamlText = frontmatterMatch[1];
+  const body = frontmatterMatch[2];
+  let parsedYaml;
+  try {
+    parsedYaml = (0, import_yaml6.parse)(yamlText);
+  } catch {
+    invalidFrontmatter("frontmatter is not valid YAML");
+  }
+  if (typeof parsedYaml !== "object" || parsedYaml === null || Array.isArray(parsedYaml)) {
+    invalidFrontmatter("missing frontmatter block");
+  }
+  const frontmatter = validateFrontmatter(parsedYaml);
+  const changeHeadingRegex = /^##\s+NN\s+Change:\s*(.+)$/i;
+  const lines = body.split(/\r?\n/);
+  const changes = [];
+  let currentChange = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headingMatch = changeHeadingRegex.exec(line.trim());
+    if (headingMatch) {
+      if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
+        changes.push(currentChange);
+      }
+      currentChange = {
+        id: headingMatch[1].trim()
+      };
+      continue;
+    }
+    if (!currentChange) continue;
+    const propMatch = /^([a-zA-Z0-9_-]+)::\s*(.*)$/.exec(line.trim());
+    if (!propMatch) continue;
+    const key = propMatch[1].trim();
+    const rawVal = propMatch[2].trim();
+    switch (key) {
+      case "op":
+        if (!isChangeOp(rawVal)) {
+          throw new Error(`Invalid changeset op: "${rawVal}"`);
+        }
+        currentChange.op = rawVal;
+        break;
+      case "target":
+        currentChange.target = rawVal;
+        break;
+      case "from":
+        currentChange.from = stripQuotes(rawVal);
+        break;
+      case "to":
+        currentChange.to = stripQuotes(rawVal);
+        break;
+      case "base_hash":
+        currentChange.base_hash = stripQuotes(rawVal);
+        break;
+      case "concept":
+        currentChange.concept = rawVal;
+        break;
+      case "name":
+        currentChange.name = stripQuotes(rawVal);
+        break;
+      case "slug":
+        currentChange.slug = rawVal;
+        break;
+      case "fields": {
+        const parsedObj = parseFieldsValue(rawVal);
+        if (parsedObj) {
+          currentChange.fields = parsedObj;
+        }
+        break;
+      }
+      case "author":
+        currentChange.author = stripQuotes(rawVal);
+        break;
+      case "notes":
+        currentChange.notes = stripQuotes(rawVal);
+        break;
+      case "evidence":
+        currentChange.evidence = stripQuotes(rawVal);
+        break;
+      case "blueprint_name":
+        currentChange.blueprint_name = stripQuotes(rawVal);
+        break;
+      case "blueprint_url":
+        currentChange.blueprint_url = stripQuotes(rawVal);
+        break;
+      case "knowledge_version":
+        currentChange.knowledge_version = stripQuotes(rawVal);
+        break;
+      case "applied_at":
+        currentChange.applied_at = stripQuotes(rawVal);
+        break;
+      case "batch":
+        currentChange.batch = stripQuotes(rawVal);
+        break;
+      case "status":
+        if (!isChangeStatus(rawVal)) {
+          throw new Error(`Invalid changeset status: "${rawVal}"`);
+        }
+        currentChange.status = rawVal;
+        break;
+      case "resolution":
+        currentChange.resolution = stripQuotes(rawVal);
+        break;
+      case "resolved_slug":
+        currentChange.resolved_slug = rawVal;
+        break;
+      default:
+        break;
+    }
+  }
+  if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
+    changes.push(currentChange);
+  }
+  const problems = changes.flatMap(addModelProblems);
+  if (problems.length > 0) {
+    throw new Error(`Invalid add_model change: ${problems.join("; ")}`);
+  }
+  return {
+    frontmatter,
+    changes,
+    rawContent
+  };
+}
+
+// iNNfo/packages/nn-core/src/changeset/serializer.ts
+var import_yaml7 = __toESM(require_dist(), 1);
+var ANNOTATION_RE = /^(status|resolution|resolved_slug|applied_at|batch)::/;
+var CHANGE_HEADING_RE = /^##\s+NN\s+Change:\s*(.+)$/i;
+function detectEol(text) {
+  return text.includes("\r\n") ? "\r\n" : "\n";
+}
+function formatPropertyValue(val) {
+  if (val.includes('"') || val.includes("\n")) {
+    return JSON.stringify(val);
+  }
+  return val;
+}
+function annotationLines(item) {
+  const lines = [];
+  if (item.status !== void 0) {
+    lines.push(`status:: ${item.status}`);
+  }
+  if (item.resolution !== void 0) {
+    lines.push(`resolution:: ${formatPropertyValue(item.resolution)}`);
+  }
+  if (item.resolved_slug !== void 0) {
+    lines.push(`resolved_slug:: ${item.resolved_slug}`);
+  }
+  if (item.applied_at !== void 0) {
+    lines.push(`applied_at:: ${formatPropertyValue(item.applied_at)}`);
+  }
+  if (item.batch !== void 0) {
+    lines.push(`batch:: ${formatPropertyValue(item.batch)}`);
+  }
+  return lines;
+}
+function formatChangeItem(item) {
+  const lines = [];
+  lines.push(`## NN Change: ${item.id}`);
+  lines.push(`op:: ${item.op}`);
+  lines.push(`target:: ${item.target}`);
+  if (item.from !== void 0) {
+    lines.push(`from:: ${formatPropertyValue(item.from)}`);
+  }
+  if (item.to !== void 0) {
+    lines.push(`to:: ${formatPropertyValue(item.to)}`);
+  }
+  if (item.base_hash !== void 0) {
+    lines.push(`base_hash:: ${item.base_hash}`);
+  }
+  if (item.concept !== void 0) {
+    lines.push(`concept:: ${item.concept}`);
+  }
+  if (item.name !== void 0) {
+    lines.push(`name:: ${formatPropertyValue(item.name)}`);
+  }
+  if (item.slug !== void 0) {
+    lines.push(`slug:: ${item.slug}`);
+  }
+  if (item.blueprint_name !== void 0) {
+    lines.push(`blueprint_name:: ${formatPropertyValue(item.blueprint_name)}`);
+  }
+  if (item.blueprint_url !== void 0) {
+    lines.push(`blueprint_url:: ${formatPropertyValue(item.blueprint_url)}`);
+  }
+  if (item.knowledge_version !== void 0) {
+    lines.push(`knowledge_version:: ${formatPropertyValue(item.knowledge_version)}`);
+  }
+  if (item.fields !== void 0) {
+    lines.push(`fields:: ${JSON.stringify(item.fields)}`);
+  }
+  if (item.author !== void 0) {
+    lines.push(`author:: ${item.author}`);
+  }
+  if (item.notes !== void 0) {
+    lines.push(`notes:: ${formatPropertyValue(item.notes)}`);
+  }
+  if (item.evidence !== void 0) {
+    lines.push(`evidence:: ${formatPropertyValue(item.evidence)}`);
+  }
+  lines.push(...annotationLines(item));
+  return lines.join("\n");
+}
+function rewriteFrontmatter(yamlText, fm, eol) {
+  const lines = yamlText.split(/\r?\n/);
+  const blockEnd = (start) => {
+    let end = start + 1;
+    while (end < lines.length && /^[ \t]+\S/.test(lines[end])) end++;
+    return end;
+  };
+  const findKey = (key) => lines.findIndex((l) => new RegExp(`^${key}[ \\t]*:`).test(l));
+  const upsert = (key, valueLines) => {
+    const idx = findKey(key);
+    if (valueLines === null) {
+      if (idx >= 0) lines.splice(idx, blockEnd(idx) - idx);
+      return;
+    }
+    if (idx >= 0) {
+      lines.splice(idx, blockEnd(idx) - idx, ...valueLines);
+    } else {
+      lines.push(...valueLines);
+    }
+  };
+  upsert(
+    "proposal_sha",
+    fm.proposal_sha !== void 0 && fm.proposal_sha !== "" ? [`proposal_sha: ${fm.proposal_sha}`] : null
+  );
+  upsert("status", [`status: ${fm.status}`]);
+  upsert(
+    "resolution",
+    fm.resolution !== void 0 ? [`resolution: ${JSON.stringify(fm.resolution)}`] : null
+  );
+  upsert(
+    "applied_at",
+    fm.applied_at !== void 0 ? [`applied_at: ${fm.applied_at}`] : null
+  );
+  upsert(
+    "models",
+    fm.models !== void 0 ? (0, import_yaml7.stringify)({ models: fm.models }).trim().split(/\r?\n/) : null
+  );
+  return lines.join(eol);
+}
+function rewriteBodyAnnotations(body, changes, eol) {
+  const lines = body.split(/\r?\n/);
+  const byId = new Map(changes.map((c) => [c.id, c]));
+  const heads = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (CHANGE_HEADING_RE.test(lines[i].trim())) heads.push(i);
+  }
+  if (heads.length === 0) return body;
+  const out = [];
+  for (let i = 0; i < heads[0]; i++) out.push(lines[i]);
+  for (let h = 0; h < heads.length; h++) {
+    const start = heads[h];
+    const end = h + 1 < heads.length ? heads[h + 1] : lines.length;
+    const id = CHANGE_HEADING_RE.exec(lines[start].trim())[1].trim();
+    const blockLines = [];
+    for (let i = start; i < end; i++) {
+      const t = lines[i].replace(/\r$/, "").trim();
+      if (i > start && ANNOTATION_RE.test(t)) continue;
+      blockLines.push(lines[i]);
+    }
+    let trailingBlanks = 0;
+    while (blockLines.length > 0 && blockLines[blockLines.length - 1].replace(/\r$/, "").trim() === "") {
+      blockLines.pop();
+      trailingBlanks++;
+    }
+    const item = byId.get(id);
+    if (item) blockLines.push(...annotationLines(item));
+    out.push(...blockLines);
+    for (let b = 0; b < trailingBlanks; b++) out.push("");
+  }
+  return out.join(eol);
+}
+function serializePreservingRaw(doc) {
+  const raw = doc.rawContent;
+  const m = /^---\r?\n([\s\S]*?)\r?\n---(\r?\n?)([\s\S]*)$/.exec(raw);
+  if (!m) return serializeStructural(doc);
+  const eol = detectEol(raw);
+  const yamlText = m[1];
+  const afterFmEol = m[2];
+  const body = m[3];
+  const newYaml = rewriteFrontmatter(yamlText, doc.frontmatter, eol);
+  const newBody = rewriteBodyAnnotations(body, doc.changes, eol);
+  return `---${eol}${newYaml}${eol}---${afterFmEol}${newBody}`;
+}
+function serializeStructural(doc) {
+  const frontmatterClean = {};
+  for (const [k, v] of Object.entries(doc.frontmatter)) {
+    if (v !== void 0) {
+      frontmatterClean[k] = v;
+    }
+  }
+  const yamlPart = (0, import_yaml7.stringify)(frontmatterClean).trim();
+  const sections = [
+    `---`,
+    yamlPart,
+    `---`,
+    ``,
+    `# NN index`,
+    ``,
+    `* [[Change]]`,
+    ``,
+    `# NN Change`,
+    ``
+  ];
+  const changeBlocks = doc.changes.map(formatChangeItem);
+  sections.push(changeBlocks.join("\n\n"));
+  sections.push("");
+  return sections.join("\n");
+}
+function serializeChangeset(doc) {
+  if (doc.rawContent !== void 0) {
+    return serializePreservingRaw(doc);
+  }
+  return serializeStructural(doc);
+}
+
+// iNNfo/packages/nn-mcp/src/tools/apply-change.ts
+var import_promises7 = require("node:fs/promises");
+var import_node_path15 = require("node:path");
+init_dist();
+init_spec();
+
+// iNNfo/packages/nn-mcp/src/tools/model-id.ts
+init_dist();
+function modelIdAliases(changes) {
+  const aliases = /* @__PURE__ */ new Map();
+  const created = [];
+  for (const change of changes) {
+    if (change.op !== "add_model" || !change.target || !change.blueprint_name) continue;
+    const original = change.target.trim();
+    created.push({ original, canonical: canonicalModelId(original, change.blueprint_name) });
+  }
+  for (const { canonical } of created) aliases.set(canonical.toLowerCase(), canonical);
+  for (const { original, canonical } of created) {
+    if (!aliases.has(original.toLowerCase())) aliases.set(original.toLowerCase(), canonical);
+  }
+  return aliases;
+}
+function modelIdOfTarget(target) {
+  const at = target.indexOf("@");
+  return (at === -1 ? target : target.slice(0, at)).trim();
+}
+function canonicalizeTarget(target, aliases) {
+  const modelId = modelIdOfTarget(target);
+  const canonical = aliases.get(modelId.toLowerCase());
+  if (!canonical || canonical === modelId) return target;
+  const at = target.indexOf("@");
+  return at === -1 ? canonical : `${canonical}${target.slice(at)}`;
+}
+
+// iNNfo/packages/nn-mcp/src/tools/propose-changeset.ts
+var import_promises5 = require("node:fs/promises");
+var import_node_path14 = require("node:path");
+init_dist();
+init_spec();
+
+// iNNfo/packages/nn-mcp/src/tools/console-regeneration.ts
+init_dist();
+
+// iNNfo/packages/nn-mcp/src/tools/workspace-sync.ts
+init_dist();
+
+// iNNfo/packages/nn-mcp/src/tools/model-collisions.ts
+init_dist();
+
+// iNNfo/packages/nn-mcp/src/tools/dev-checkout.ts
+var import_node_path13 = require("node:path");
+var DEV_ROOT_MARKER = (0, import_node_path13.join)("iNNfo", "specs", "bluepriNNts", "console", "artifact_shell.html");
+
+// iNNfo/packages/nn-mcp/src/tools/propose-changeset.ts
+var CHANGES_SPEC_URL = "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/changes/spec_NN.md";
+var CHANGESET_SPEC_VERSION = "V_0-4-0";
+function changesBlueprintVersion() {
+  return findCanonicalBlueprint("changes").version;
+}
+function fileSegment(value, fallback) {
+  const cleaned = value.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^_+|_+$/g, "");
+  return cleaned === "" ? fallback : cleaned;
+}
+async function resolveWorkspaceId(rootDir) {
+  try {
+    const manifest = await (0, import_promises5.readFile)((0, import_node_path14.join)(rootDir, ENTRYPOINT_FILENAME2), "utf-8");
+    const frontmatter = parseFrontmatter2(manifest) ?? {};
+    const declared2 = frontmatter["workspace_id"];
+    if (typeof declared2 === "string" && declared2.trim() !== "") return declared2.trim();
+  } catch {
+  }
+  return slugify2((0, import_node_path14.basename)((0, import_node_path14.resolve)(rootDir))) || "domain";
+}
+function numberChanges(changes, author) {
+  return changes.map((change, index) => ({
+    ...change,
+    id: `c-${String(index + 1).padStart(2, "0")}`,
+    author: change.author ?? author,
+    // D2: evidence is mandatory. A caller that provides none gets the honest `unknown`
+    // (accepted, flagged by validation); a provenance claim is never invented.
+    evidence: change.evidence ?? "unknown"
+  }));
+}
+function buildProposedChangeset(changes, meta) {
+  const numbered = numberChanges(changes, meta.author);
+  return {
+    frontmatter: {
+      spec_version: CHANGESET_SPEC_VERSION,
+      level: 3,
+      parent_spec: { name: "changes", url: CHANGES_SPEC_URL },
+      blueprint_version: changesBlueprintVersion(),
+      status: "proposed",
+      proposal_sha: computeProposalSha2(numbered),
+      ...meta.title ? { title: meta.title } : {},
+      author: meta.author,
+      workspace_id: meta.workspaceId
+    },
+    changes: numbered
+  };
+}
+async function writeProposedChangeset(rootDir, input) {
+  const author = input.author?.trim() || "agent";
+  const workspaceId = input.workspaceId?.trim() || await resolveWorkspaceId(rootDir);
+  const document = buildProposedChangeset(input.changes, { title: input.title, author, workspaceId });
+  const text = serializeChangeset2(document);
+  const changesDir = (0, import_node_path14.join)(rootDir, "changes");
+  await (0, import_promises5.mkdir)(changesDir, { recursive: true });
+  const base = input.now ?? /* @__PURE__ */ new Date();
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const stamp = formatUtcStamp(new Date(base.getTime() + attempt * 1e3));
+    const fileName = `${fileSegment(workspaceId, "domain")}_${fileSegment(author, "agent")}_${stamp}_changes_NN.md`;
+    const absolutePath = (0, import_node_path14.join)(changesDir, fileName);
+    try {
+      await (0, import_promises5.writeFile)(absolutePath, text, { encoding: "utf-8", flag: "wx" });
+      return { path: `changes/${fileName}`, absolutePath, document };
+    } catch (err) {
+      if (err?.code !== "EEXIST") throw err;
+    }
+  }
+  throw new Error("Could not allocate a unique changeset file name in changes/");
+}
+
+// iNNfo/packages/nn-mcp/src/tools/apply-change.ts
+init_path_guard();
+
+// iNNfo/packages/nn-mcp/src/tools/knowledge-io.ts
+var import_promises6 = require("node:fs/promises");
+init_dist();
+init_spec();
+async function resolveBlueprintForKnowledge(rootDir, model) {
+  const parent = model.frontmatter.parent_spec;
+  if (parent?.url && parent?.name) {
+    const r = await resolveBlueprintWithCache(rootDir, parent.url, parent.name);
+    return { template: r.template, resolveInclude: r.resolveInclude };
+  }
+  return { template: null, resolveInclude: () => null };
+}
+async function loadKnowledge(filePath) {
+  const content = await (0, import_promises6.readFile)(filePath, "utf-8");
+  return parseKnowledge2(content);
+}
+
+// iNNfo/packages/nn-mcp/src/tools/validate.ts
+init_dist();
+init_spec();
+init_resolver_node();
+var DEFAULT_WORKSPACE_IGNORE = /* @__PURE__ */ new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  ".spec-cache",
+  "specs",
+  "backups",
+  "archive"
+]);
+
+// iNNfo/packages/nn-mcp/src/tools/apply-change.ts
+function parseVersion(v) {
+  const m = v.trim().match(/^V?_?(\d+)[-.](\d+)[-.](\d+)$/i);
+  if (!m) return null;
+  return { major: parseInt(m[1], 10), minor: parseInt(m[2], 10), patch: parseInt(m[3], 10) };
+}
+function formatVersion(p) {
+  return `V_${p.major}-${p.minor}-${p.patch}`;
+}
+function computeNewVersion(current, args) {
+  if (typeof args.version === "string" && args.version.trim() !== "") {
+    const parsed = parseVersion(args.version);
+    if (!parsed) return null;
+    return { version: formatVersion(parsed) };
+  }
+  const bump = typeof args.bump === "string" && args.bump.trim() !== "" ? args.bump.trim() : "patch";
+  if (!["major", "minor", "patch"].includes(bump)) return null;
+  if (!current) return null;
+  const parts = parseVersion(current);
+  if (!parts) return null;
+  if (bump === "major") {
+    parts.major += 1;
+    parts.minor = 0;
+    parts.patch = 0;
+  } else if (bump === "minor") {
+    parts.minor += 1;
+    parts.patch = 0;
+  } else {
+    parts.patch += 1;
+  }
+  return { version: formatVersion(parts) };
+}
+async function findAllWorkspaceModelFiles(dir, ignore, rootDir) {
+  const results = [];
+  const entries = await (0, import_promises7.readdir)(dir, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const lowerDir = entry.name.toLowerCase();
+      if (entry.name.startsWith(".") || ignore.has(lowerDir) || lowerDir === "changes" || lowerDir === "archive") continue;
+      const sub = await findAllWorkspaceModelFiles((0, import_node_path15.join)(dir, entry.name), ignore, rootDir);
+      results.push(...sub);
+    } else if (entry.isFile() && isNNName(entry.name) && entry.name.toLowerCase() !== "index.md" && !entry.name.endsWith("_changes_NN.md")) {
+      const filePath = (0, import_node_path15.join)(dir, entry.name);
+      const relPath = (0, import_node_path15.relative)(rootDir, filePath).split("\\").join("/");
+      if (isExcludedPath(relPath) || relPath.startsWith("changes/") || relPath.includes("/archive/") || relPath.startsWith("archive/")) continue;
+      results.push(filePath);
+    }
+  }
+  return results;
+}
+async function writeAndSync(filePath, data) {
+  const handle = await (0, import_promises7.open)(filePath, "w");
+  try {
+    await handle.writeFile(data, "utf-8");
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function persistAtomic(stagingPath, livePath) {
+  const MAX_RETRIES = 5;
+  let attempt = 0;
+  while (true) {
+    try {
+      await (0, import_promises7.rename)(stagingPath, livePath);
+      return;
+    } catch (err) {
+      const isLockError = err.code === "EPERM" || err.code === "EBUSY" || err.code === "EACCES";
+      if (isLockError && attempt < MAX_RETRIES) {
+        attempt++;
+        await new Promise((r) => setTimeout(r, attempt * 25));
+        continue;
+      }
+      await (0, import_promises7.rm)(stagingPath, { force: true }).catch(() => {
+      });
+      throw err;
+    }
+  }
+}
+var ANNOTATION_LINE_RE = /^(status|resolution|resolved_slug|applied_at|batch)::/;
+function normativeChangeLines(text) {
+  const out = [];
+  let inBlock = false;
+  for (const raw of text.split("\n")) {
+    const line = raw.replace(/\r$/, "");
+    if (/^##\s+NN\s+Change:/.test(line.trim())) {
+      inBlock = true;
+      out.push(line.trim());
+      continue;
+    }
+    if (/^#{1,6}\s/.test(line)) {
+      inBlock = false;
+      continue;
+    }
+    if (!inBlock) continue;
+    if (line.trim() === "") continue;
+    if (ANNOTATION_LINE_RE.test(line.trim())) continue;
+    out.push(line);
+  }
+  return out;
+}
+function altersNormativeLines(input, writeBack) {
+  const before = normativeChangeLines(input);
+  const after = normativeChangeLines(writeBack);
+  if (before.length !== after.length) return true;
+  return before.some((line, i) => line !== after[i]);
+}
+function maintenanceChangeProblem(change, model, createdInThisApply = false) {
+  if (change.op === "bump_version" && createdInThisApply) {
+    return {
+      code: "BUMP_ON_CREATED_MODEL",
+      message: "a model created by add_model in the same changeset is not bumped; set its initial knowledge_version on add_model"
+    };
+  }
+  if (model.frontmatter.level !== 3) {
+    return { code: "LEVEL3_ONLY", message: `${change.op} applies to a level-3 model only` };
+  }
+  if (change.op === "bump_version") {
+    const parent = model.frontmatter.parent_spec;
+    if (parent?.name === RECORD_BLUEPRINT) {
+      return {
+        code: "RECORD_UNVERSIONED",
+        message: "The lineage record is unversioned by design and cannot be bumped"
+      };
+    }
+    if (!isBumpLevel(change.to)) {
+      return {
+        code: "INVALID_BUMP_LEVEL",
+        message: `bump_version needs "to" to be one of ${BUMP_LEVELS.join(", ")}; got "${change.to ?? ""}"`
+      };
+    }
+  }
+  return null;
+}
+function hasUnfrozenElements(model) {
+  for (const [, elements] of model.elements.entries()) {
+    for (const el of elements) if (!el.slugExplicit) return true;
+  }
+  return false;
+}
+function parseTargetAddress(target) {
+  const atIdx = target.indexOf("@");
+  if (atIdx === -1) {
+    return { modelSlug: target.trim(), remainder: "", parts: [] };
+  }
+  const modelSlug = target.slice(0, atIdx).trim();
+  const remainder = target.slice(atIdx + 1).trim();
+  const parts = remainder.split("&").map((p) => p.trim());
+  return { modelSlug, remainder, parts };
+}
+function findElementInModel(model, conceptName, elementIdent) {
+  if (!elementIdent) return null;
+  const lowerIdent = elementIdent.toLowerCase();
+  if (conceptName) {
+    const list = model.elements.get(conceptName);
+    if (list) {
+      for (const el of list) {
+        if (el.name.toLowerCase() === lowerIdent || el.slug && el.slug.toLowerCase() === lowerIdent) {
+          return { concept: conceptName, element: el };
+        }
+      }
+    }
+  }
+  for (const [c, list] of model.elements.entries()) {
+    for (const el of list) {
+      if (el.name.toLowerCase() === lowerIdent || el.slug && el.slug.toLowerCase() === lowerIdent) {
+        return { concept: c, element: el };
+      }
+    }
+  }
+  return null;
+}
+async function executeChangesetApply(rootDir, changesetPathInput) {
+  const resolvedChangesetPath = (0, import_node_path15.isAbsolute)(changesetPathInput) ? changesetPathInput : (0, import_node_path15.join)(rootDir, changesetPathInput);
+  if (!isInsideRoot(rootDir, resolvedChangesetPath)) {
+    return {
+      success: false,
+      changesetPath: changesetPathInput,
+      status: "rejected",
+      models: {},
+      appliedCount: 0,
+      errors: [{ path: changesetPathInput, message: "Changeset path must resolve inside the workspace root" }]
+    };
+  }
+  const changesetStem = displayStem2((0, import_node_path15.basename)(resolvedChangesetPath));
+  const relChangesetPath = (0, import_node_path15.relative)(rootDir, resolvedChangesetPath).replace(/\\/g, "/");
+  const lockHandle = await acquireLock(rootDir, changesetStem);
+  try {
+    let rawChangeset;
+    try {
+      rawChangeset = await (0, import_promises7.readFile)(resolvedChangesetPath, "utf-8");
+    } catch (err) {
+      return {
+        success: false,
+        changesetPath: relChangesetPath,
+        status: "rejected",
+        models: {},
+        appliedCount: 0,
+        errors: [{ path: relChangesetPath, message: `Failed to read changeset file: ${err}` }]
+      };
+    }
+    let csDoc;
+    try {
+      csDoc = parseChangeset2(rawChangeset);
+    } catch (err) {
+      return {
+        success: false,
+        changesetPath: relChangesetPath,
+        status: "rejected",
+        models: {},
+        appliedCount: 0,
+        errors: [{ path: relChangesetPath, message: `Invalid changeset: ${err}` }]
+      };
+    }
+    const recordRejection = async (errors, changeId, warnings, persist = true) => {
+      const reason = errors.map((e) => e.code && !e.message.startsWith(e.code) ? `${e.code}: ${e.message}` : e.message).join("; ");
+      try {
+        if (!persist) throw new Error("not persisted");
+        const fresh = parseChangeset2(rawChangeset);
+        fresh.frontmatter.status = "rejected";
+        fresh.frontmatter.resolution = reason;
+        fresh.frontmatter.proposal_sha = csDoc.frontmatter.proposal_sha;
+        const target = changeId ? fresh.changes.find((c) => c.id === changeId) : void 0;
+        if (target) {
+          target.status = "rejected";
+          target.resolution = reason;
+        }
+        const text = serializeChangeset2(fresh);
+        if (!altersNormativeLines(rawChangeset, text)) {
+          await (0, import_promises7.writeFile)(resolvedChangesetPath, text, "utf-8");
+        }
+      } catch (err) {
+        if (persist) console.warn(`[apply-change] Could not persist the rejection of ${relChangesetPath}: ${err}`);
+      }
+      return {
+        success: false,
+        changesetPath: relChangesetPath,
+        changeset: relChangesetPath,
+        status: "rejected",
+        models: {},
+        appliedCount: 0,
+        errors,
+        ...warnings ? { warnings } : {}
+      };
+    };
+    const wasRejected = csDoc.frontmatter.status === "rejected";
+    if (wasRejected && csDoc.frontmatter.proposal_sha && verifyProposalSha(csDoc)) {
+      const recorded = csDoc.frontmatter.resolution ?? "The changeset was rejected";
+      return {
+        success: false,
+        changesetPath: relChangesetPath,
+        status: "rejected",
+        models: {},
+        appliedCount: 0,
+        errors: [{ path: relChangesetPath, message: `CHANGESET_REJECTED: ${recorded}`, code: "CHANGESET_REJECTED" }]
+      };
+    }
+    if (wasRejected) {
+      csDoc.frontmatter.status = "proposed";
+      delete csDoc.frontmatter.resolution;
+      for (const c of csDoc.changes) {
+        if (c.status === "rejected") {
+          delete c.status;
+          delete c.resolution;
+        }
+      }
+      csDoc.frontmatter.proposal_sha = computeProposalSha2(csDoc.changes);
+    }
+    if (!csDoc.frontmatter.proposal_sha) {
+      csDoc.frontmatter.proposal_sha = computeProposalSha2(csDoc.changes);
+    }
+    if (!verifyProposalSha(csDoc)) {
+      if (csDoc.frontmatter.status === "conflict") {
+        csDoc.frontmatter.proposal_sha = computeProposalSha2(csDoc.changes);
+      } else {
+        return {
+          success: false,
+          changesetPath: relChangesetPath,
+          status: "conflict",
+          models: {},
+          appliedCount: 0,
+          errors: [
+            {
+              path: "frontmatter.proposal_sha",
+              message: "PROPOSAL_TAMPERED: proposal_sha does not match canonical proposed changes. The changeset was edited after validation \u2014 review the annotated resolutions and re-submit as a new proposal (or clear frontmatter.proposal_sha so it is re-sealed at intake).",
+              code: "PROPOSAL_TAMPERED"
+            }
+          ]
+        };
+      }
+    }
+    if (csDoc.frontmatter.status === "applied" || csDoc.frontmatter.status === "partially_applied") {
+      const recordedModels = csDoc.frontmatter.models ?? {};
+      let allMatch = Object.keys(recordedModels).length > 0;
+      for (const [modelSlug, transition] of Object.entries(recordedModels)) {
+        let modelFile = null;
+        try {
+          modelFile = await findKnowledgeFile(rootDir, modelSlug);
+        } catch {
+          allMatch = false;
+          break;
+        }
+        if (!modelFile) {
+          allMatch = false;
+          break;
+        }
+        try {
+          const liveRaw = await (0, import_promises7.readFile)(modelFile, "utf-8");
+          const liveModel = parseKnowledge2(liveRaw);
+          const liveVersion = String(
+            liveModel.frontmatter.knowledge_version ?? liveModel.frontmatter.blueprint_version ?? ""
+          );
+          if (liveVersion !== transition.result_version) {
+            allMatch = false;
+            break;
+          }
+        } catch {
+          allMatch = false;
+          break;
+        }
+      }
+      const csStatus = csDoc.frontmatter.status;
+      if (allMatch) {
+        return {
+          success: true,
+          changesetPath: relChangesetPath,
+          status: csStatus,
+          models: recordedModels,
+          appliedCount: 0,
+          conflictedCount: csDoc.changes.filter((c) => c.status === "conflict").length,
+          warnings: [{ path: "", message: "Idempotent replay: changeset already applied with matching model versions" }]
+        };
+      } else {
+        return {
+          success: true,
+          changesetPath: relChangesetPath,
+          status: csStatus,
+          models: recordedModels,
+          appliedCount: 0,
+          conflictedCount: csDoc.changes.filter((c) => c.status === "conflict").length,
+          warnings: [{ path: "", message: "Changeset already applied; no mutations performed" }]
+        };
+      }
+    }
+    const citationResolver = createFsSourceResolver(rootDir);
+    for (const change of csDoc.changes) {
+      if (!change.evidence) {
+        return recordRejection(
+          [
+            {
+              path: `changes.${change.id}.evidence`,
+              message: `EVIDENCE_REQUIRED: change "${change.id}" carries no evidence`,
+              code: "EVIDENCE_REQUIRED"
+            }
+          ],
+          change.id,
+          void 0,
+          false
+        );
+      }
+      if (change.evidence === "decision" || change.evidence === "unknown") continue;
+      const resolved = resolveCitation(
+        change.evidence,
+        "evidence",
+        citationResolver,
+        resolvedChangesetPath
+      );
+      if (!resolved.exists || resolved.error === "UNKNOWN_ANCHOR" || resolved.error === "MALFORMED") {
+        return recordRejection(
+          [
+            {
+              path: `changes.${change.id}.evidence`,
+              message: `CITATION_UNRESOLVED: change "${change.id}" cites "${change.evidence}" which does not resolve (${resolved.error ?? "NOT_FOUND"})`,
+              code: "CITATION_UNRESOLVED"
+            }
+          ],
+          change.id,
+          void 0,
+          false
+        );
+      }
+    }
+    const loadedModels = /* @__PURE__ */ new Map();
+    const rejectPhase1 = (code, path, message) => ({
+      success: false,
+      changesetPath: relChangesetPath,
+      status: "rejected",
+      models: {},
+      appliedCount: 0,
+      errors: [{ path, message: `${code}: ${message}`, code }]
+    });
+    const rejectProposal = (code, path, message, changeId) => recordRejection([{ path, message: `${code}: ${message}`, code }], changeId);
+    const idAliases = modelIdAliases(csDoc.changes);
+    for (const change of csDoc.changes) change.target = canonicalizeTarget(change.target, idAliases);
+    const addModelIndex = /* @__PURE__ */ new Map();
+    const existingAddModelIds = /* @__PURE__ */ new Set();
+    const blockedChanges = /* @__PURE__ */ new Map();
+    for (const [index, change] of csDoc.changes.entries()) {
+      if (change.op !== "add_model") continue;
+      const key = change.target.toLowerCase();
+      if (!isSafeRelativeId(change.target) || /[\\/]/.test(change.target)) {
+        return rejectProposal("ADD_MODEL_INVALID_TARGET", change.target, `change "${change.id}" has an unsafe model id "${change.target}"`, change.id);
+      }
+      if (addModelIndex.has(key)) {
+        return rejectProposal("ADD_MODEL_DUPLICATE", change.target, `more than one add_model change targets "${change.target}"`, change.id);
+      }
+      addModelIndex.set(key, index);
+    }
+    for (const [index, change] of csDoc.changes.entries()) {
+      if (change.op === "comment" || change.op === "add_model") continue;
+      const targetModel = parseTargetAddress(change.target).modelSlug;
+      const createdAt = addModelIndex.get(targetModel.toLowerCase());
+      if (createdAt !== void 0 && createdAt > index) {
+        return rejectProposal(
+          "ADD_MODEL_ORDER",
+          change.target,
+          `change "${change.id}" targets model "${targetModel}" before the add_model change that creates it`,
+          change.id
+        );
+      }
+    }
+    let needsKnowledgeDir = false;
+    for (const change of csDoc.changes) {
+      if (change.op !== "add_model") continue;
+      const key = change.target.toLowerCase();
+      let exists = false;
+      try {
+        exists = Boolean(await findKnowledgeFile(rootDir, change.target));
+      } catch (err) {
+        if (err instanceof AmbiguousModelIdError) exists = true;
+        else throw err;
+      }
+      if (exists) {
+        existingAddModelIds.add(key);
+        blockedChanges.set(change.id, {
+          code: "MODEL_EXISTS",
+          message: `MODEL_EXISTS: model "${change.target}" already exists; add_model never overwrites or repairs a model`
+        });
+        for (const other of csDoc.changes) {
+          if (other.id === change.id || other.op === "comment") continue;
+          if (parseTargetAddress(other.target).modelSlug.toLowerCase() !== key) continue;
+          blockedChanges.set(other.id, {
+            code: "DEPENDS_ON_CONFLICTED_CHANGE",
+            message: `DEPENDS_ON_CONFLICTED_CHANGE: change "${other.id}" depends on add_model change "${change.id}", which conflicted`
+          });
+        }
+      } else {
+        needsKnowledgeDir = true;
+      }
+    }
+    if (needsKnowledgeDir) {
+      const kDir = await (0, import_promises7.stat)((0, import_node_path15.join)(rootDir, "kNNowledge")).catch(() => null);
+      if (!kDir || !kDir.isDirectory()) {
+        return rejectPhase1("DOMAIN_LAYOUT_INVALID", "kNNowledge", "the domain has no kNNowledge/ directory to create models in");
+      }
+    }
+    const schemaFor = async (entry) => {
+      if (entry.schema === void 0) {
+        try {
+          const { template: schemaBlueprint, resolveInclude: schemaInclude } = await resolveBlueprintForKnowledge(rootDir, entry.model);
+          entry.schema = schemaBlueprint ? resolveBlueprintSchema(schemaBlueprint.rawContent, schemaInclude).schema : null;
+        } catch {
+          entry.schema = null;
+        }
+      }
+      return entry.schema ?? void 0;
+    };
+    for (const change of csDoc.changes) {
+      if (change.op === "comment") continue;
+      const { modelSlug } = parseTargetAddress(change.target);
+      if (!modelSlug) continue;
+      if (existingAddModelIds.has(modelSlug.toLowerCase())) continue;
+      if (change.op === "add_model") {
+        const cleanId = normalizeId(change.target);
+        const blueprintName = change.blueprint_name;
+        const blueprintUrl = change.blueprint_url;
+        let resolvedBlueprint = null;
+        let resolveFailure = "";
+        try {
+          resolvedBlueprint = await resolveBlueprintWithCache(rootDir, blueprintUrl, blueprintName);
+        } catch (err) {
+          resolveFailure = err instanceof Error ? err.message : String(err);
+        }
+        if (!resolvedBlueprint?.template) {
+          const detail = resolveFailure ? ` (${resolveFailure})` : "";
+          return rejectPhase1(
+            "BLUEPRINT_UNRESOLVED",
+            change.target,
+            `change "${change.id}": bluepriNNt "${blueprintName}" could not be resolved from "${blueprintUrl}"${detail}`
+          );
+        }
+        const composed = resolveBlueprintSchema(resolvedBlueprint.template.rawContent, resolvedBlueprint.resolveInclude);
+        if (composed.errors.length > 0) {
+          const detail = composed.errors.map((e) => `${e.path}: ${e.message}`).join("; ");
+          return rejectPhase1(
+            "BLUEPRINT_INVALID",
+            change.target,
+            `change "${change.id}": bluepriNNt "${blueprintName}" does not compose: ${detail}`
+          );
+        }
+        const content = scaffoldKnowledgeDocument({
+          id: cleanId,
+          blueprintName,
+          blueprintUrl,
+          title: change.name,
+          knowledgeVersion: change.knowledge_version,
+          schema: composed.schema,
+          blueprintFrontmatter: resolvedBlueprint.template.frontmatter
+        });
+        const filePath = (0, import_node_path15.join)(rootDir, "kNNowledge", `${cleanId}_NN.md`);
+        if (!isInsideRoot(rootDir, filePath)) {
+          return rejectPhase1("ADD_MODEL_INVALID_TARGET", change.target, `model id "${change.target}" resolves outside the domain`);
+        }
+        const created = parseKnowledge2(content);
+        const initialVersion = String(created.frontmatter.knowledge_version ?? "V_0-1-0");
+        loadedModels.set(modelSlug.toLowerCase(), {
+          modelSlug,
+          filePath,
+          model: created,
+          baseVersion: initialVersion,
+          nextVersion: initialVersion,
+          mutated: true,
+          created: true,
+          schema: composed.schema
+        });
+        continue;
+      }
+      if (!loadedModels.has(modelSlug.toLowerCase())) {
+        let modelFile = null;
+        try {
+          modelFile = await findKnowledgeFile(rootDir, modelSlug);
+        } catch (err) {
+          if (err instanceof AmbiguousModelIdError) {
+            return {
+              success: false,
+              changesetPath: relChangesetPath,
+              status: "rejected",
+              models: {},
+              appliedCount: 0,
+              errors: [{ path: change.target, message: err.message }]
+            };
+          }
+          throw err;
+        }
+        if (!modelFile) {
+          return {
+            success: false,
+            changesetPath: relChangesetPath,
+            status: "rejected",
+            models: {},
+            appliedCount: 0,
+            errors: [{ path: change.target, message: `Model not found: ${modelSlug}` }]
+          };
+        }
+        const model = await loadKnowledge(modelFile);
+        const parentName = model.frontmatter.parent_spec?.name;
+        if (parentName === RECORD_BLUEPRINT || roleOf2({ path: modelFile, parentSpecName: parentName }) === "lineage-record" || model.frontmatter.generated === true) {
+          return rejectPhase1(
+            "TOOL_OWNED_DOCUMENT",
+            change.target,
+            `"${modelSlug}" is a tool-owned lineage record and cannot be mutated by changesets; run nn-sources --lineage to regenerate it`
+          );
+        }
+        const baseVersion = String(
+          model.frontmatter.knowledge_version ?? model.frontmatter.blueprint_version ?? "V_0-1-0"
+        );
+        const nextVer = computeNewVersion(baseVersion, { bump: "patch" });
+        const nextVersion = nextVer ? nextVer.version : "V_0-1-1";
+        loadedModels.set(modelSlug.toLowerCase(), {
+          modelSlug,
+          filePath: modelFile,
+          model,
+          baseVersion,
+          nextVersion,
+          mutated: false,
+          created: false
+        });
+      }
+    }
+    const workspaceModels = /* @__PURE__ */ new Map();
+    for (const [, v] of loadedModels) {
+      workspaceModels.set(v.modelSlug, v.model);
+      if (v.model.frontmatter.knowledge_slug) {
+        workspaceModels.set(v.model.frontmatter.knowledge_slug.toLowerCase(), v.model);
+      }
+    }
+    if (csDoc.changes.some((c) => c.op === "remove_element")) {
+      const allFiles = await findAllWorkspaceModelFiles(rootDir, DEFAULT_WORKSPACE_IGNORE, rootDir);
+      for (const f of allFiles) {
+        const fStem = displayStem2((0, import_node_path15.basename)(f)).toLowerCase();
+        if (!workspaceModels.has(fStem)) {
+          try {
+            const m = await loadKnowledge(f);
+            workspaceModels.set(fStem, m);
+            if (m.frontmatter.knowledge_slug) {
+              workspaceModels.set(m.frontmatter.knowledge_slug.toLowerCase(), m);
+            }
+          } catch {
+          }
+        }
+      }
+    }
+    const loadedModelAsts = /* @__PURE__ */ new Map();
+    for (const [, v] of loadedModels) {
+      loadedModelAsts.set(v.modelSlug, v.model);
+      if (v.model.frontmatter.knowledge_slug) {
+        loadedModelAsts.set(v.model.frontmatter.knowledge_slug.toLowerCase(), v.model);
+      }
+    }
+    const slugResolution = resolveBatchSlugs(csDoc.changes, loadedModelAsts);
+    csDoc.changes = slugResolution.changes;
+    const { matrixCascades, referenceConflicts } = evaluateBatchDeleteImpact(
+      csDoc.changes,
+      loadedModelAsts,
+      workspaceModels
+    );
+    const modelBaseVersions = /* @__PURE__ */ new Map();
+    for (const [, v] of loadedModels) {
+      modelBaseVersions.set(v.modelSlug, v.baseVersion);
+      if (v.model.frontmatter.knowledge_slug) {
+        modelBaseVersions.set(v.model.frontmatter.knowledge_slug.toLowerCase(), v.baseVersion);
+      }
+    }
+    const changesDir = (0, import_node_path15.join)(rootDir, "changes");
+    const { cleanSubset, conflictedSubset, conflictDiagnostics } = await partitionChangeset(
+      csDoc.changes,
+      loadedModelAsts,
+      changesDir,
+      modelBaseVersions,
+      referenceConflicts,
+      blockedChanges
+    );
+    const actionableClean = cleanSubset.filter((c) => c.op !== "comment");
+    if (actionableClean.length === 0 && conflictedSubset.length > 0) {
+      for (const change of csDoc.changes) {
+        if (change.op === "comment") continue;
+        change.status = "conflict";
+        const diag = conflictDiagnostics.get(change.id);
+        change.resolution = diag ? diag.message : change.resolution || "Precondition failed";
+      }
+      csDoc.frontmatter.status = "conflict";
+      csDoc.frontmatter.applied_at = (/* @__PURE__ */ new Date()).toISOString();
+      const serializedCs2 = serializeChangeset2(csDoc);
+      if (altersNormativeLines(rawChangeset, serializedCs2)) {
+        return {
+          success: false,
+          changesetPath: relChangesetPath,
+          status: "rejected",
+          models: {},
+          appliedCount: 0,
+          errors: [
+            {
+              path: relChangesetPath,
+              message: "PROPOSAL_IMMUTABILITY_VIOLATION: the write-back would alter a normative line of a change block",
+              code: "PROPOSAL_IMMUTABILITY_VIOLATION"
+            }
+          ]
+        };
+      }
+      await (0, import_promises7.writeFile)(resolvedChangesetPath, serializedCs2, "utf-8");
+      return {
+        success: false,
+        changesetPath: relChangesetPath,
+        changeset: relChangesetPath,
+        status: "conflict",
+        models: {},
+        appliedCount: 0,
+        conflictedCount: conflictedSubset.length,
+        errors: Array.from(conflictDiagnostics.values()).map((d) => ({
+          path: relChangesetPath,
+          message: d.message,
+          code: d.code
+        }))
+      };
+    }
+    for (const change of conflictedSubset) {
+      change.status = "conflict";
+      const diag = conflictDiagnostics.get(change.id);
+      change.resolution = diag ? diag.message : change.resolution || "Precondition failed";
+    }
+    for (const change of cleanSubset) {
+      if (change.op === "comment") continue;
+      const { modelSlug, parts, remainder } = parseTargetAddress(change.target);
+      const entry = loadedModels.get(modelSlug.toLowerCase());
+      if (!entry) continue;
+      if (change.op === "bump_version" || change.op === "freeze_slugs") {
+        const problem = maintenanceChangeProblem(change, entry.model, entry.created);
+        if (problem) return rejectProposal(problem.code, change.target, `change "${change.id}": ${problem.message}`, change.id);
+      }
+      if (change.op === "freeze_slugs" && !hasUnfrozenElements(entry.model)) {
+        change.status = "applied";
+        change.resolution = "Slugs already frozen; nothing to do";
+        continue;
+      }
+      entry.mutated = true;
+      if (change.op === "add_model") {
+        change.status = "applied";
+        change.resolution = `Created model "${change.target}"`;
+        continue;
+      }
+      if (change.op === "bump_version") {
+        const level = change.to;
+        const rank = (l) => l ? BUMP_LEVELS.indexOf(l) + 1 : 0;
+        if (rank(level) > rank(entry.bumpLevel)) entry.bumpLevel = level;
+        change.status = "applied";
+        change.resolution = `Bumped knowledge_version (${level})`;
+        continue;
+      }
+      let renameSchema;
+      if (change.op === "rename_element" || change.op === "add_element" || change.op === "update_field" || change.op === "update_concept_field") {
+        renameSchema = await schemaFor(entry);
+        if (!renameSchema && change.op === "add_element") {
+          return rejectPhase1(
+            "BLUEPRINT_UNRESOLVED",
+            change.target,
+            `change "${change.id}": the bluepriNNt of model "${entry.modelSlug}" could not be resolved, so the concept cannot be checked`
+          );
+        }
+      }
+      let mutationArgs = {};
+      if (change.op === "update_field") {
+        const elIdent = parts[0];
+        const fieldIdent = parts.length > 1 ? parts[1] : "";
+        mutationArgs = {
+          conceptName: change.concept,
+          elementName: elIdent,
+          fieldName: fieldIdent,
+          value: change.to,
+          to: change.to,
+          target: change.target
+        };
+      } else if (change.op === "add_element") {
+        const conceptName = change.concept || (remainder && !remainder.includes("&") ? remainder : "");
+        const elementName = change.name || change.slug || "";
+        mutationArgs = {
+          conceptName,
+          elementName,
+          slug: change.resolved_slug || change.slug,
+          description: change.notes || ""
+        };
+        if (change.fields) {
+          Object.assign(mutationArgs, change.fields);
+        }
+        const declaredConcept = renameSchema?.concepts.find(
+          (c) => c.name.toLowerCase() === String(conceptName).toLowerCase()
+        );
+        if (declaredConcept) mutationArgs.conceptName = declaredConcept.name;
+      } else if (change.op === "update_matrix_cell") {
+        mutationArgs = {
+          // The console emits the matrix display name (`Concept 1-Concept 2
+          // Matrix`), not a slug. Pass it as BOTH: `matchesMatrix` accepts an
+          // exact name or a slugified name/slug, so name and slug targets both
+          // resolve.
+          matrixName: parts[0],
+          matrixSlug: parts[0],
+          row: parts[1],
+          col: parts[2],
+          value: change.to,
+          to: change.to
+        };
+      } else if (change.op === "remove_element") {
+        const elIdent = change.name || parts[0] || remainder;
+        let conceptName = change.concept;
+        if (!conceptName) {
+          const found = findElementInModel(entry.model, void 0, elIdent);
+          conceptName = found?.concept;
+        }
+        mutationArgs = { conceptName, elementName: elIdent };
+      } else if (change.op === "rename_element") {
+        const elIdent = parts[0] || remainder;
+        let conceptName = change.concept;
+        if (!conceptName) {
+          const found = findElementInModel(entry.model, void 0, elIdent);
+          conceptName = found?.concept;
+        }
+        mutationArgs = {
+          conceptName,
+          elementName: elIdent,
+          newName: change.name || change.to
+        };
+      } else if (change.op === "rename_concept") {
+        const conceptName = change.concept || remainder;
+        mutationArgs = { conceptName, newName: change.name || change.to };
+      } else if (change.op === "update_concept_text") {
+        const conceptName = change.concept || remainder;
+        mutationArgs = {
+          conceptName,
+          text: change.to || change.text || change.content || ""
+        };
+      } else if (change.op === "update_concept_field") {
+        let conceptName = change.concept || remainder;
+        let fieldName = "";
+        const ampIdx = remainder.indexOf("&");
+        if (ampIdx !== -1) {
+          conceptName = remainder.slice(0, ampIdx).trim();
+          fieldName = remainder.slice(ampIdx + 1).trim();
+        }
+        if (conceptName.toLowerCase().startsWith("concept:")) {
+          conceptName = conceptName.slice("concept:".length).trim();
+        }
+        mutationArgs = {
+          conceptName,
+          fieldName,
+          value: change.to,
+          to: change.to,
+          target: change.target
+        };
+      } else if (change.op === "remove_matrix") {
+        let matrixName = remainder.trim();
+        if (matrixName.toLowerCase().startsWith("matrix:")) {
+          matrixName = matrixName.slice("matrix:".length).trim();
+        }
+        mutationArgs = { matrixName, target: change.target };
+      } else if (change.op === "add_matrix") {
+        let matrixName = change.name || remainder.trim();
+        if (matrixName.toLowerCase().startsWith("matrix:")) {
+          matrixName = matrixName.slice("matrix:".length).trim();
+        }
+        mutationArgs = {
+          matrixName,
+          source: change.concept,
+          targetConcept: change.to,
+          columns: change.fields?.["columns"],
+          rows: change.fields?.["rows"],
+          target: change.target
+        };
+      } else {
+        mutationArgs = { target: change.target, value: change.to, to: change.to };
+      }
+      const mutRes = applyMutation(entry.model, change.op, mutationArgs, renameSchema);
+      if (!mutRes.success) {
+        return recordRejection(
+          (mutRes.errors ?? []).map((e) => ({ ...e, code: "MUTATION_FAILED" })),
+          change.id,
+          mutRes.warnings
+        );
+      }
+      change.status = "applied";
+      if (change.op === "remove_element") {
+        const cascadedCount = mutRes.cascadedMatrixCells ?? (matrixCascades.get(change.id)?.length ?? 0);
+        change.resolution = cascadedCount > 0 ? `Removed element and cascaded ${cascadedCount} matrix cell(s)` : "Removed element successfully";
+      } else {
+        change.resolution = "Applied successfully";
+      }
+      if (change.op === "add_element") {
+        const conceptName = mutationArgs.conceptName || change.concept;
+        if (conceptName) {
+          const list = entry.model.elements.get(conceptName);
+          if (list && list.length > 0) {
+            const addedEl = list[list.length - 1];
+            if (addedEl.slug) {
+              change.resolved_slug = addedEl.slug;
+            }
+          }
+        }
+      }
+    }
+    for (const [, entry] of loadedModels) {
+      if (entry.mutated && !entry.created) {
+        if (entry.bumpLevel) {
+          const requested = computeNewVersion(entry.baseVersion, { bump: entry.bumpLevel });
+          if (!requested) {
+            return recordRejection(
+              [
+                {
+                  path: entry.modelSlug,
+                  code: "INVALID_VERSION",
+                  message: `INVALID_VERSION: cannot bump "${entry.baseVersion}" of model "${entry.modelSlug}" by ${entry.bumpLevel}`
+                }
+              ]
+            );
+          }
+          entry.nextVersion = requested.version;
+        }
+        entry.model.frontmatter.knowledge_version = entry.nextVersion;
+      }
+    }
+    for (const [, entry] of loadedModels) {
+      if (!entry.mutated) continue;
+      let template = null;
+      let resolveInclude = () => null;
+      try {
+        const r = await resolveBlueprintForKnowledge(rootDir, entry.model);
+        template = r.template;
+        resolveInclude = r.resolveInclude;
+      } catch (err) {
+        return {
+          success: false,
+          changesetPath: relChangesetPath,
+          status: "rejected",
+          models: {},
+          appliedCount: 0,
+          errors: [{ path: entry.modelSlug, message: `Failed to resolve blueprint: ${err}` }]
+        };
+      }
+      const valRes = validateKnowledge(entry.model, template, null, resolveInclude);
+      if (!valRes.valid) {
+        return recordRejection(
+          valRes.errors.map((e) => ({ ...e, code: "VALIDATION_FAILED" })),
+          void 0,
+          valRes.warnings,
+          false
+        );
+      }
+    }
+    if (altersNormativeLines(rawChangeset, serializeChangeset2(csDoc))) {
+      return {
+        success: false,
+        changesetPath: relChangesetPath,
+        status: "rejected",
+        models: {},
+        appliedCount: 0,
+        errors: [
+          {
+            path: relChangesetPath,
+            message: "PROPOSAL_IMMUTABILITY_VIOLATION: the write-back would alter a normative line of a change block",
+            code: "PROPOSAL_IMMUTABILITY_VIOLATION"
+          }
+        ]
+      };
+    }
+    const modelsTransitionMap = {};
+    for (const [, entry] of loadedModels) {
+      if (!entry.created) continue;
+      if (await (0, import_promises7.stat)(entry.filePath).then(() => true, () => false)) {
+        return rejectPhase1("MODEL_EXISTS", entry.modelSlug, `model "${entry.modelSlug}" appeared while the changeset was being applied`);
+      }
+    }
+    const originalModelsBackup = /* @__PURE__ */ new Map();
+    const persistedFiles = /* @__PURE__ */ new Set();
+    for (const [, entry] of loadedModels) {
+      if (entry.mutated && !entry.created) {
+        try {
+          const content = await (0, import_promises7.readFile)(entry.filePath, "utf-8");
+          originalModelsBackup.set(entry.filePath, content);
+        } catch {
+        }
+      }
+    }
+    const rollbackPersistence = async () => {
+      for (const [, entry] of loadedModels) {
+        if (!entry.created) continue;
+        const stem = displayStem2((0, import_node_path15.basename)(entry.filePath));
+        await (0, import_promises7.rm)(entry.filePath, { force: true }).catch(() => {
+        });
+        await (0, import_promises7.rm)((0, import_node_path15.join)((0, import_node_path15.dirname)(entry.filePath), `${stem}.tmp`), { force: true }).catch(() => {
+        });
+      }
+      for (const [filePath, originalText] of originalModelsBackup) {
+        if (!persistedFiles.has(filePath)) continue;
+        try {
+          const stem = displayStem2((0, import_node_path15.basename)(filePath));
+          const stagingPath = (0, import_node_path15.join)((0, import_node_path15.dirname)(filePath), `${stem}.rollback.tmp`);
+          await writeAndSync(stagingPath, originalText);
+          await persistAtomic(stagingPath, filePath);
+        } catch (rollbackErr) {
+          console.warn(`[apply-change] Failed to rollback model "${filePath}": ${rollbackErr}`);
+        }
+      }
+      for (const [, entry] of loadedModels) {
+        const stem = displayStem2((0, import_node_path15.basename)(entry.filePath));
+        await (0, import_promises7.rm)((0, import_node_path15.join)((0, import_node_path15.dirname)(entry.filePath), `${stem}.tmp`), { force: true }).catch(() => {
+        });
+        await (0, import_promises7.rm)((0, import_node_path15.join)((0, import_node_path15.dirname)(entry.filePath), `${stem}.rollback.tmp`), { force: true }).catch(() => {
+        });
+      }
+    };
+    try {
+      for (const [, entry] of loadedModels) {
+        if (!entry.mutated) continue;
+        modelsTransitionMap[entry.modelSlug] = entry.created ? { result_version: entry.nextVersion } : { base_version: entry.baseVersion, result_version: entry.nextVersion };
+        const modelFile = entry.filePath;
+        const modelStem = displayStem2((0, import_node_path15.basename)(modelFile));
+        const stagingPath = (0, import_node_path15.join)((0, import_node_path15.dirname)(modelFile), `${modelStem}.tmp`);
+        const serialized = serializeKnowledge2(entry.model);
+        await writeAndSync(stagingPath, serialized);
+        await persistAtomic(stagingPath, modelFile);
+        persistedFiles.add(modelFile);
+        if (csDoc.changes.some(
+          (c) => c.op === "rename_element" && parseTargetAddress(c.target).modelSlug.toLowerCase() === entry.modelSlug.toLowerCase()
+        )) {
+          for (const c of csDoc.changes) {
+            if (c.op === "rename_element") {
+              try {
+                const modelDir = (0, import_node_path15.dirname)(modelFile);
+                const oldSlug = parseTargetAddress(c.target).parts[0].toLowerCase().replace(/[^a-z0-9-]/g, "_");
+                const newSlug = (c.name || c.to || "").toLowerCase().replace(/[^a-z0-9-]/g, "_");
+                const oldAssetDir = (0, import_node_path15.join)(modelDir, "assets", oldSlug);
+                const newAssetDir = (0, import_node_path15.join)(modelDir, "assets", newSlug);
+                const st = await (0, import_promises7.stat)(oldAssetDir).catch(() => null);
+                if (st && st.isDirectory()) {
+                  await (0, import_promises7.rename)(oldAssetDir, newAssetDir);
+                }
+              } catch (err) {
+                console.warn(`[apply-change] Asset dir rename failed: ${err}`);
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      await rollbackPersistence();
+      throw err;
+    }
+    const createdModelIds = Array.from(loadedModels.values()).filter((entry) => entry.created).map((entry) => entry.modelSlug);
+    const totalActionable = csDoc.changes.filter((c) => c.op !== "comment").length;
+    const cleanAppliedCount = cleanSubset.filter((c) => c.op !== "comment").length;
+    const overallStatus = cleanAppliedCount === totalActionable ? "applied" : "partially_applied";
+    const appliedAt = (/* @__PURE__ */ new Date()).toISOString();
+    const batchId = displayStem2((0, import_node_path15.basename)(resolvedChangesetPath));
+    csDoc.frontmatter.status = overallStatus;
+    csDoc.frontmatter.applied_at = appliedAt;
+    csDoc.frontmatter.models = modelsTransitionMap;
+    for (const change of csDoc.changes) {
+      change.applied_at = appliedAt;
+      change.batch = batchId;
+    }
+    const serializedCs = serializeChangeset2(csDoc);
+    try {
+      const csStaging = (0, import_node_path15.join)((0, import_node_path15.dirname)(resolvedChangesetPath), `${(0, import_node_path15.basename)(resolvedChangesetPath)}.tmp`);
+      await writeAndSync(csStaging, serializedCs);
+      await persistAtomic(csStaging, resolvedChangesetPath);
+    } catch (err) {
+      await rollbackPersistence();
+      throw err;
+    }
+    return {
+      success: true,
+      changesetPath: relChangesetPath,
+      changeset: relChangesetPath,
+      status: overallStatus,
+      models: modelsTransitionMap,
+      appliedCount: cleanAppliedCount,
+      conflictedCount: conflictedSubset.length,
+      model: loadedModels.size === 1 ? loadedModels.values().next().value?.model : void 0,
+      newPath: loadedModels.size === 1 ? loadedModels.values().next().value?.filePath : void 0,
+      ...createdModelIds.length > 0 ? { createdModels: createdModelIds } : {}
+    };
+  } finally {
+    await lockHandle.release();
+  }
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   buildModelIndex,
   buildScopeChain,
+  computeProposalSha,
   driftReport,
   elementChain,
+  executeChangesetApply,
   findDomainRoot,
   findInChain,
   findScopeChain,
@@ -9212,8 +20469,14 @@ function driftReport(input) {
   loadElementChain,
   loadElementChains,
   loadScopeProcedures,
+  parseChangeset,
+  parseKnowledge,
   resolve,
   resolveModelId,
   resolveProcedures,
-  stemCollisionMessage
+  serializeChangeset,
+  serializeKnowledge,
+  slugify,
+  stemCollisionMessage,
+  writeProposedChangeset
 });

@@ -80,3 +80,19 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
   - Blueprint `V_0-14-3`, skill `V_0-15-9`, regenerated catalog.
 - Verification: skill suite 420 tests, 420 pass; `node scripts/verify.js` green.
 - Deviations: none. Open issues: none.
+
+## Slice 1 — Core mirror target `video-script` (V_0-14-4)
+
+- Branch: `feature/conntent-v1-1` (base `feature/conntent-v1-0b`)
+- PR: pending
+- TDD: RED first (`test/core-mirror-video-script.test.mjs`), then GREEN.
+- Changes:
+  - New bundler entry `scripts/core-mirrors/video-script.ts` re-exporting the nn-core scope fold, `parseKnowledge`, `slugify`, `serializeKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, plus nn-mcp's `executeChangesetApply` and `writeProposedChangeset`.
+  - `scripts/build-core-mirrors.mjs`: the `scope` target is replaced by `video-script`; the output stays `lib/nn-core.generated.cjs`.
+  - `scripts/lib/knowledge-model.mjs` is now a thin adapter over the mirror's `parseKnowledge` (no private frontmatter reader or markdown parser); its public API is unchanged, so all 420 skill tests stay green.
+  - `tsconfig.scripts.json` excludes `scripts/core-mirrors/**` (the bundler entry pulled nn-core/nn-mcp sources into a program with different strictness).
+  - `test/no-retired-references.test.mjs`: the new mirror joins the generated-artifact allowlist (it embeds the write-once specs, like `console-payload.generated.cjs`).
+  - Blueprint `V_0-14-4`, skill `V_0-15-10`, regenerated catalog.
+- Bundle size (design A10): **821,953 bytes** (`lib/nn-core.generated.cjs`), up from 333,607 bytes for the scope-only mirror. Not unreasonably large, so no maintainer stop was needed.
+- Verification: skill suite 420 tests, 420 pass; `node scripts/verify.js` green (229 steps).
+- Deviations: `lib/knowledge-model.mjs` is kept as a one-function adapter instead of being deleted, because seven consumers still import its API; deletion belongs with the `produce` rewrite (Slice 7b). Open issues: none.
