@@ -208,17 +208,17 @@ const repoBlueprintsDir = join(
 )
 const visualCatalogSpecPath = join(repoBlueprintsDir, 'visual-catalog', 'spec_NN.md')
 
-describe('visual-catalog blueprint citation fields (real package)', () => {
-  it('declares Entry.source and Evidence.source as citation and types both onto the graph', async () => {
+describe('visual-catalog blueprint fields (real package)', () => {
+  it('declares Entry.source and Evidence.source as addresses, not citations', async () => {
     expect(existsSync(visualCatalogSpecPath)).toBe(true)
 
     const schema = extractBlueprintSchema(parseKnowledge(readFileSync(visualCatalogSpecPath, 'utf8')))
     expect(schema.concepts.find((c) => c.name === 'Entry')?.fields?.find((f) => f.name === 'source')?.type).toBe(
-      'citation',
+      'address',
     )
     expect(
       schema.concepts.find((c) => c.name === 'Evidence')?.fields?.find((f) => f.name === 'source')?.type,
-    ).toBe('citation')
+    ).toBe('address')
 
     const model = [
       '---',
@@ -231,11 +231,6 @@ describe('visual-catalog blueprint citation fields (real package)', () => {
       '## NN Entry: Museum Pass',
       'source:: sources/import/photo.md@## Capture',
       '',
-      '# NN Evidence',
-      '',
-      '## NN Evidence: Photo A',
-      'source:: sources/import/photo.md@## Capture',
-      '',
     ].join('\n')
 
     const root = fakeDir('workspace', [
@@ -246,14 +241,7 @@ describe('visual-catalog blueprint citation fields (real package)', () => {
     const result = await recursiveParse(root, undefined, { resolveBlueprintSchema: () => schema })
 
     const entry = Object.values(result.nodes).find((n) => n.name === 'Museum Pass')
-    const evidence = Object.values(result.nodes).find((n) => n.name === 'Photo A')
-    expect(entry!.sources?.map((s) => s.filePath)).toEqual(['sources/import/photo.md'])
-    expect(entry!.relationships.filter((r) => r.origin === 'source')).toEqual([
-      { targetId: 'sources/import/photo.md', label: 'source', origin: 'source' },
-    ])
-    expect(evidence!.sources?.map((s) => s.filePath)).toEqual(['sources/import/photo.md'])
-    expect(evidence!.relationships.filter((r) => r.origin === 'source')).toEqual([
-      { targetId: 'sources/import/photo.md', label: 'source', origin: 'source' },
-    ])
+    // An `address` field is NOT a citation: no source edge is produced.
+    expect(entry!.relationships.filter((r) => r.origin === 'source')).toEqual([])
   })
 })
