@@ -163,16 +163,15 @@ Files: `core/changelog/drift.ts`, `core-tests/changelog/drift.test.ts`.
 Verification: `npm --workspace=@cognnitive/nn-core test -- changelog`, `npm run verify:fast`.
 
 ### S2a.3 - Evidence index, performance guard, old matching deleted (PR 11, `lac/s2a3`, ~200 LOC added plus ~250 deleted)
-
 Goal: `evidence(scope)` and `tombstones`; legacy history matching replaced by the log.
 Depends on: PR 10.
 Rollback: revert; consumers fall back to the S0 wiring.
 
-- [ ] 2a.5 [RED] [P] Evidence index tests: `evidence('live')` uses the last applied change per unit after epoch cut, `evidence('all-time')` every applied change; a removed unit leaves no live edge but stays all-time. (cp: Evidence index)
-- [ ] 2a.6 [GREEN] [S] Implement `evidence(scope)` and `tombstones` in `core/changelog/index.ts`.
-- [ ] 2a.7 [RED] [P] Performance guard: fold over the largest corpus (benchmark fixture) completes under a documented budget; changelog is browser-safe (no Node imports in `index.ts`, only `node.ts` touches the filesystem).
-- [ ] 2a.8 [GREEN/REFACTOR] [S] Delete `core/console/provenance.ts`; reduce `core/changeset/history.ts` (`checkStaleTarget`) to a call into the log; delete `normalizeAddressKey`; update imports. Move any remaining `history.test.ts` cases onto the log.
-- [ ] 2a.9c [S] (was 2a.9) Regenerate mirrors, standard PR gate. Open PR 11.
+- [x] 2a.5 [RED] [P] Evidence index tests: `evidence('live')` uses the last applied change per unit after epoch cut, `evidence('all-time')` every applied change; a removed unit leaves no live edge but stays all-time. (cp: Evidence index)
+- [x] 2a.6 [GREEN] [S] Implement `evidence(scope)` and `tombstones` in `core/changelog/index.ts`.
+- [x] 2a.7 [RED] [P] Performance guard: fold over the largest corpus (benchmark fixture) completes under a documented budget; changelog is browser-safe (no Node imports in `index.ts`, only `node.ts` touches the filesystem).
+- [x] 2a.8 [GREEN/REFACTOR] [S] Delete `core/console/provenance.ts`; reduce `core/changeset/history.ts` (`checkStaleTarget`) to a call into the log; delete `normalizeAddressKey`; update imports. Move any remaining `history.test.ts` cases onto the log.
+- [x] 2a.9c [S] (was 2a.9) Regenerate mirrors, standard PR gate. Open PR 11.
 
 Files: `core/changelog/index.ts`, `core/console/provenance.ts` (deleted), `core/changeset/history.ts`, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-core test -- changelog changeset console`, `npm run verify:fast`.

@@ -589,7 +589,6 @@ Chain state: `lac/s2a2` is the tip (PR 10). Next branch:
 
 **PR 11 — S2a.3 (evidence index, performance guard, legacy matching deleted)**
 tasks 2a.5 [RED], 2a.6 [GREEN], 2a.7 [RED], 2a.8 [GREEN/REFACTOR], 2a.9c.
-
 - Add `evidence(scope: 'live' | 'all-time'): ReadonlyMap<string, EvidenceSite[]>` to
   `ChangeLog`: `'live'` uses the last applied change per unit after the epoch cut,
   `'all-time'` every applied change; a removed unit leaves no live edge but stays
@@ -606,6 +605,113 @@ tasks 2a.5 [RED], 2a.6 [GREEN], 2a.7 [RED], 2a.8 [GREEN/REFACTOR], 2a.9c.
   `console/console-payload.generated.cjs`, and run the console golden suites plus
   `npm --workspace=@cognnitive/nn-core test -- changelog changeset console` (run
   vitest directly) and `npm run verify:fast`.
+
+---
+
+## PR 11 — S2a.3 (branch `lac/s2a3`, base `lac/s2a2`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 2a.5, 2a.6, 2a.7, 2a.8, 2a.9c.
+
+- `core/changelog/index.ts`: `evidence(scope: 'live' | 'all-time')` returns a
+  `ReadonlyMap<string, EvidenceSite[]>` keyed by **citation** (path plus anchor,
+  exactly as the change carries it). `EvidenceSite` is `{changeId, unit, evidence,
+  sha256}`; a list evidence change is indexed under every item with its positional
+  sha list. `'live'` is the origin of every live unit (after the epoch cut) plus the
+  creation change of every live element; `'all-time'` is every applied change. A
+  removed unit has no origin, so its last edge never stays live, and a removed
+  element drops its creation edge. `tombstones` keeps returning the removal changes
+  (already real since S2a.1).
+- `core/console/provenance.ts` **deleted** (144 source lines). `deriveValueHistory` /
+  `deriveFieldOrigin` moved to `core/console/element-history.ts` (same behaviour, now
+  with the log's types); `console/index.ts` no longer exports the deleted barrel.
+  `detectUnrecordedEdits` is gone: `checkProvenance` (S2a.2) owns drift, and the
+  console export no longer re-implements matching (a comment marks the seam).
+- `core/changeset/history.ts`: `checkStaleTarget` keeps its signature (`changesDir`,
+  `modelSlug`, `elementSlug`, `baseVersion`, `maxScan = 50`) but scans the newest
+  `maxScan` changesets into a `buildChangeLogFromChangesets` log and asks it for the
+  element lifecycle (`add_element` / `remove_element`), then applies the same version
+  gate as before (`base_version >= base` or `result_version > base`). The local
+  reverse scan and `matchesElement` are gone. `normalizeAddressKey` was already
+  absent (removed in S0a) — nothing left to delete.
+- New tests: `core-tests/changelog/evidence.test.ts` (8: supersession, removed unit,
+  list evidence + sha list, live element creation evidence, epoch reuse, non-applied
+  ignored, artifact unit) and `core-tests/changelog/performance.test.ts` (2: a
+  12,000-change / 600-element corpus folds, enumerates units and builds both evidence
+  scopes under a documented 4,000 ms budget; only `node.ts` imports Node built-ins).
+  `tests/console/provenance.test.ts` deleted (its `history`/`origin` cases were already
+  encoded in `tests/changelog/log.test.ts`); two new log cases cover the element
+  lifecycle and a cleared unit having no origin.
+- Regenerated: `console/console-payload.generated.cjs` (generated, excluded from the
+  budget). The testlab fixture and console bundle were not touched: no console
+  blueprint file changed.
+- Size: 546 added / 460 deleted hand-authored (incl. ~240 lines of new tests and 254
+  deleted source/test lines), plus the generated payload mirror. Declared over the
+  400-line budget (~2.3x the ~200 forecast): the evidence-index contract, the
+  performance/browser guard and the deletion of the legacy reader share one slice.
+- Verification: nn-core `vitest run` 202 files / 2,123 tests green; nn-mcp `vitest run`
+  53 files / 628 tests green; `tsc -p` (core) and `tsc --noEmit` (nn-mcp) clean;
+  `build-core-mirrors` + its test green; all 40 `test/console-*.test.mjs` suites green;
+  `npm run verify:fast` fully green (202 steps).
+
+### Deviations
+
+30. The evidence index is **keyed by citation**, not by unit: the spec says "for each
+    cited path (and anchor) it MUST list the changes citing it", and gc/impact check
+    the sources side. `resolve_sources` (S2b.3) will query by unit instead, through
+    `site.unit`.
+31. `'live'` also carries the creation change of a live element, although an element is
+    not a fold unit: without it an element whose fields were never updated would lose
+    the evidence that created it, and the graph's `origin: "source"` edge (S2b.3) is
+    built from live evidence.
+32. There is no benchmark fixture in the repository (the largest domain has 5 applied
+    changesets), so the performance guard builds a synthetic 12,000-change corpus in
+    the test and documents a 4,000 ms budget. It catches accidental quadratic
+    behaviour, not milliseconds.
+33. The console export no longer prints its transitional `EDITED_WITHOUT_RECORD`
+    fingerprint on stderr. The capability moved to `checkProvenance` (S2a.2) and is
+    wired into `validate_knowledge` / `check_domain` in S2b.2; re-implementing it in a
+    static exporter would duplicate the matching A1 centralizes.
+34. `checkStaleTarget` keeps a version gate that needs the changeset frontmatter, so it
+    reads `models` per changeset while the log decides **which** change matters. The
+    log carries no version transitions by design; adding them to `LoggedChange` would
+    leak apply-time facts into the browser-safe log.
+
+---
+
+## Handoff — start here next session (after PR 11)
+
+Chain state: `lac/s2a3` is the tip (PR 11). Next branch:
+`git switch lac/s2a3 && git switch -c lac/s2b1`.
+
+**PR 12 — S2b.1 (strict replay)** — tasks 2b.1 [RED], 2b.2 [GREEN], 2b.3 [RED],
+2b.4 [GREEN], 2b.5 [RED/P], 2b.12a.
+
+- `core/mutate.ts`: add `replayMutations(model, ops, schema)`. Clone ONCE and run
+  every op on one draft (a spy asserts the clone count is 1); the result equals
+  sequential `applyMutation` output.
+- `mcp/tools/provenance-strict.ts`: rebuild the `add_model` skeleton through
+  blueprint resolution, replay through `replayMutations`, compare `serializeModel`
+  BODIES only (frontmatter excluded); `check_domain {strict: true}` returns the
+  report with `mode: 'strict'` and severity `error`. A whitespace-only edit is
+  strict drift and not fold drift.
+- `mcp-tests/provenance-differential.test.ts`: seeded random op sequences; fold and
+  strict agree when there is no drift, and both flag a mutated file.
+- Verification: `vitest run provenance` (nn-mcp) + `vitest run replay-mutations`
+  (nn-core) + `npm run verify:fast`; rebuild core dist (`tsc -p`) before
+  typechecking nn-mcp.
+
+**Then:** PR 13 (S2b.2) wires `checkProvenance` into `check_domain {provenance}` and
+`validate_knowledge` (keep the old `lineage` field until S4b); PR 14 (S2b.3) is
+`resolve_sources` with an optional `target`, console cell origin and the G13 graph
+edges; PR 15 (S3a.1) rewrites `projectLineage` as a projection.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
 
 ---
 
