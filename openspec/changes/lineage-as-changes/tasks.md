@@ -300,12 +300,12 @@ Goal: nn-sources no longer reads or refreshes the record; watch roots live in th
 Depends on: PR 18 (view, tools and producer payloads exist).
 Rollback: revert this PR (restores the CLI flags and journal); the record itself is untouched.
 
-- [ ] 4.1a [RED] [S] (was 4.1, nn-sources part) Gate tests (`scripts/*.test.mjs`, `sources/test`): `nn-sources --lineage|--provenance|--check` fail as unknown options and nothing refreshes a lineage after `--scan`, `--normalize-file`, `--cognitivize`, `--curate-csv`, `--unlink`; no `extractDeclaredCitations` or journal append function. (clv; apc; rm)
-- [ ] 4.2 [RED] [P] Watch-roots tests: `## NN External Watch Roots` is read from `domaiNN_NN.md`; parsing unchanged; `RECORD_TOKENS` gone; `external-scanner.js` and `domain-probe.js` read the entrypoint. (ewr) The reader MUST move before or in the same PR as the first record-reading code deleted; here it moves in the first PR of the S4 group and bootstrap writes the section into the entrypoint.
-- [ ] 4.3 [GREEN] [S] Move the watch-roots reader to the domaiNN entrypoint in `sources/external-scanner.js`, `domain-probe.js`, `bootstrap.js`; drop `RECORD_TOKENS`.
-- [ ] 4.4a [GREEN] [S] (was 4.4, nn-sources part) Delete `sources/provenance*.js`, `sources/lineage-check.js`, `extractDeclaredCitations`, `# NN Procedures` journal code, the `--lineage/--provenance/--check` flags and bootstrap record creation.
-- [ ] 4.6a [REFACTOR] [S] (was 4.6, nn-sources part) Delete the nn-sources record/provenance/journal tests (about 1,000 lines), add about 120 lines of replacement gate tests, fix dangling imports.
-- [ ] 4.7a [S] (was 4.7) Mirrors, standard PR gate, `npm --prefix skills/nn-sources test`. Open PR 19.
+- [x] 4.1a [RED] [S] (was 4.1, nn-sources part) Gate tests (`scripts/*.test.mjs`, `sources/test`): `nn-sources --lineage|--provenance|--check` fail as unknown options and nothing refreshes a lineage after `--scan`, `--normalize-file`, `--cognitivize`, `--curate-csv`, `--unlink`; no `extractDeclaredCitations` or journal append function. (clv; apc; rm)
+- [x] 4.2 [RED] [P] Watch-roots tests: `## NN External Watch Roots` is read from `domaiNN_NN.md`; parsing unchanged; `RECORD_TOKENS` gone; `external-scanner.js` and `domain-probe.js` read the entrypoint. (ewr) The reader MUST move before or in the same PR as the first record-reading code deleted; here it moves in the first PR of the S4 group and bootstrap writes the section into the entrypoint.
+- [x] 4.3 [GREEN] [S] Move the watch-roots reader to the domaiNN entrypoint in `sources/external-scanner.js`, `domain-probe.js`, `bootstrap.js`; drop `RECORD_TOKENS`.
+- [x] 4.4a [GREEN] [S] (was 4.4, nn-sources part) Delete `sources/provenance*.js`, `sources/lineage-check.js`, `extractDeclaredCitations`, `# NN Procedures` journal code, the `--lineage/--provenance/--check` flags and bootstrap record creation.
+- [x] 4.6a [REFACTOR] [S] (was 4.6, nn-sources part) Delete the nn-sources record/provenance/journal tests (about 1,000 lines), add about 120 lines of replacement gate tests, fix dangling imports.
+- [x] 4.7a [S] (was 4.7) Mirrors, standard PR gate, `npm --prefix skills/nn-sources test`. Open PR 19.
 
 Files: `sources/{external-scanner,domain-probe,bootstrap,index}.js`, `sources/provenance*.js` and `lineage-check.js` (deleted), tests.
 Verification: `npm --prefix skills/nn-sources test`, `npm run verify:fast`.

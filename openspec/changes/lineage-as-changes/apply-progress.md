@@ -1280,3 +1280,75 @@ worktree.
 
 ---
 
+## PR 19 — S4a (branch `lac/s4a`, base `lac/s3b2`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 4.1a, 4.2, 4.3, 4.4a, 4.6a, 4.7a.
+
+- Deleted `skills/nn-sources/scripts/provenance.js`, `scripts/lib/lineage-check.js` and
+  `scripts/lib/provenance-knowledge.js` (~350 source lines).
+- `scripts/index.js`: `--lineage`, `--provenance` and `--check` are gone from the known
+  options; an unrecognised option now FAILS with
+  `Error: unknown option(s): --x` and a pointer to `read_lineage` instead of silently
+  opening the interactive menu. Every record refresh + journal append was removed from
+  `--scan`, `--normalize-file`, `--cognitivize`, `--curate-csv`, `--unlink` and the
+  interactive scan. `--unlink` no longer rescans the workspace.
+- `scripts/lib/bootstrap.js`: no record is created; the fresh `domaiNN_NN.md` carries an
+  empty `## NN External Watch Roots` section and the returned `provModelPath` is gone.
+  The AGENTS.md text points at `produce_artifact` instead of the record.
+- `scripts/lib/external-scanner.js`: `RECORD_TOKENS` → `ENTRYPOINT_TOKENS`
+  (`domaiNN`, legacy `workspace`); watch roots are read from the entrypoint only.
+- Deleted five record suites (~1,000 lines: `test-provenance`, `test-provenance-knowledge`,
+  `test-lineage-check`, `test-lineage-sync`, `test-lineage-migration`) and their runner
+  registrations; added `test-s4a-record-removed.js` (8 gate assertions) and updated three
+  suites that asserted the record existed (`test-bootstrap-{recursive,inplace}`,
+  `test-sidecar-discovery`, `test-external-scanner`) to assert its absence and the
+  entrypoint-based watch roots.
+- Size: ~120 hand-authored lines added, ~1,500 lines deleted (source + tests). Declared
+  with the deletion stated separately, per the size policy.
+- Verification: `npm --prefix skills/nn-sources test` 564 passed / 0 failed;
+  `npm run verify:fast` fully green (202 steps, `Typecheck Scripts` included).
+
+### Deviations
+
+58. `domain-probe.js` does not exist in `skills/nn-sources` (the task's file list is
+    approximate); nothing to move there.
+59. The CLI now rejects ANY unknown option, not just the three retired ones: falling into
+    the interactive menu on a typo was the failure mode the gate test exposed.
+60. `--unlink` no longer rescans after deleting: the scan wrote sidecars for the removed
+    files' siblings and existed only to refresh the record.
+
+---
+
+## Handoff — start here next session (after PR 19)
+
+Chain state: `lac/s4a` is the tip (PR 19). Next branch:
+`git switch lac/s4a && git switch -c lac/s4b`.
+
+**PR 20 — S4b (record, tools and guards in core and mcp)** — tasks 4.1b [RED],
+4.4b [GREEN], 4.6b [REFACTOR], 4.7b. **Run the FULL `node scripts/verify.js` here.**
+
+- Gate tests: `sync_lineage` absent and `read_lineage` present; `check_domain` has no
+  `lineage` field; `roleOf('Acme_cogNNitive_NN.md')` is `knowledge`; no
+  `findLineageRecord`/`sync_lineage`/`LINEAGE_DRIFT` in `core/` or `mcp/`.
+- Delete `core/lineage/{record,render,drift}.ts`, `mcp/tools/sync-lineage.ts` (+ its
+  registration and spec), `scripts/lineage-drift-guard.js` + its `verify.js` step, the
+  lineage fixture domain, the `lineage-record` role in `core/naming/contract.ts`, the
+  record guards in `apply-change.ts`, the `legacy-write-guard.js` allowlist entry and
+  `check_domain.lineage`.
+- `lineage/index.ts` keeps the projection; `trannsformPrimitives.ts` keeps the mirror
+  exports the skill still uses (projection + log + naming).
+- Verification: full `node scripts/verify.js`, both package suites, typecheck.
+
+**Then:** PR 21 (S4c) removes `bluepriNNts/cogNNitive/`, the manifest entry, the catalog,
+the canonical registry and the record vocabulary; the global grep gate must reach 0.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
