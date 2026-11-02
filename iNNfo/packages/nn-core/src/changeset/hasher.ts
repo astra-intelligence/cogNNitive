@@ -2,9 +2,22 @@ import { createHash } from 'node:crypto'
 import type { ChangeItem, ChangesetDocument } from './types.js'
 
 /**
+ * The apply-written execution facts, as one exported list. They are annotation
+ * lines, never proposal input, and they are excluded from `proposal_sha`.
+ */
+export const EXECUTION_FACT_KEYS = [
+  'resolved_slug',
+  'resolved_target',
+  'evidence_sha256',
+] as const
+
+export type ExecutionFactKey = (typeof EXECUTION_FACT_KEYS)[number]
+
+/**
  * List of normative proposal property keys included in cryptographic proposal_sha.
- * Execution annotations (status, resolution, resolved_slug, applied_at, batch) and the
- * frontmatter execution fields (applied_at, models) are strictly excluded.
+ * Execution annotations (status, resolution, resolved_slug, resolved_target,
+ * evidence_sha256, applied_at, batch) and the frontmatter execution fields
+ * (applied_at, models) are strictly excluded.
  */
 export const PROPOSAL_KEYS = [
   'id',
@@ -15,7 +28,7 @@ export const PROPOSAL_KEYS = [
   'concept',
   'name',
   'slug',
-  'fields',
+  'seed',
   'author',
   'notes',
   'base_hash',

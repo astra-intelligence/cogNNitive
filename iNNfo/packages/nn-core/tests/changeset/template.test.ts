@@ -53,8 +53,7 @@ describe('changes blueprint — Level 3 template', () => {
     expect(evidence!.type).toBe('citation')
   })
 
-  it('validates a changeset holding update_concept_field and remove_matrix without invalid-op diagnostics', () => {
-    const changesetContent = `---
+  it('validates a changeset holding update_concept_field and remove_matrix without invalid-op diagnostics', () => {    const changesetContent = `---
 spec_version: "V_0-4-0"
 level: 3
 knowledge_version: "V_0-1-0"
@@ -87,5 +86,64 @@ target:: strategy@matrix:Access Matrix
     const res = validateKnowledge(model, specDoc, null)
     const errors = res.checks.filter((c) => c.severity === 'error')
     expect(errors).toEqual([])
+  })
+
+  it('accepts update_element_text and produce_artifact as Change ops', () => {
+    const changesetContent = `---
+spec_version: "V_0-5-0"
+level: 3
+knowledge_version: "V_0-1-0"
+parent_spec:
+  name: changes
+  url: "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/changes/spec_NN.md"
+blueprint_version: "V_0-6-0"
+status: proposed
+proposal_sha: "0000000000000000000000000000000000000000000000000000000000000000"
+title: "Prose and artifact"
+---
+
+# NN index
+
+* [[Change]]
+
+# NN Change
+
+## NN Change: c-01
+op:: update_element_text
+target:: strategy@statement
+from:: Draft text
+to:: Final text
+evidence:: [sources/import/a.md@## One]
+
+## NN Change: c-02
+op:: produce_artifact
+target:: artifacts/r_20261002T101500Z.md
+evidence:: [sources/import/a.md@## One]
+`
+    const model = parseKnowledge(changesetContent)
+    const res = validateKnowledge(model, specDoc, null)
+    const errors = res.checks.filter((c) => c.severity === 'error')
+    expect(errors).toEqual([])
+  })
+
+  it('declares the matrix seed and the execution-fact keys, and drops inline fields', () => {
+    const composed = resolveBlueprintSchema(changesSpec, () => null)
+    const change = composed.schema.concepts.find((c) => c.name === 'Change')!
+    const names = change.fields.map((f) => f.name)
+    for (const required of ['seed', 'resolved_target', 'evidence_sha256', 'applied_at', 'batch']) {
+      expect(names).toContain(required)
+    }
+    expect(names).not.toContain('fields')
+    expect(change.fields.find((f) => f.name === 'evidence')!.type).toBe('citation')
+  })
+
+  it('declares the ops update_element_text and produce_artifact in the op select', () => {
+    const composed = resolveBlueprintSchema(changesSpec, () => null)
+    const op = composed.schema.concepts
+      .find((c) => c.name === 'Change')!
+      .fields.find((f) => f.name === 'op')!
+    const options = ((op as { options?: unknown[] }).options ?? []).map((v) => String(v))
+    expect(options).toContain('update_element_text')
+    expect(options).toContain('produce_artifact')
   })
 })

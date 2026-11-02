@@ -9179,7 +9179,7 @@ var REQUIRED_BY_PRIMITIVE = {
 
 // stub:canonical-registry-stub
 function findCanonicalBlueprint(key) {
-  return key === "changes" ? { name: "changes", version: "V_0-5-5", aliases: [], specContent: "" } : null;
+  return key === "changes" ? { name: "changes", version: "V_0-6-0", aliases: [], specContent: "" } : null;
 }
 
 // iNNfo/packages/nn-core/src/resolver.ts
@@ -10039,6 +10039,20 @@ function stripQuotes(str2) {
   }
   return trimmed;
 }
+function parseJsonObject(str2) {
+  const trimmed = str2.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return void 0;
+  try {
+    const parsed = JSON.parse(trimmed);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function parseStringArray(value) {
+  if (!Array.isArray(value)) return void 0;
+  return value.map((v) => String(v));
+}
 function parseFieldsValue(str2) {
   const trimmed = str2.trim();
   if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
@@ -10197,6 +10211,26 @@ function parseChangeset(rawContent) {
       case "resolved_slug":
         currentChange.resolved_slug = rawVal;
         break;
+      case "resolved_target":
+        currentChange.resolved_target = rawVal;
+        break;
+      case "evidence_sha256": {
+        const shas = splitSourceFieldValue(rawVal);
+        if (shas.length > 0) currentChange.evidence_sha256 = shas;
+        break;
+      }
+      case "seed": {
+        const parsedSeed = parseJsonObject(rawVal);
+        if (parsedSeed) {
+          const seed = {};
+          const columns = parseStringArray(parsedSeed.columns);
+          const rows = parseStringArray(parsedSeed.rows);
+          if (columns) seed.columns = columns;
+          if (rows) seed.rows = rows;
+          currentChange.seed = seed;
+        }
+        break;
+      }
       default:
         break;
     }
@@ -10393,8 +10427,17 @@ async function writeOnce(root, t, bytes, o = {}) {
   }
 }
 
+// iNNfo/packages/nn-core/src/changeset/hasher.ts
+var EXECUTION_FACT_KEYS = [
+  "resolved_slug",
+  "resolved_target",
+  "evidence_sha256"
+];
+
 // iNNfo/packages/nn-core/src/changeset/serializer.ts
 var import_yaml9 = __toESM(require_dist(), 1);
+var ANNOTATION_KEYS = ["status", "resolution", "applied_at", "batch", ...EXECUTION_FACT_KEYS];
+var ANNOTATION_RE = new RegExp(`^(${ANNOTATION_KEYS.join("|")})::`);
 
 // iNNfo/packages/nn-core/src/console/element-hash.ts
 function canonicalJsonStringify(value) {

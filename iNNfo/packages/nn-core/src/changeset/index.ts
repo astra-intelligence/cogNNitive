@@ -1,4 +1,5 @@
 export * from './types.js'
+export * from './evidence.js'
 export * from './utils.js'
 export * from './hasher.js'
 export * from './parser.js'

@@ -63,10 +63,16 @@ export interface ChangeItem {
   /**
    * Evidence the change derives from — the ONLY provenance of the mutation — in the
    * shared citation grammar (`<path>@## <Heading>`, `<csv>@<row>`, `<json>@/<pointer>`,
-   * a bare path, or the literal tokens `decision` / `unknown`). Mandatory at apply
-   * intake; sealed into `proposal_sha`. Replaces the former `sources`.
+   * a bare path, or the literal tokens `decision` / `unknown`), or a bracketed list of
+   * those (the keywords only ever alone). Mandatory at apply intake; the serialized
+   * string is sealed into `proposal_sha`.
    */
   evidence?: string
+  /**
+   * `add_matrix` only: the header elements the matrix is created with, `{columns, rows}`.
+   * Sealed into `proposal_sha`; creates empty cells and records no cell units.
+   */
+  seed?: { columns?: string[]; rows?: string[] }
   /**
    * `add_model` only: the parent bluepriNNt of the model to create (name and immutable
    * URL) and its optional initial `knowledge_version`. Sealed into `proposal_sha`.
@@ -78,6 +84,13 @@ export interface ChangeItem {
   status?: ChangeStatus
   resolution?: string
   resolved_slug?: string
+  /**
+   * Execution fact stamped at apply: the canonical unit address of the change.
+   * Outside the seal; also an annotation line, rewritten on write-back.
+   */
+  resolved_target?: string
+  /** Execution fact: one sha256 per evidence entry, in evidence order. Outside the seal. */
+  evidence_sha256?: string[]
   /** Per-change execution fact: when the change was applied, UTC (excluded from proposal_sha). */
   applied_at?: string
   /** Per-change execution fact: the batch identity, the changeset stem (excluded from proposal_sha). */

@@ -1,9 +1,16 @@
 import { stringify as stringifyYaml } from 'yaml'
 import type { ChangesetDocument, ChangesetFrontmatter, ChangeItem } from './types.js'
+import { EXECUTION_FACT_KEYS } from './hasher.js'
 
-/** Execution annotation keys — the only per-change lines the raw path rewrites. */
-const ANNOTATION_RE = /^(status|resolution|resolved_slug|applied_at|batch)::/
+/** Per-change annotation keys: the only lines the raw path rewrites. */
+const ANNOTATION_KEYS = ['status', 'resolution', 'applied_at', 'batch', ...EXECUTION_FACT_KEYS] as const
+const ANNOTATION_RE = new RegExp(`^(${ANNOTATION_KEYS.join('|')})::`)
 const CHANGE_HEADING_RE = /^##\s+NN\s+Change:\s*(.+)$/i
+
+/** One evidence sha per entry, positional: `[a, b]`. */
+function formatShaList(shas: readonly string[]): string {
+  return `[${shas.join(', ')}]`
+}
 
 function detectEol(text: string): string {
   return text.includes('\r\n') ? '\r\n' : '\n'
@@ -28,6 +35,12 @@ function annotationLines(item: ChangeItem): string[] {
   }
   if (item.resolved_slug !== undefined) {
     lines.push(`resolved_slug:: ${item.resolved_slug}`)
+  }
+  if (item.resolved_target !== undefined) {
+    lines.push(`resolved_target:: ${item.resolved_target}`)
+  }
+  if (item.evidence_sha256 !== undefined && item.evidence_sha256.length > 0) {
+    lines.push(`evidence_sha256:: ${formatShaList(item.evidence_sha256)}`)
   }
   if (item.applied_at !== undefined) {
     lines.push(`applied_at:: ${formatPropertyValue(item.applied_at)}`)
@@ -73,6 +86,9 @@ function formatChangeItem(item: ChangeItem): string {
   }
   if (item.fields !== undefined) {
     lines.push(`fields:: ${JSON.stringify(item.fields)}`)
+  }
+  if (item.seed !== undefined) {
+    lines.push(`seed:: ${JSON.stringify(item.seed)}`)
   }
   if (item.author !== undefined) {
     lines.push(`author:: ${item.author}`)
