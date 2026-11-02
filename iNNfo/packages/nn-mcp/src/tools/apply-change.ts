@@ -32,6 +32,8 @@ import {
   splitEvidence,
   parseCitation,
   slugifyHeading,
+  isChangesetPath,
+  isSidecarName,
 } from '@cognnitive/nn-core'
 import type {
   SpecDocument,
@@ -325,6 +327,31 @@ function hasUnfrozenElements(model: ParsedKnowledge): boolean {
   return false
 }
 
+/** True when an applied `produce_artifact` already records `rel`. */
+async function artifactAlreadyRecorded(rootDir: string, rel: string): Promise<boolean> {
+  const dir = join(rootDir, 'changes')
+  let names: string[]
+  try {
+    names = await readdir(dir)
+  } catch {
+    return false
+  }
+  for (const name of names) {
+    if (!isNNName(name)) continue
+    let doc: ChangesetDocument
+    try {
+      doc = parseChangeset(await readFile(join(dir, name), 'utf-8'))
+    } catch {
+      continue
+    }
+    for (const change of doc.changes) {
+      if (change.op !== 'produce_artifact' || change.status !== 'applied') continue
+      if (change.target.replace(/\\/g, '/') === rel) return true
+    }
+  }
+  return false
+}
+
 /* ── Execution facts (change-provenance) ─────────────────────── */
 
 /** The element an address label names, by frozen slug, display name or slugified name. */
@@ -372,8 +399,7 @@ function resolvedTargetForChange(
       const field = change.op === 'update_concept_field' ? parts[1] : undefined
       return resolvedTarget.concept(modelId, concept, field)
     }
-    case 'update_matrix_cell': {
-      const [matIdent, rowLabel, colLabel] = parts
+    case 'update_matrix_cell': {      const [matIdent, rowLabel, colLabel] = parts
       if (!matIdent || !rowLabel || !colLabel) return undefined
       const wanted = matIdent.toLowerCase()
       const matrix = model.matrices.find(
@@ -387,6 +413,8 @@ function resolvedTargetForChange(
       const colSlug = axisSlug(colLabel, elementByLabel(model, colLabel)?.slug)
       return resolvedTarget.cell(modelId, matrixSlug, rowSlug, colSlug)
     }
+    case 'produce_artifact':
+      return resolvedTarget.artifact(change.target)
     default:
       return undefined
   }
@@ -824,7 +852,7 @@ export async function executeChangesetApply(
       addModelIndex.set(key, index)
     }
     for (const [index, change] of csDoc.changes.entries()) {
-      if (change.op === 'comment' || change.op === 'add_model') continue
+      if (change.op === 'comment' || change.op === 'add_model' || change.op === 'produce_artifact') continue
       const targetModel = parseTargetAddress(change.target).modelSlug
       const createdAt = addModelIndex.get(targetModel.toLowerCase())
       if (createdAt !== undefined && createdAt > index) {
@@ -836,6 +864,63 @@ export async function executeChangesetApply(
         )
       }
     }
+    // `seed` is the matrix header payload: valid only on add_matrix.
+    for (const change of csDoc.changes) {
+      if (change.seed !== undefined && change.op !== 'add_matrix') {
+        return rejectProposal(
+          'INVALID_OPERATION',
+          change.target,
+          `change "${change.id}": seed is valid only on add_matrix`,
+          change.id,
+        )
+      }
+    }
+
+    // produce_artifact pre-checks: the target is a safe, existing workspace path that is
+    // not a model, changeset or sidecar. A second applied record for the same path is a
+    // conflict, not a second record.
+    for (const change of csDoc.changes) {
+      if (change.op !== 'produce_artifact') continue
+      const rel = change.target.replace(/\\/g, '/')
+      const segments = rel.split('/')
+      if (
+        !isSafeRelativeId(rel) ||
+        isAbsolute(rel) ||
+        segments.includes('..') ||
+        !isInsideRoot(rootDir, join(rootDir, rel))
+      ) {
+        return rejectProposal(
+          'ARTIFACT_INVALID_PATH',
+          rel,
+          `change "${change.id}" targets an unsafe artifact path "${change.target}"`,
+          change.id,
+        )
+      }
+      const fileName = segments[segments.length - 1] ?? ''
+      if (isChangesetPath(rel) || isSidecarName(fileName) || /(^|\/)kNNowledge\//i.test(rel)) {
+        return rejectProposal(
+          'ARTIFACT_INVALID_PATH',
+          rel,
+          `change "${change.id}" targets "${rel}", which is a model, changeset or sidecar, not an artifact`,
+          change.id,
+        )
+      }
+      const info = await stat(join(rootDir, rel)).catch(() => null)
+      if (!info || !info.isFile()) {
+        return rejectPhase1(
+          'ARTIFACT_NOT_FOUND',
+          rel,
+          `change "${change.id}" records "${rel}", which does not exist`,
+        )
+      }
+      if (await artifactAlreadyRecorded(rootDir, rel)) {
+        blockedChanges.set(change.id, {
+          code: 'ARTIFACT_ALREADY_RECORDED',
+          message: `ARTIFACT_ALREADY_RECORDED: "${rel}" already has an applied produce_artifact change`,
+        })
+      }
+    }
+
     let needsKnowledgeDir = false
     for (const change of csDoc.changes) {
       if (change.op !== 'add_model') continue
@@ -854,7 +939,7 @@ export async function executeChangesetApply(
           message: `MODEL_EXISTS: model "${change.target}" already exists; add_model never overwrites or repairs a model`,
         })
         for (const other of csDoc.changes) {
-          if (other.id === change.id || other.op === 'comment') continue
+          if (other.id === change.id || other.op === 'comment' || other.op === 'produce_artifact') continue
           if (parseTargetAddress(other.target).modelSlug.toLowerCase() !== key) continue
           blockedChanges.set(other.id, {
             code: 'DEPENDS_ON_CONFLICTED_CHANGE',
@@ -889,7 +974,7 @@ export async function executeChangesetApply(
     }
 
     for (const change of csDoc.changes) {
-      if (change.op === 'comment') continue
+      if (change.op === 'comment' || change.op === 'produce_artifact') continue
       const { modelSlug } = parseTargetAddress(change.target)
       if (!modelSlug) continue
       // A model whose add_model conflicted is never loaded: nothing may touch it.
@@ -1132,6 +1217,11 @@ export async function executeChangesetApply(
     // Apply mutations for clean subset in memory
     for (const change of cleanSubset) {
       if (change.op === 'comment') continue
+      if (change.op === 'produce_artifact') {
+        change.status = 'applied'
+        change.resolution = `Recorded artifact ${change.target}`
+        continue
+      }
       const { modelSlug, parts, remainder } = parseTargetAddress(change.target)
       const entry = loadedModels.get(modelSlug.toLowerCase())
       if (!entry) continue
@@ -1292,8 +1382,8 @@ export async function executeChangesetApply(
           matrixName,
           source: change.concept,
           targetConcept: change.to,
-          columns: change.fields?.['columns'],
-          rows: change.fields?.['rows'],
+          columns: change.seed?.columns ?? change.fields?.['columns'],
+          rows: change.seed?.rows ?? change.fields?.['rows'],
           target: change.target,
         }
       } else {
@@ -1551,6 +1641,9 @@ export async function executeChangesetApply(
         continue
       }
       const { modelSlug } = parseTargetAddress(change.target)
+      if (change.op === 'produce_artifact') {
+        change.resolved_target = resolvedTarget.artifact(change.target)
+      }
       const entry = loadedModels.get(modelSlug.toLowerCase())
       if (entry) {
         const target = resolvedTargetForChange(change, entry.model, canonicalUnitModelId(entry.modelSlug || modelSlug))

@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 import {
   ENTRYPOINT_FILENAME,
@@ -19,6 +19,8 @@ import {
   slugify,
   createFsSourceResolver,
   splitEvidence,
+  isChangesetPath,
+  isSidecarName,
   resolveCitation,
 } from '@cognnitive/nn-core'
 import type { ChangeItem, ChangesetDocument, SpecDocument } from '@cognnitive/nn-core'
@@ -294,6 +296,8 @@ export async function validateProposal(rootDir: string, operations: ChangeItem[]
       continue
     }
     if (change.op === 'comment' && !change.target.includes('@')) continue
+    // produce_artifact addresses a workspace path, never a model.
+    if (change.op === 'produce_artifact') continue
     if (created.has(key)) continue
     if ((createdLater.get(key) ?? -1) > index) {
       errors.push({ path: label, code: 'ADD_MODEL_ORDER', message: `ADD_MODEL_ORDER: ${label} targets "${modelId}" before the add_model that creates it` })
@@ -337,6 +341,41 @@ export async function validateProposal(rootDir: string, operations: ChangeItem[]
           message: `CITATION_UNRESOLVED: operations[${index}] cites "${item}" which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
         })
       }
+    }
+  }
+  if (errors.length > 0) return errors
+
+  // produce_artifact: the target is a safe, existing workspace path that is not a
+  // model, changeset or sidecar (artifact-production-change).
+  for (const [index, change] of operations.entries()) {
+    if (change.op !== 'produce_artifact') continue
+    const rel = String(change.target).replace(/\\/g, '/')
+    const segments = rel.split('/')
+    const fileName = segments[segments.length - 1] ?? ''
+    const label = `operations[${index}].target`
+    if (
+      rel.length === 0 ||
+      rel.startsWith('/') ||
+      /^[a-zA-Z]:/.test(rel) ||
+      segments.includes('..') ||
+      isChangesetPath(rel) ||
+      isSidecarName(fileName) ||
+      /(^|\/)kNNowledge\//i.test(rel)
+    ) {
+      errors.push({
+        path: label,
+        code: 'ARTIFACT_INVALID_PATH',
+        message: `ARTIFACT_INVALID_PATH: "${rel}" is not a workspace artifact path`,
+      })
+      continue
+    }
+    const info = await stat(join(rootDir, rel)).catch(() => null)
+    if (!info || !info.isFile()) {
+      errors.push({
+        path: label,
+        code: 'ARTIFACT_NOT_FOUND',
+        message: `ARTIFACT_NOT_FOUND: "${rel}" does not exist`,
+      })
     }
   }
   if (errors.length > 0) return errors
@@ -432,6 +471,39 @@ export function normalizeOperations(raw: unknown): { operations: ChangeItem[]; e
         errors.push({ path: `operations[${index}]`, code: 'INVALID_OPERATION', message: `operations[${index}].fields must be an object` })
       } else {
         item['fields'] = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, String(v)]))
+      }
+    }
+    const seed = source['seed']
+    if (seed !== undefined && seed !== null) {
+      if (source['op'] !== 'add_matrix') {
+        errors.push({
+          path: `operations[${index}]`,
+          code: 'INVALID_OPERATION',
+          message: `operations[${index}].seed is valid only on add_matrix`,
+        })
+      } else if (typeof seed !== 'object' || Array.isArray(seed)) {
+        errors.push({
+          path: `operations[${index}]`,
+          code: 'INVALID_OPERATION',
+          message: `operations[${index}].seed must be an object {columns?, rows?}`,
+        })
+      } else {
+        const seedObj = seed as Record<string, unknown>
+        const asList = (value: unknown, key: string): string[] | undefined => {
+          if (value === undefined || value === null) return undefined
+          if (!Array.isArray(value)) {
+            errors.push({
+              path: `operations[${index}].seed.${key}`,
+              code: 'INVALID_OPERATION',
+              message: `operations[${index}].seed.${key} must be an array of strings`,
+            })
+            return undefined
+          }
+          return value.map((v) => String(v))
+        }
+        const columns = asList(seedObj.columns, 'columns')
+        const rows = asList(seedObj.rows, 'rows')
+        item['seed'] = { ...(columns ? { columns } : {}), ...(rows ? { rows } : {}) }
       }
     }
     operations.push(item as unknown as ChangeItem)

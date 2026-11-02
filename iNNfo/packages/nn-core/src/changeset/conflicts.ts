@@ -43,6 +43,20 @@ export async function partitionChangeset(
       continue
     }
 
+    // produce_artifact addresses a workspace path, not a model: no model precondition
+    if (change.op === 'produce_artifact') {
+      const blockedArtifact = blockedChanges?.get(change.id)
+      if (blockedArtifact) {
+        conflictDiagnostics.set(change.id, blockedArtifact)
+        change.status = 'conflict'
+        change.resolution = blockedArtifact.message
+        conflictedSubset.push(change)
+      } else {
+        cleanSubset.push(change)
+      }
+      continue
+    }
+
     // 0. Changes the caller blocked up front (add_model conflicts and their dependants)
     const blocked = blockedChanges?.get(change.id)
     if (blocked) {

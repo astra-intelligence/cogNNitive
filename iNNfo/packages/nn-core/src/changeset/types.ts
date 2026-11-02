@@ -19,6 +19,7 @@ export const CHANGE_OPS = [
   'add_model',
   'freeze_slugs',
   'bump_version',
+  'produce_artifact',
 ] as const
 
 /** Version levels a `bump_version` change may request (carried in `to`). */

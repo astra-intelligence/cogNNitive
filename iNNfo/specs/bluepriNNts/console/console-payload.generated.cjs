@@ -9994,7 +9994,8 @@ var CHANGE_OPS = [
   "comment",
   "add_model",
   "freeze_slugs",
-  "bump_version"
+  "bump_version",
+  "produce_artifact"
 ];
 function isChangeStatus(val) {
   return typeof val === "string" && ["proposed", "applied", "partially_applied", "rejected", "conflict"].includes(val);
