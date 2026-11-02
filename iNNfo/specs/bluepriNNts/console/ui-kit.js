@@ -2036,11 +2036,13 @@
     }
   }
 
-  /** The `previous -> new` line; add shows the fields, delete the element name. */
+  /** The `previous -> new` line; add shows the draft's fields, delete the element name. */
   function cardDiff(op, entry) {
     var e = entry || {}
     if (op === 'add_element') {
-      var fields = e.fields && typeof e.fields === 'object' ? e.fields : e.proposed
+      // An applied change carries no inline `fields`: the value belongs to its own
+      // update_field card. An unsent `kind: 'new'` draft still previews `proposed`.
+      var fields = e.proposed && typeof e.proposed === 'object' ? e.proposed : null
       if (fields && typeof fields === 'object') {
         return Object.keys(fields)
           .map(function (k) {

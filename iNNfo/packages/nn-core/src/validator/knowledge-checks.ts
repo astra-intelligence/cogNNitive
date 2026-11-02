@@ -1,7 +1,7 @@
 import type { Concept, MatrixDecl, ParsedKnowledge } from '../types/index.js'
 import type { Diagnostics } from '../diagnostics.js'
-import { checkElementsAgainstSchema, extractBlueprintSchema } from '../schema/index.js'
-import type { IncludeResolver } from '../schema/index.js'
+import { checkElementsAgainstSchema, extractBlueprintSchema, findDeclaredField } from '../schema/index.js'
+import type { BlueprintSchema, IncludeResolver } from '../schema/index.js'
 import { parseKnowledge } from '../parser/index.js'
 import { validateFieldValue } from '../schema/field-values.js'
 import { RESERVED_CONCEPT_NAMES } from './constants.js'
@@ -325,6 +325,64 @@ export function checkSchemaConformance(
     unknownProperty: 'ignore',
   })) {
     d.add({ ...diag, path: `elements.${diag.path}` })
+  }
+}
+
+/**
+ * Provenance ban on L3 (change-provenance A13): a kNNowledge document declares
+ * no citation syntax of its own.
+ *
+ * - `SOURCES_FIELD_BANNED`: an element field named `sources`/`source`.
+ * - `CITATION_FIELD_BANNED`: any other field the schema declares `type:: citation`
+ *   (or a field whose declared `type:: citation` comes from a non-`changes` parent).
+ *   The ONE allowed citation is `changes.evidence`, identified by the parent
+ *   blueprint name — no exemption list.
+ * - `conflicts::` is a pointer (`type:: address`); a plain unit pointer is fine
+ *   and only a `sources::`-shaped value is reported (as the sources ban above).
+ *
+ * L2 templates are exempt: they DEFINE the `citation` type. The ban is scoped by
+ * L1 version: it fires only for a document whose bluepriNNt (or whose own
+ * `parent_spec`) pins V_0-6-0, the L1 that reserves `sources::` and scopes
+ * `citation` to `changes.evidence`. A document pinned to an older L1 stays valid
+ * under that L1 — the bluepriNNts that adopt V_0-6-0 are the ones this change
+ * repins (`changes`, `sidecar`, `visual-catalog`, A14).
+ */
+export function checkProvenanceBan(
+  model: ParsedKnowledge,
+  schema: BlueprintSchema | undefined,
+  d: Diagnostics,
+  l1Version?: string,
+): void {
+  if (model.frontmatter?.level !== 3) return
+  const parent = (model.frontmatter?.parent_spec ?? {}) as { name?: string; url?: string }
+  const parentName = String(parent.name ?? '')
+  const parentUrl = String(parent.url ?? '')
+  const scope = `${l1Version ?? ''} ${parentName} ${parentUrl}`
+  if (!/V_0-6-0/i.test(scope)) return
+  const isChangesDocument = parentName.trim().toLowerCase().startsWith('changes')
+
+  for (const [concept, elements] of model.elements.entries()) {
+    for (const el of elements) {
+      for (const fieldName of Object.keys(el.fields ?? {})) {
+        const lower = fieldName.toLowerCase()
+        const path = `${concept}#${el.name}.${fieldName}`
+        if (lower === 'sources' || lower === 'source') {
+          d.error(path, `"${fieldName}::" is banned on L3; provenance is the applied change's evidence`, {
+            code: 'SOURCES_FIELD_BANNED',
+          })
+          continue
+        }
+        if (lower === 'conflicts') continue
+        const declared = schema ? findDeclaredField(schema, concept, fieldName) : undefined
+        if (declared?.type === 'citation' && !(isChangesDocument && lower === 'evidence')) {
+          d.error(
+            path,
+            `a "citation" field is banned on L3 (the only allowed citation is changes.evidence): "${fieldName}::"`,
+            { code: 'CITATION_FIELD_BANNED' },
+          )
+        }
+      }
+    }
   }
 }
 

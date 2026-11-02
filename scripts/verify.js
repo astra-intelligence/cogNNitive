@@ -636,7 +636,6 @@ function buildSteps(repoRoot, options = {}) {
   steps.push(ro('legacy-write', 'Legacy Write Guard', 'scripts/lib/legacy-write-guard.js'));
   steps.push(ro('nn-name-regex', 'NN Name Regex Guard', 'scripts/lib/nn-name-regex-guard.js'));
   steps.push(ro('nn-name-invariant', 'NN Name Invariant Guard', 'scripts/lib/nn-name-invariant-guard.js'));
-  steps.push(ro('lineage-drift', 'Lineage Drift Guard', 'scripts/lib/lineage-drift-guard.js'));
 
   return filterSteps(steps, options.only);
 }

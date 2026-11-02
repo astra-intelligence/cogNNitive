@@ -18,6 +18,7 @@ import {
   checkBlueprintDocumentation,
   checkElementGroups,
   checkSchemaConformance,
+  checkProvenanceBan,
   checkConceptFields,
   checkMatrixCells,
 } from './knowledge-checks.js'
@@ -159,6 +160,12 @@ export function validateKnowledge(
 
   const knownConceptGroups = checkElementGroups(model, templateConcepts, d)
   checkSchemaConformance(knownConceptGroups, templateConcepts, d)
+  // The L1 the bluepriNNt pins decides whether the provenance ban applies: a
+  // document pinned to an older L1 stays valid under that L1.
+  const blueprintL1 = String(
+    (template.frontmatter as { parent_spec?: { name?: string } } | undefined)?.parent_spec?.name ?? '',
+  )
+  checkProvenanceBan(model, composed.schema, d, blueprintL1)
   checkConceptFields(model, templateConcepts, d)
 
   checkMatrixCells(model, templateMatrices, d)

@@ -27,8 +27,6 @@ const OWNED_KEYS = new Set([
   'source_format',
   'normalized_at',
   'normalized_by',
-  'sources',
-  // A sidecar's upstream edge is `sources`; the projection derives `derived_from` itself.
   'derived_from',
 ])
 
@@ -54,15 +52,13 @@ export interface SidecarInput {
   /** ISO 8601 UTC instant, seconds precision. */
   normalizedAt: string
   normalizedBy?: string
-  /** Frontmatter of the sidecar being refreshed: `sources` and unknown keys are carried over. */
+  /** Frontmatter of the sidecar being refreshed: unknown keys are carried over. */
   previous?: Record<string, unknown> | null
   /** Normalizer metadata; never overrides a key `cognitivize` owns. */
   metadata?: Record<string, string | number>
   /** Normalized markdown body; only binary subjects have one. */
   body?: string
-  /** Upstream the subject derives from (workspace-relative paths); replaces any carried-over `sources`. */
-  sources?: string[]
-}
+  }
 
 export function buildSidecar(i: SidecarInput): string {
   const fm: Record<string, unknown> = {
@@ -75,8 +71,6 @@ export function buildSidecar(i: SidecarInput): string {
     normalized_at: i.normalizedAt,
   }
   if (i.normalizedBy) fm['normalized_by'] = i.normalizedBy
-  const sources = i.sources ?? i.previous?.['sources']
-  if (sources !== undefined) fm['sources'] = sources
   for (const extras of [i.previous ?? {}, i.metadata ?? {}]) {
     for (const [key, value] of Object.entries(extras)) {
       if (!OWNED_KEYS.has(key)) fm[key] = value

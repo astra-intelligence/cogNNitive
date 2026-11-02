@@ -7,10 +7,13 @@ export * from './element-history.js'
 export * from './fs-source-resolver.js'
 export * from './output-path.js'
 export * from './payload-builder.js'
-export * from './provenance.js'
 export * from './schema-resolution.js'
 export * from './slot.js'
 export * from './unit-address.js'
+// The console derives history and origin from the change log; the payload mirror
+// ships the browser-safe builder so the exporter reuses it.
+export { buildChangeLogFromChangesets } from '../changelog/load.js'
+export type { ChangeLog, LoggedChange } from '../changelog/index.js'
 export { parseFrontmatter, parseYaml } from '../parser/index.js'
 // Naming-contract predicates for scripts that load only the console payload mirror.
 export {

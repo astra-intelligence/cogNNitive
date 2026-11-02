@@ -70,7 +70,7 @@ describe('discoverModels: isReconcilableModel', () => {
     expect(isReconcilableModel(file, MANIFEST_PATH)).toBe(false)
   })
 
-  it('excludes any model whose parent_spec is a cogNNitive template, any version', () => {
+  it('treats a cogNNitive template as ordinary knowledge (record role retired)', () => {
     const v1 = candidate('acme_cogNNitive_NN.md', {
       level: 3,
       parent_spec: { name: 'cogNNitive_V_0-1-0' },
@@ -79,8 +79,8 @@ describe('discoverModels: isReconcilableModel', () => {
       level: 3,
       parent_spec: { name: 'cogNNitive_V_0-2-0' },
     })
-    expect(isReconcilableModel(v1, MANIFEST_PATH)).toBe(false)
-    expect(isReconcilableModel(v2, MANIFEST_PATH)).toBe(false)
+    expect(isReconcilableModel(v1, MANIFEST_PATH)).toBe(true)
+    expect(isReconcilableModel(v2, MANIFEST_PATH)).toBe(true)
   })
 
   it('excludes catalog apps (procedures/sources/artifacts), any version', () => {
@@ -349,7 +349,7 @@ describe('reconcileManifest', () => {
     expect(result.content).not.toContain('# NN Models')
   })
 
-  it('excludes-cognnitive-and-manifest: discovery predicate filters them out before reconciliation ever sees them', () => {
+  it('keeps cognnitive documents in the model set: the record role is retired', () => {
     const candidates: CandidateFile[] = [
       candidate('acme_cogNNitive_NN.md', { level: 3, parent_spec: { name: 'cogNNitive_V_0-2-0' } }),
       candidate(MANIFEST_PATH, { level: 3, parent_spec: { name: 'workspace_V_0-2-0' } }),
@@ -361,7 +361,7 @@ describe('reconcileManifest', () => {
     ]
 
     const reconcilable = candidates.filter((c) => isReconcilableModel(c, MANIFEST_PATH))
-    expect(reconcilable).toEqual([])
+    expect(reconcilable.map((c) => c.path)).toEqual(['acme_cogNNitive_NN.md'])
   })
 
   it('regression: catalog apps never become ## NN Models entries', () => {

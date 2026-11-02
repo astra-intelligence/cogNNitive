@@ -10,7 +10,7 @@ procedure bluepriNNt bluepriNNt:procedures/assets/console-view-procedure.js sha2
          appends the hashes to script-src when it inlines the bundle and views. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/gh/cogNNitive/ 'sha256-GuDXBamO36MOzmeBoWS6W05qoSRkYpFFnI00+hFI67s=' 'sha256-zC9fVwLc2q24v4oZn4Fteg3v+oeo5flE7QnTeXYGe/0=' 'sha256-4BakFr9B7k7vTNs7WaAC3TizluFw/OU+mWJ5aKCYGuo=' 'sha256-soSXjK2mmrYGjTKfxADrnupPRdn7nsM/OFZxV6is0ww=' 'sha256-J3r6mslc5Q7wSEEg2G5st9ksWqGycpl8G3qP0+b34b0=' 'sha256-ARDX3RKWShyoDagjlGvT8l0KMybANvtfFkhXWWniMy0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://raw.githubusercontent.com/cogNNitive/ https://cdn.jsdelivr.net/gh/cogNNitive/; font-src 'self' data:; frame-src 'self' blob: data: about:; connect-src 'self'; object-src 'none'; base-uri 'none'"
+      content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/gh/cogNNitive/ 'sha256-GuDXBamO36MOzmeBoWS6W05qoSRkYpFFnI00+hFI67s=' 'sha256-zC9fVwLc2q24v4oZn4Fteg3v+oeo5flE7QnTeXYGe/0=' 'sha256-4BakFr9B7k7vTNs7WaAC3TizluFw/OU+mWJ5aKCYGuo=' 'sha256-soSXjK2mmrYGjTKfxADrnupPRdn7nsM/OFZxV6is0ww=' 'sha256-+GGq5Z+mgGXr2HVqwCGZRv3GgyeqGDO3vNR+vSQkqOk=' 'sha256-ARDX3RKWShyoDagjlGvT8l0KMybANvtfFkhXWWniMy0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://raw.githubusercontent.com/cogNNitive/ https://cdn.jsdelivr.net/gh/cogNNitive/; font-src 'self' data:; frame-src 'self' blob: data: about:; connect-src 'self'; object-src 'none'; base-uri 'none'"
     />
     <title>iNNfo Console</title>
     <!--
@@ -8525,7 +8525,7 @@ input[type="text"], input[type="search"], textarea, select {
     "feedback-export"
   ],
   "runtime": {
-    "cdn": "https://cdn.jsdelivr.net/gh/cogNNitive/cogNNitive@nn-console-v0.31.0/iNNfo/specs/bluepriNNts/console/nn-console.bundle.js",
+    "cdn": "https://cdn.jsdelivr.net/gh/cogNNitive/cogNNitive@nn-console-v0.32.0/iNNfo/specs/bluepriNNts/console/nn-console.bundle.js",
     "fallback": "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/console/nn-console.bundle.js"
   }
 }
@@ -10159,9 +10159,9 @@ input[type="text"], input[type="search"], textarea, select {
     "title": "testlab Domain",
     "model": "testlab",
     "modelId": "testlab",
-    "domainId": "testlab-951539a1",
-    "generated": "2026-10-30T21:21:48.854Z",
-    "changesBlueprintVersion": "V_0-5-5",
+    "domainId": "testlab-44bb9fcb",
+    "generated": "2026-11-02T21:50:04.938Z",
+    "changesBlueprintVersion": "V_0-6-0",
     "models": [
       {
         "id": "kNNowledge/TestLab_coverage_TestLab",
@@ -10171,7 +10171,7 @@ input[type="text"], input[type="search"], textarea, select {
         "family": "testlab",
         "version": "V_0-1-1",
         "sha256": "fbbbdc83b527a54a479ea8a5588c52a0e56af785d94ea10a0d956f3fa7ba0a31",
-        "citationsResolvedAt": "2026-10-30T21:21:48.743Z",
+        "citationsResolvedAt": "2026-11-02T21:50:04.763Z",
         "sources": [
           "kNNowledge/TestLab_coverage_TestLab_NN.md"
         ],
@@ -10231,7 +10231,7 @@ input[type="text"], input[type="search"], textarea, select {
         "filePath": "\u003cchanges>",
         "blueprint": "changes",
         "family": "changes",
-        "version": "V_0-5-5",
+        "version": "V_0-6-0",
         "sha256": null,
         "citationsResolvedAt": null,
         "sources": [],
@@ -10934,6 +10934,31 @@ input[type="text"], input[type="search"], textarea, select {
           "resolution": "Applied successfully"
         }
       ],
+      "provenance": {
+        "long_description": {
+          "history": [
+            {
+              "changeId": "r-02",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "sources/import/dataset.csv@m-001",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "Baseline element of the intake model, created by the administrator from the CSV dataset.",
+              "to": "Reviewer description: the intake baseline was written up from the CSV dataset during the review pass."
+            }
+          ],
+          "origin": {
+            "changeId": "r-02",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "sources/import/dataset.csv@m-001",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "Baseline element of the intake model, created by the administrator from the CSV dataset.",
+            "to": "Reviewer description: the intake baseline was written up from the CSV dataset during the review pass."
+          }
+        }
+      },
       "modelId": "kNNowledge/TestLab_intake_TestLab",
       "modelTitle": "TestLab Intake Model",
       "modelFile": "TestLab_intake_TestLab_NN.md",
@@ -11025,40 +11050,6 @@ input[type="text"], input[type="search"], textarea, select {
         }
       ],
       "history": [
-        {
-          "id": "a-05",
-          "op": "add_element",
-          "target": "TestLab_intake_TestLab@Modification Cases",
-          "author": "admin",
-          "timestamp": "2026-10-20T09:00:00.000Z",
-          "status": "applied",
-          "evidence": "sources/import/report.pdf_sidecar_NN.md@## Findings",
-          "evidenceCitation": {
-            "path": "sources/import/report.pdf_sidecar_NN.md",
-            "href": "sources/import/report.pdf_sidecar_NN.md",
-            "anchor": "findings",
-            "exists": true,
-            "field": "evidence",
-            "origin": "document",
-            "excerpt": "## Findings\n\nTranscribed PDF report: incident volume grew 5x in one quarter. Response time held because the photo log removed rework. The containment grid needs one extra shift, nothing else.\n",
-            "sha256": "testlab-placeholder-report"
-          },
-          "concept": "Modification Cases",
-          "name": "Modification cases",
-          "fields": {
-            "string_field": "Initial string value",
-            "number_field": "0",
-            "boolean_field": "false",
-            "select_field": "draft",
-            "reference_field": "[[Intake owner]]",
-            "url_field": "https://example.com/initial",
-            "markdown_inline_field": "Initial **inline** markdown.",
-            "markdown_file_field": "test/fixtures/testlab/sources/import/field-notes.md",
-            "knowledge_field": "kNNowledge/TestLab_coverage_TestLab_NN.md",
-            "address_field": "TestLab_intake_TestLab@intake-element"
-          },
-          "resolution": "Applied successfully"
-        },
         {
           "id": "r-01",
           "op": "rename_element",
@@ -11369,6 +11360,343 @@ input[type="text"], input[type="search"], textarea, select {
           "resolution": "Applied successfully"
         }
       ],
+      "provenance": {
+        "string_field": {
+          "history": [
+            {
+              "changeId": "r-03",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "sources/import/field-notes.md@## Findings",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "Initial string value",
+              "to": "Reviewed string value"
+            }
+          ],
+          "origin": {
+            "changeId": "r-03",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "sources/import/field-notes.md@## Findings",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "Initial string value",
+            "to": "Reviewed string value"
+          }
+        },
+        "number_field": {
+          "history": [
+            {
+              "changeId": "r-04",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "sources/import/dataset.csv@m-001",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "0",
+              "to": "42"
+            }
+          ],
+          "origin": {
+            "changeId": "r-04",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "sources/import/dataset.csv@m-001",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "0",
+            "to": "42"
+          }
+        },
+        "boolean_field": {
+          "history": [
+            {
+              "changeId": "r-05",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "decision",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "false",
+              "to": "true"
+            }
+          ],
+          "origin": {
+            "changeId": "r-05",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "decision",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "false",
+            "to": "true"
+          }
+        },
+        "select_field": {
+          "history": [
+            {
+              "changeId": "r-06",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "decision",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "draft",
+              "to": "reviewed"
+            }
+          ],
+          "origin": {
+            "changeId": "r-06",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "decision",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "draft",
+            "to": "reviewed"
+          }
+        },
+        "reference_field": {
+          "history": [
+            {
+              "changeId": "r-07",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "sources/import/report.pdf_sidecar_NN.md@## Findings",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "[[Intake owner]]",
+              "to": "[[Intake backup owner]]"
+            }
+          ],
+          "origin": {
+            "changeId": "r-07",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "sources/import/report.pdf_sidecar_NN.md@## Findings",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "[[Intake owner]]",
+            "to": "[[Intake backup owner]]"
+          }
+        },
+        "image_field": {
+          "history": [
+            {
+              "changeId": "r-08",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "sources/import/photo.png_sidecar_NN.md@## Caption",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "to": "test/fixtures/testlab/sources/import/photo.png"
+            }
+          ],
+          "origin": {
+            "changeId": "r-08",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "sources/import/photo.png_sidecar_NN.md@## Caption",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "to": "test/fixtures/testlab/sources/import/photo.png"
+          }
+        },
+        "file_field": {
+          "history": [
+            {
+              "changeId": "r-09",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "decision",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "test/fixtures/testlab/sources/import/manual.txt",
+              "to": "test/fixtures/testlab/sources/import/report.pdf"
+            }
+          ],
+          "origin": {
+            "changeId": "r-09",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "decision",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "test/fixtures/testlab/sources/import/manual.txt",
+            "to": "test/fixtures/testlab/sources/import/report.pdf"
+          }
+        },
+        "video_field": {
+          "history": [
+            {
+              "changeId": "r-10",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "sources/import/demo.mp4_sidecar_NN.md@## Transcript",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "to": "test/fixtures/testlab/sources/import/demo.mp4"
+            }
+          ],
+          "origin": {
+            "changeId": "r-10",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "sources/import/demo.mp4_sidecar_NN.md@## Transcript",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "to": "test/fixtures/testlab/sources/import/demo.mp4"
+          }
+        },
+        "audio_field": {
+          "history": [
+            {
+              "changeId": "r-11",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "sources/import/interview.mp3_sidecar_NN.md@## Transcript",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "to": "test/fixtures/testlab/sources/import/interview.mp3"
+            }
+          ],
+          "origin": {
+            "changeId": "r-11",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "sources/import/interview.mp3_sidecar_NN.md@## Transcript",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "to": "test/fixtures/testlab/sources/import/interview.mp3"
+          }
+        },
+        "url_field": {
+          "history": [
+            {
+              "changeId": "r-12",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "decision",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "https://example.com/initial",
+              "to": "https://example.com/reviewed"
+            }
+          ],
+          "origin": {
+            "changeId": "r-12",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "decision",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "https://example.com/initial",
+            "to": "https://example.com/reviewed"
+          }
+        },
+        "markdown_inline_field": {
+          "history": [
+            {
+              "changeId": "r-13",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "decision",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "Initial **inline** markdown.",
+              "to": "Reviewed **inline** markdown."
+            }
+          ],
+          "origin": {
+            "changeId": "r-13",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "decision",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "Initial **inline** markdown.",
+            "to": "Reviewed **inline** markdown."
+          }
+        },
+        "markdown_file_field": {
+          "history": [
+            {
+              "changeId": "r-14",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "decision",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "test/fixtures/testlab/sources/import/field-notes.md",
+              "to": "test/fixtures/testlab/sources/import/manual.txt"
+            }
+          ],
+          "origin": {
+            "changeId": "r-14",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "decision",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "test/fixtures/testlab/sources/import/field-notes.md",
+            "to": "test/fixtures/testlab/sources/import/manual.txt"
+          }
+        },
+        "knowledge_field": {
+          "history": [
+            {
+              "changeId": "r-15",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "decision",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "to": "kNNowledge/TestLab_coverage_TestLab_NN.md"
+            }
+          ],
+          "origin": {
+            "changeId": "r-15",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "decision",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "to": "kNNowledge/TestLab_coverage_TestLab_NN.md"
+          }
+        },
+        "address_field": {
+          "history": [
+            {
+              "changeId": "r-16",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "decision",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "from": "TestLab_intake_TestLab@intake-element",
+              "to": "TestLab_intake_TestLab@intake-owner"
+            }
+          ],
+          "origin": {
+            "changeId": "r-16",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "decision",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "from": "TestLab_intake_TestLab@intake-element",
+            "to": "TestLab_intake_TestLab@intake-owner"
+          }
+        },
+        "citation_field": {
+          "history": [
+            {
+              "changeId": "r-17",
+              "batch": "testlab_reviewer_intake_changes_NN",
+              "op": "update_field",
+              "author": "reviewer",
+              "evidence": "sources/import/report.pdf_sidecar_NN.md@## Findings",
+              "appliedAt": "2026-10-21T14:30:00.000Z",
+              "to": "[test/fixtures/testlab/sources/import/report.pdf_sidecar_NN.md@## Findings]"
+            }
+          ],
+          "origin": {
+            "changeId": "r-17",
+            "batch": "testlab_reviewer_intake_changes_NN",
+            "author": "reviewer",
+            "evidence": "sources/import/report.pdf_sidecar_NN.md@## Findings",
+            "appliedAt": "2026-10-21T14:30:00.000Z",
+            "to": "[test/fixtures/testlab/sources/import/report.pdf_sidecar_NN.md@## Findings]"
+          }
+        }
+      },
       "modelId": "kNNowledge/TestLab_intake_TestLab",
       "modelTitle": "TestLab Intake Model",
       "modelFile": "TestLab_intake_TestLab_NN.md",
@@ -13196,7 +13524,7 @@ input[type="text"], input[type="search"], textarea, select {
 /*!
  * nn-console.bundle.js — single-file console runtime + renderers.
  * Generated by scripts/build-console-bundle.mjs — DO NOT EDIT BY HAND.
- * Version 0.31.0. Regenerate on every console release.
+ * Version 0.32.0. Regenerate on every console release.
  * Composed (in dependency order): nn-slug.generated.js, nn-address.generated.js, vendor/preact.umd.js, vendor/htm.umd.js, nn-preact-init.js, uplot.iife.min.js, visuals.js, nn-icons.js, ui-kit.js, review.js, studio.js, nn-runtime.js, render-procedure-stepper.js.
  */
 
@@ -13338,7 +13666,6 @@ var nnAddress = (() => {
     };
   }
   var CORE_BLUEPRINT_ROLE = {
-    cognnitive: "lineage-record",
     sidecar: "sidecar",
     changes: "changeset",
     workspace: "catalog",
@@ -13500,6 +13827,43 @@ var nnAddress = (() => {
     }
     const [unitRaw, ...subunits] = decoded;
     if (!/\.(md|csv|json)$/i.test(resolved.filePath)) {
+      if (unitRaw.startsWith("concept:")) {
+        const slug = unitRaw.slice("concept:".length);
+        if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
+        const unit3 = {
+          kind: "header",
+          level: 1,
+          text: slug,
+          slug
+        };
+        return {
+          filePath: resolved.filePath,
+          fileName: basename(resolved.filePath),
+          slug,
+          kind: "model",
+          unit: unit3,
+          subunits,
+          raw: clean
+        };
+      }
+      if (unitRaw.startsWith("matrix:")) {
+        const slug = unitRaw.slice("matrix:".length);
+        if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
+        const unit3 = {
+          kind: "matrix",
+          matrixSlug: slug,
+          ...subunits.length === 2 ? { rowSlug: subunits[0], colSlug: subunits[1] } : {}
+        };
+        return {
+          filePath: resolved.filePath,
+          fileName: basename(resolved.filePath),
+          slug,
+          kind: "model",
+          unit: unit3,
+          subunits,
+          raw: clean
+        };
+      }
       if (!new RegExp(`^${SLUG}$`).test(unitRaw)) return null;
       if (subunits.length === 2) {
         const unit3 = {
@@ -13507,21 +13871,6 @@ var nnAddress = (() => {
           matrixSlug: unitRaw,
           rowSlug: subunits[0],
           colSlug: subunits[1]
-        };
-        return {
-          filePath: resolved.filePath,
-          fileName: basename(resolved.filePath),
-          slug: unitRaw,
-          kind: "model",
-          unit: unit3,
-          subunits,
-          raw: clean
-        };
-      }
-      if (subunits.length === 0 && /(?:^matrix-|-matrix$)/i.test(unitRaw)) {
-        const unit3 = {
-          kind: "matrix",
-          matrixSlug: unitRaw
         };
         return {
           filePath: resolved.filePath,
@@ -16149,11 +16498,13 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     }
   }
 
-  /** The `previous -> new` line; add shows the fields, delete the element name. */
+  /** The `previous -> new` line; add shows the draft's fields, delete the element name. */
   function cardDiff(op, entry) {
     var e = entry || {}
     if (op === 'add_element') {
-      var fields = e.fields && typeof e.fields === 'object' ? e.fields : e.proposed
+      // An applied change carries no inline `fields`: the value belongs to its own
+      // update_field card. An unsent `kind: 'new'` draft still previews `proposed`.
+      var fields = e.proposed && typeof e.proposed === 'object' ? e.proposed : null
       if (fields && typeof fields === 'object') {
         return Object.keys(fields)
           .map(function (k) {
@@ -26264,15 +26615,17 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     return str
   }
 
-  // Builds one `## NN Change` block addressed the way `apply_change` resolves it:
-  // `<file stem>@<element slug>[&field]`. The draft carries `knowledge_id` (the knowledge
-  // document's file stem) and `element_slug`; `fallbackModel` only covers drafts that
-  // lack them.
+  // Builds the `## NN Change` blocks of one draft, addressed the way `apply_change`
+  // resolves them: `<file stem>@<element slug>[&field]`. The draft carries
+  // `knowledge_id` (the knowledge document's file stem) and `element_slug`;
+  // `fallbackModel` only covers drafts that lack them. A `kind: 'new'` draft with
+  // filled fields yields the `add_element` block plus one `update_field` block per
+  // field (a change carries no inline `fields`).
   function oneLine(v) {
     return String(v).replace(new RegExp('[\\r\\n\\u2028\\u2029]+', 'g'), ' ').trim()
   }
 
-  function draftToChange(draft, index, fallbackModel, author) {
+  function draftToChanges(draft, index, fallbackModel, author) {
     var d = isObject(draft) ? draft : {}
     var id = oneLine(d.id || 'c-' + String(index + 1).padStart(2, '0'))
     var model = oneLine(d.knowledge_id || fallbackModel || 'model')
@@ -26333,7 +26686,6 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     } else if (op === 'add_element') {
       lines.push('concept:: ' + oneLine(d.concept))
       lines.push('name:: ' + formatChangesetValue(d.element))
-      if (isObject(d.proposed)) lines.push('fields:: ' + JSON.stringify(d.proposed))
     }
     // Every exported block names its author so a field citing the applied change
     // resolves to a human author. `oneLine` folds CR/LF/U+2028 so a name cannot
@@ -26342,7 +26694,27 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     if (d.comment) {
       lines.push('notes:: ' + formatChangesetValue(d.comment))
     }
-    return lines.join('\n')
+    if (op !== 'add_element' || !isObject(d.proposed)) return [lines.join('\n')]
+    // A change carries no inline fields: each filled field is its own
+    // `update_field`, with its own evidence and no `from` (the field does not
+    // exist yet, so there is nothing to precondition).
+    var slug = oneLine(d.element_slug || slugify(d.element || '') || 'elem')
+    var blocks = [lines.join('\n')]
+    Object.keys(d.proposed)
+      .sort()
+      .forEach(function (field) {
+        blocks.push(
+          [
+            '## NN Change: ' + id + '-' + slugify(field),
+            'op:: update_field',
+            'target:: ' + model + '@' + slug + '&' + oneLine(field),
+            'evidence:: ' + oneLine(ev),
+            'to:: ' + formatChangesetValue(d.proposed[field]),
+            'author:: ' + oneLine(author || 'reviewer'),
+          ].join('\n'),
+        )
+      })
+    return blocks
   }
 
   function serializeChangesetMarkdown(meta, drafts, fallbackModel) {
@@ -26371,8 +26743,9 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
       '',
     ]
     var modelName = fallbackModel || meta.source_knowledge || 'model'
-    var blocks = drafts.map(function (d, i) {
-      return draftToChange(d, i, modelName, author)
+    var blocks = []
+    drafts.forEach(function (d, i) {
+      blocks = blocks.concat(draftToChanges(d, i, modelName, author))
     })
     lines.push(blocks.join('\n\n'))
     lines.push('')

@@ -1,4 +1,5 @@
 import { readFile, writeFile, rm, stat, rename, readdir, open } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
 import { basename, dirname, join, relative, isAbsolute } from 'node:path'
 import {
   parseKnowledge,
@@ -23,8 +24,15 @@ import {
   createFsSourceResolver,
   resolveCitation,
   scaffoldKnowledgeDocument,
-  RECORD_BLUEPRINT,
   roleOf,
+  canonicalUnitModelId,
+  resolvedTarget,
+  axisSlug,
+  splitEvidence,
+  parseCitation,
+  slugifyHeading,
+  isChangesetPath,
+  isSidecarName,
 } from '@cognnitive/nn-core'
 import type {
   SpecDocument,
@@ -38,6 +46,7 @@ import type {
 } from '@cognnitive/nn-core'
 import { findKnowledgeFile, resolveBlueprintWithCache, normalizeId, AmbiguousModelIdError } from './spec.js'
 import { canonicalizeTarget, modelIdAliases } from './model-id.js'
+import { findElementInModel, mutationArgsForChange, parseTargetAddress } from './change-args.js'
 import { writeProposedChangeset } from './propose-changeset.js'
 
 import { isInsideRoot, isSafeRelativeId } from './path-guard.js'
@@ -295,12 +304,6 @@ function maintenanceChangeProblem(
   }
   if (change.op === 'bump_version') {
     const parent = model.frontmatter.parent_spec as { name?: string } | undefined
-    if (parent?.name === RECORD_BLUEPRINT) {
-      return {
-        code: 'RECORD_UNVERSIONED',
-        message: 'The lineage record is unversioned by design and cannot be bumped',
-      }
-    }
     if (!isBumpLevel(change.to)) {
       return {
         code: 'INVALID_BUMP_LEVEL',
@@ -318,46 +321,148 @@ function hasUnfrozenElements(model: ParsedKnowledge): boolean {
   return false
 }
 
-function parseTargetAddress(target: string): {
-  modelSlug: string
-  remainder: string
-  parts: string[]
-} {
-  const atIdx = target.indexOf('@')
-  if (atIdx === -1) {
-    return { modelSlug: target.trim(), remainder: '', parts: [] }
+/** True when an applied `produce_artifact` already records `rel`. */
+async function artifactAlreadyRecorded(rootDir: string, rel: string): Promise<boolean> {
+  const dir = join(rootDir, 'changes')
+  let names: string[]
+  try {
+    names = await readdir(dir)
+  } catch {
+    return false
   }
-  const modelSlug = target.slice(0, atIdx).trim()
-  const remainder = target.slice(atIdx + 1).trim()
-  const parts = remainder.split('&').map((p) => p.trim())
-  return { modelSlug, remainder, parts }
+  for (const name of names) {
+    if (!isNNName(name)) continue
+    let doc: ChangesetDocument
+    try {
+      doc = parseChangeset(await readFile(join(dir, name), 'utf-8'))
+    } catch {
+      continue
+    }
+    for (const change of doc.changes) {
+      if (change.op !== 'produce_artifact' || change.status !== 'applied') continue
+      if (change.target.replace(/\\/g, '/') === rel) return true
+    }
+  }
+  return false
 }
 
-function findElementInModel(
+/* ── Execution facts (change-provenance) ─────────────────────── */
+
+/** The element an address label names, by frozen slug, display name or slugified name. */
+function elementByLabel(model: ParsedKnowledge, label: string): { slug?: string; name?: string } | undefined {
+  const wanted = String(label ?? '').trim().toLowerCase()
+  if (!wanted) return undefined
+  for (const [, elements] of model.elements) {
+    for (const el of elements) {
+      if ((el.slug ?? '').toLowerCase() === wanted) return el
+      if ((el.name ?? '').toLowerCase() === wanted) return el
+      if (slugifyHeading(el.name ?? '').toLowerCase() === wanted) return el
+    }
+  }
+  return undefined
+}
+
+/**
+ * The canonical unit address a change resolved to, read from the model AFTER the
+ * mutation ran (so the frozen slug, not the address label, is stamped).
+ */
+function resolvedTargetForChange(
+  change: ChangeItem,
   model: ParsedKnowledge,
-  conceptName?: string,
-  elementIdent?: string,
-): { concept: string; element: any } | null {
-  if (!elementIdent) return null
-  const lowerIdent = elementIdent.toLowerCase()
-  if (conceptName) {
-    const list = model.elements.get(conceptName)
-    if (list) {
-      for (const el of list) {
-        if (el.name.toLowerCase() === lowerIdent || (el.slug && el.slug.toLowerCase() === lowerIdent)) {
-          return { concept: conceptName, element: el }
-        }
+  modelId: string,
+): string | undefined {
+  const { parts } = parseTargetAddress(change.target)
+  switch (change.op) {
+    case 'update_field': {
+      const [elIdent, field] = parts
+      if (!field) return undefined
+      const el = elementByLabel(model, elIdent ?? '')
+      return el?.slug ? resolvedTarget.field(modelId, el.slug, field) : undefined
+    }
+    case 'update_element_text': {
+      const el = elementByLabel(model, parts[0] ?? '')
+      const slug = change.resolved_slug || el?.slug || change.slug || slugifyHeading(parts[0] ?? '')
+      return slug ? resolvedTarget.body(modelId, slug) : undefined
+    }
+    case 'add_element':
+    case 'remove_element':
+    case 'rename_element': {
+      const el = elementByLabel(model, parts[0] ?? '')
+      const slug = change.resolved_slug || el?.slug || change.slug || slugifyHeading(change.name ?? parts[0] ?? '')
+      return slug ? resolvedTarget.element(modelId, slug) : undefined
+    }
+    case 'update_concept_text':
+    case 'update_concept_field': {
+      const concept = change.concept || parts[0]
+      if (!concept) return undefined
+      const field = change.op === 'update_concept_field' ? parts[1] : undefined
+      return resolvedTarget.concept(modelId, concept, field)
+    }
+    case 'update_matrix_cell': {      const [matIdent, rowLabel, colLabel] = parts
+      if (!matIdent || !rowLabel || !colLabel) return undefined
+      const wanted = matIdent.toLowerCase()
+      const matrix = model.matrices.find(
+        (m) =>
+          m.name.toLowerCase() === wanted ||
+          slugifyHeading(m.name).toLowerCase() === wanted,
+      )
+      if (!matrix) return undefined
+      const matrixSlug = slugifyHeading(matrix.name)
+      const rowSlug = axisSlug(rowLabel, elementByLabel(model, rowLabel)?.slug)
+      const colSlug = axisSlug(colLabel, elementByLabel(model, colLabel)?.slug)
+      return resolvedTarget.cell(modelId, matrixSlug, rowSlug, colSlug)
+    }
+    case 'produce_artifact':
+      return resolvedTarget.artifact(change.target)
+    default:
+      return undefined
+  }
+}
+
+/** One sha256 per evidence entry, in order; none for `decision` / `unknown` or an unreadable file. */
+async function evidenceShas(rootDir: string, evidence: string | undefined): Promise<string[] | undefined> {
+  const items = splitEvidence(evidence)
+  if (items.length === 0) return undefined
+  const shas: string[] = []
+  for (const item of items) {
+    const lower = item.toLowerCase()
+    if (lower === 'decision' || lower === 'unknown') return undefined
+    const filePath = parseCitation(item)?.filePath ?? item.split('@')[0]
+    try {
+      const bytes = await readFile(join(rootDir, filePath))
+      shas.push(createHash('sha256').update(bytes).digest('hex'))
+    } catch {
+      return undefined
+    }
+  }
+  return shas.length === items.length ? shas : undefined
+}
+
+/** The latest `applied_at` of any recorded changeset, or `undefined`. */
+async function latestAppliedAt(changesDir: string): Promise<string | undefined> {
+  let names: string[]
+  try {
+    names = await readdir(changesDir)
+  } catch {
+    return undefined
+  }
+  let latest: string | undefined
+  for (const name of names) {
+    if (!isNNName(name)) continue
+    let doc: ChangesetDocument
+    try {
+      doc = parseChangeset(await readFile(join(changesDir, name), 'utf-8'))
+    } catch {
+      continue
+    }
+    const candidates = [doc.frontmatter.applied_at, ...doc.changes.map((c) => c.applied_at)]
+    for (const value of candidates) {
+      if (typeof value === 'string' && value.length > 0 && (latest === undefined || value > latest)) {
+        latest = value
       }
     }
   }
-  for (const [c, list] of model.elements.entries()) {
-    for (const el of list) {
-      if (el.name.toLowerCase() === lowerIdent || (el.slug && el.slug.toLowerCase() === lowerIdent)) {
-        return { concept: c, element: el }
-      }
-    }
-  }
-  return null
+  return latest
 }
 
 /**
@@ -614,27 +719,42 @@ export async function executeChangesetApply(
         )
       }
       if (change.evidence === 'decision' || change.evidence === 'unknown') continue
-      const resolved = resolveCitation(
-        change.evidence,
-        'evidence',
-        citationResolver,
-        resolvedChangesetPath,
-      )
-      if (!resolved.exists || resolved.error === 'UNKNOWN_ANCHOR' || resolved.error === 'MALFORMED') {
+      let evidenceItems: string[]
+      try {
+        evidenceItems = splitEvidence(change.evidence)
+      } catch (err) {
         return recordRejection(
           [
             {
               path: `changes.${change.id}.evidence`,
-              message:
-                `CITATION_UNRESOLVED: change "${change.id}" cites "${change.evidence}" ` +
-                `which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
-              code: 'CITATION_UNRESOLVED',
+              message: err instanceof Error ? err.message : String(err),
+              code: 'EVIDENCE_KEYWORD_IN_LIST',
             },
           ],
           change.id,
           undefined,
           false,
         )
+      }
+      for (const item of evidenceItems) {
+        if (item === 'decision' || item === 'unknown') continue
+        const resolved = resolveCitation(item, 'evidence', citationResolver, resolvedChangesetPath)
+        if (!resolved.exists || resolved.error === 'UNKNOWN_ANCHOR' || resolved.error === 'MALFORMED') {
+          return recordRejection(
+            [
+              {
+                path: `changes.${change.id}.evidence`,
+                message:
+                  `CITATION_UNRESOLVED: change "${change.id}" cites "${item}" ` +
+                  `which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
+                code: 'CITATION_UNRESOLVED',
+              },
+            ],
+            change.id,
+            undefined,
+            false,
+          )
+        }
       }
     }
 
@@ -689,7 +809,7 @@ export async function executeChangesetApply(
       addModelIndex.set(key, index)
     }
     for (const [index, change] of csDoc.changes.entries()) {
-      if (change.op === 'comment' || change.op === 'add_model') continue
+      if (change.op === 'comment' || change.op === 'add_model' || change.op === 'produce_artifact') continue
       const targetModel = parseTargetAddress(change.target).modelSlug
       const createdAt = addModelIndex.get(targetModel.toLowerCase())
       if (createdAt !== undefined && createdAt > index) {
@@ -701,6 +821,89 @@ export async function executeChangesetApply(
         )
       }
     }
+    // `seed` is the matrix header payload: valid only on add_matrix.
+    for (const change of csDoc.changes) {
+      if (change.seed !== undefined && change.op !== 'add_matrix') {
+        return rejectProposal(
+          'INVALID_OPERATION',
+          change.target,
+          `change "${change.id}": seed is valid only on add_matrix`,
+          change.id,
+        )
+      }
+    }
+
+    // `fields` is not a key of the Change concept: a change carries no inline field
+    // values. Reject a proposal that still carries one, defensively.
+    for (const change of csDoc.changes) {
+      if (change.fields !== undefined) {
+        return rejectProposal(
+          'INVALID_OPERATION',
+          change.target,
+          `change "${change.id}": a change must not carry inline fields; emit one update_field change per field`,
+          change.id,
+        )
+      }
+    }
+    // The prose body is a knowledge unit, not a field.
+    for (const change of csDoc.changes) {
+      if (change.op !== 'update_field') continue
+      const field = change.target.split('&')[1] ?? ''
+      if (field.trim().toLowerCase() === 'description') {
+        return rejectProposal(
+          'USE_UPDATE_ELEMENT_TEXT',
+          change.target,
+          `change "${change.id}": the element prose is not a field; use update_element_text on the bare element target`,
+          change.id,
+        )
+      }
+    }
+
+    // produce_artifact pre-checks: the target is a safe, existing workspace path that is
+    // not a model, changeset or sidecar. A second applied record for the same path is a
+    // conflict, not a second record.
+    for (const change of csDoc.changes) {
+      if (change.op !== 'produce_artifact') continue
+      const rel = change.target.replace(/\\/g, '/')
+      const segments = rel.split('/')
+      if (
+        !isSafeRelativeId(rel) ||
+        isAbsolute(rel) ||
+        segments.includes('..') ||
+        !isInsideRoot(rootDir, join(rootDir, rel))
+      ) {
+        return rejectProposal(
+          'ARTIFACT_INVALID_PATH',
+          rel,
+          `change "${change.id}" targets an unsafe artifact path "${change.target}"`,
+          change.id,
+        )
+      }
+      const fileName = segments[segments.length - 1] ?? ''
+      if (isChangesetPath(rel) || isSidecarName(fileName) || /(^|\/)kNNowledge\//i.test(rel)) {
+        return rejectProposal(
+          'ARTIFACT_INVALID_PATH',
+          rel,
+          `change "${change.id}" targets "${rel}", which is a model, changeset or sidecar, not an artifact`,
+          change.id,
+        )
+      }
+      const info = await stat(join(rootDir, rel)).catch(() => null)
+      if (!info || !info.isFile()) {
+        return rejectPhase1(
+          'ARTIFACT_NOT_FOUND',
+          rel,
+          `change "${change.id}" records "${rel}", which does not exist`,
+        )
+      }
+      if (await artifactAlreadyRecorded(rootDir, rel)) {
+        blockedChanges.set(change.id, {
+          code: 'ARTIFACT_ALREADY_RECORDED',
+          message: `ARTIFACT_ALREADY_RECORDED: "${rel}" already has an applied produce_artifact change`,
+        })
+      }
+    }
+
     let needsKnowledgeDir = false
     for (const change of csDoc.changes) {
       if (change.op !== 'add_model') continue
@@ -719,7 +922,7 @@ export async function executeChangesetApply(
           message: `MODEL_EXISTS: model "${change.target}" already exists; add_model never overwrites or repairs a model`,
         })
         for (const other of csDoc.changes) {
-          if (other.id === change.id || other.op === 'comment') continue
+          if (other.id === change.id || other.op === 'comment' || other.op === 'produce_artifact') continue
           if (parseTargetAddress(other.target).modelSlug.toLowerCase() !== key) continue
           blockedChanges.set(other.id, {
             code: 'DEPENDS_ON_CONFLICTED_CHANGE',
@@ -754,7 +957,7 @@ export async function executeChangesetApply(
     }
 
     for (const change of csDoc.changes) {
-      if (change.op === 'comment') continue
+      if (change.op === 'comment' || change.op === 'produce_artifact') continue
       const { modelSlug } = parseTargetAddress(change.target)
       if (!modelSlug) continue
       // A model whose add_model conflicted is never loaded: nothing may touch it.
@@ -845,17 +1048,6 @@ export async function executeChangesetApply(
         }
         const model = await loadKnowledge(modelFile)
         const parentName = (model.frontmatter.parent_spec as { name?: string } | undefined)?.name
-        if (
-          parentName === RECORD_BLUEPRINT ||
-          roleOf({ path: modelFile, parentSpecName: parentName }) === 'lineage-record' ||
-          (model.frontmatter as Record<string, unknown>).generated === true
-        ) {
-          return rejectPhase1(
-            'TOOL_OWNED_DOCUMENT',
-            change.target,
-            `"${modelSlug}" is a tool-owned lineage record and cannot be mutated by changesets; run nn-sources --lineage to regenerate it`,
-          )
-        }
         const baseVersion = String(
           model.frontmatter.knowledge_version ?? model.frontmatter.blueprint_version ?? 'V_0-1-0',
         )
@@ -997,6 +1189,11 @@ export async function executeChangesetApply(
     // Apply mutations for clean subset in memory
     for (const change of cleanSubset) {
       if (change.op === 'comment') continue
+      if (change.op === 'produce_artifact') {
+        change.status = 'applied'
+        change.resolution = `Recorded artifact ${change.target}`
+        continue
+      }
       const { modelSlug, parts, remainder } = parseTargetAddress(change.target)
       const entry = loadedModels.get(modelSlug.toLowerCase())
       if (!entry) continue
@@ -1053,117 +1250,7 @@ export async function executeChangesetApply(
         }
       }
 
-      let mutationArgs: Record<string, unknown> = {}
-      if (change.op === 'update_field') {
-        const elIdent = parts[0]
-        const fieldIdent = parts.length > 1 ? parts[1] : ''
-        mutationArgs = {
-          conceptName: change.concept,
-          elementName: elIdent,
-          fieldName: fieldIdent,
-          value: change.to,
-          to: change.to,
-          target: change.target,
-        }
-      } else if (change.op === 'add_element') {
-        const conceptName = change.concept || (remainder && !remainder.includes('&') ? remainder : '')
-        const elementName = change.name || change.slug || ''
-        mutationArgs = {
-          conceptName,
-          elementName,
-          slug: change.resolved_slug || change.slug,
-          description: change.notes || '',
-        }
-        if (change.fields) {
-          Object.assign(mutationArgs, change.fields)
-        }
-        // Use the declared spelling of the concept (matching is case-insensitive).
-        const declaredConcept = renameSchema?.concepts.find(
-          (c) => c.name.toLowerCase() === String(conceptName).toLowerCase(),
-        )
-        if (declaredConcept) mutationArgs.conceptName = declaredConcept.name
-      } else if (change.op === 'update_matrix_cell') {
-        mutationArgs = {
-          // The console emits the matrix display name (`Concept 1-Concept 2
-          // Matrix`), not a slug. Pass it as BOTH: `matchesMatrix` accepts an
-          // exact name or a slugified name/slug, so name and slug targets both
-          // resolve.
-          matrixName: parts[0],
-          matrixSlug: parts[0],
-          row: parts[1],
-          col: parts[2],
-          value: change.to,
-          to: change.to,
-        }
-      } else if (change.op === 'remove_element') {
-        const elIdent = change.name || parts[0] || remainder
-        let conceptName = change.concept
-        if (!conceptName) {
-          const found = findElementInModel(entry.model, undefined, elIdent)
-          conceptName = found?.concept
-        }
-        mutationArgs = { conceptName, elementName: elIdent }
-      } else if (change.op === 'rename_element') {
-        const elIdent = parts[0] || remainder
-        let conceptName = change.concept
-        if (!conceptName) {
-          const found = findElementInModel(entry.model, undefined, elIdent)
-          conceptName = found?.concept
-        }
-        mutationArgs = {
-          conceptName,
-          elementName: elIdent,
-          newName: change.name || change.to,
-        }
-      } else if (change.op === 'rename_concept') {
-        const conceptName = change.concept || remainder
-        mutationArgs = { conceptName, newName: change.name || change.to }
-      } else if (change.op === 'update_concept_text') {
-        const conceptName = change.concept || remainder
-        mutationArgs = {
-          conceptName,
-          text: change.to || (change as any).text || (change as any).content || '',
-        }
-      } else if (change.op === 'update_concept_field') {
-        let conceptName = change.concept || remainder
-        let fieldName = ''
-        const ampIdx = remainder.indexOf('&')
-        if (ampIdx !== -1) {
-          conceptName = remainder.slice(0, ampIdx).trim()
-          fieldName = remainder.slice(ampIdx + 1).trim()
-        }
-        if (conceptName.toLowerCase().startsWith('concept:')) {
-          conceptName = conceptName.slice('concept:'.length).trim()
-        }
-        mutationArgs = {
-          conceptName,
-          fieldName,
-          value: change.to,
-          to: change.to,
-          target: change.target,
-        }
-      } else if (change.op === 'remove_matrix') {
-        let matrixName = remainder.trim()
-        if (matrixName.toLowerCase().startsWith('matrix:')) {
-          matrixName = matrixName.slice('matrix:'.length).trim()
-        }
-        mutationArgs = { matrixName, target: change.target }
-      } else if (change.op === 'add_matrix') {
-        let matrixName = change.name || remainder.trim()
-        if (matrixName.toLowerCase().startsWith('matrix:')) {
-          matrixName = matrixName.slice('matrix:'.length).trim()
-        }
-        mutationArgs = {
-          matrixName,
-          source: change.concept,
-          targetConcept: change.to,
-          columns: change.fields?.['columns'],
-          rows: change.fields?.['rows'],
-          target: change.target,
-        }
-      } else {
-        mutationArgs = { target: change.target, value: change.to, to: change.to }
-      }
+      const mutationArgs = mutationArgsForChange(change, entry.model, renameSchema)
 
       const mutRes = coreApplyMutation(entry.model, change.op, mutationArgs, renameSchema)
       if (!mutRes.success) {
@@ -1389,15 +1476,45 @@ export async function executeChangesetApply(
     const cleanAppliedCount = cleanSubset.filter((c) => c.op !== 'comment').length
     const overallStatus: ChangeStatus = cleanAppliedCount === totalActionable ? 'applied' : 'partially_applied'
 
-    const appliedAt = new Date().toISOString()
     const batchId = displayStem(basename(resolvedChangesetPath))
     csDoc.frontmatter.status = overallStatus
-    csDoc.frontmatter.applied_at = appliedAt
     csDoc.frontmatter.models = modelsTransitionMap
     // D5: denormalize the execution facts onto every change (excluded from the seal).
+    // A later apply never sorts before an earlier one: clamp under the lock.
+    const latest = await latestAppliedAt(changesDir)
+    const nowMs = Date.now()
+    const latestMs = latest ? Date.parse(latest) : Number.NaN
+    const appliedAt =
+      Number.isFinite(latestMs) && latestMs >= nowMs
+        ? new Date(latestMs + 1).toISOString()
+        : new Date(nowMs).toISOString()
+    csDoc.frontmatter.applied_at = appliedAt
     for (const change of csDoc.changes) {
       change.applied_at = appliedAt
       change.batch = batchId
+    }
+    // Execution facts: the canonical unit address and the evidence anchors, written
+    // only for changes this run applied. Apply always overwrites them, so a proposal
+    // that pre-carried them cannot influence the log.
+    for (const change of csDoc.changes) {
+      if (change.status !== 'applied') {
+        delete change.resolved_target
+        delete change.evidence_sha256
+        continue
+      }
+      const { modelSlug } = parseTargetAddress(change.target)
+      if (change.op === 'produce_artifact') {
+        change.resolved_target = resolvedTarget.artifact(change.target)
+      }
+      const entry = loadedModels.get(modelSlug.toLowerCase())
+      if (entry) {
+        const target = resolvedTargetForChange(change, entry.model, canonicalUnitModelId(entry.modelSlug || modelSlug))
+        if (target) change.resolved_target = target
+        else delete change.resolved_target
+      }
+      const shas = await evidenceShas(rootDir, change.evidence)
+      if (shas) change.evidence_sha256 = shas
+      else delete change.evidence_sha256
     }
 
     const serializedCs = serializeChangeset(csDoc)
@@ -1467,6 +1584,9 @@ async function synthesizeAndExecuteChangeset(
     const c = (opArgs.conceptName as string) || ''
     const field = (opArgs.fieldName as string) || ''
     target = `${id}@concept:${c}&${field}`
+  } else if (op === 'update_element_text') {
+    const el = (opArgs.elementName as string) || (opArgs.slug as string) || ''
+    target = `${id}@${el}`
   } else if (op === 'remove_matrix') {
     const m = (opArgs.matrixName as string) || ''
     target = `${id}@matrix:${m}`
@@ -1480,16 +1600,35 @@ async function synthesizeAndExecuteChangeset(
   }
 
   const isAddMatrix = op === 'add_matrix'
-  const matrixSeedFields: Record<string, string> | undefined = isAddMatrix
+  // add_matrix seeds its headers through the sealed `seed`, never `fields`.
+  const asSeedList = (value: unknown): string[] =>
+    Array.isArray(value)
+      ? value.map((v) => String(v).trim()).filter(Boolean)
+      : String(value)
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean)
+  const matrixSeed: { columns?: string[]; rows?: string[] } | undefined = isAddMatrix
     ? {
-        ...(opArgs.columns !== undefined
-          ? { columns: Array.isArray(opArgs.columns) ? opArgs.columns.join(', ') : String(opArgs.columns) }
-          : {}),
-        ...(opArgs.rows !== undefined
-          ? { rows: Array.isArray(opArgs.rows) ? opArgs.rows.join(', ') : String(opArgs.rows) }
-          : {}),
+        ...(opArgs.columns !== undefined ? { columns: asSeedList(opArgs.columns) } : {}),
+        ...(opArgs.rows !== undefined ? { rows: asSeedList(opArgs.rows) } : {}),
       }
     : undefined
+
+  // A change carries no inline fields: the direct add_element op cannot express them.
+  if (!isAddMatrix && op === 'add_element' && opArgs.fields !== undefined) {
+    return {
+      success: false,
+      errors: [
+        {
+          path: 'fields',
+          code: 'INVALID_OPERATION',
+          message:
+            'INVALID_OPERATION: add_element must not carry inline fields; call update_field once per field (or propose a changeset)',
+        },
+      ],
+    }
+  }
 
   const changeItem: ChangeItem = {
     id: 'c-01',
@@ -1504,17 +1643,15 @@ async function synthesizeAndExecuteChangeset(
           ? String(opArgs.value)
           : opArgs.to !== undefined
             ? String(opArgs.to)
-            : (opArgs.newName as string | undefined),
+            : opArgs.text !== undefined
+              ? String(opArgs.text)
+              : (opArgs.newName as string | undefined),
     concept: isAddMatrix ? (opArgs.source as string) || undefined : (opArgs.conceptName as string) || undefined,
     name: isAddMatrix
       ? (opArgs.matrixName as string) || (opArgs.name as string) || undefined
       : (opArgs.newName as string) || (opArgs.elementName as string) || undefined,
     slug: (opArgs.slug as string) || undefined,
-    fields: isAddMatrix
-      ? matrixSeedFields && Object.keys(matrixSeedFields).length > 0
-        ? matrixSeedFields
-        : undefined
-      : (opArgs.fields as Record<string, string>) || undefined,
+    seed: matrixSeed && Object.keys(matrixSeed).length > 0 ? matrixSeed : undefined,
     author: (opArgs.author as string) || 'agent',
     notes: (opArgs.rationale as string) || undefined,
   }
@@ -1580,17 +1717,6 @@ export async function applyChange(
     const parent = model.frontmatter.parent_spec as { name?: string } | undefined
     if (model.frontmatter.level === 2) {
       return bumpBlueprintVersion(rootDir, filePath, model, opArgs)
-    }
-    if (parent?.name === RECORD_BLUEPRINT) {
-      return {
-        success: false,
-        errors: [
-          {
-            path: 'frontmatter',
-            message: `The lineage record is unversioned by design and cannot be bumped: ${id}`,
-          },
-        ],
-      }
     }
     if (opArgs.version !== undefined) {
       return {

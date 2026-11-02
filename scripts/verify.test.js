@@ -73,7 +73,6 @@ const READ_ONLY_IDS = [
   'legacy-write',
   'nn-name-regex',
   'nn-name-invariant',
-  'lineage-drift',
 ];
 
 test('resolveJobs scales the default pool to min(8, max(1, floor(cpus*0.75)))', () => {
@@ -135,9 +134,9 @@ test('SERIAL_SUITES stay out of the fast pool and out of SLOW_SUITES', () => {
 test('--only filters steps by id and desc, and zero matches yields an empty list', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'verify-only-'));
   try {
-    const byId = buildSteps(root, { only: 'lineage-drift' });
+    const byId = buildSteps(root, { only: 'nn-name-regex' });
     assert.equal(byId.length, 1);
-    assert.equal(byId[0].id, 'lineage-drift');
+    assert.equal(byId[0].id, 'nn-name-regex');
 
     const byDesc = buildSteps(root, { only: 'Usage Procedure' });
     assert.ok(byDesc.some((s) => s.id === 'usage-procedure'), 'desc substring works');

@@ -306,6 +306,7 @@ export async function recursiveParse(
     identity: new IdentityRegistry(),
     issues: [],
     visitedPaths,
+    changeLog: options?.changeLog,
   }
   const elementNameToModel = new Map<string, string>()
 
@@ -501,8 +502,7 @@ export async function recursiveParse(
 
     // A3: wire schema-typed `type:: citation` fields into the graph once the
     // schema is known (design D3: must run after templateSchema is stashed,
-    // never inside normalizeElementsIntoGraph). Additive to the name-based
-    // path in attachSourceCitations, which already ran during normalization.
+    // never inside normalizeElementsIntoGraph).
     if (schema) {
       for (const node of Object.values(ctx.nodes)) {
         if (node.kind === 'element' && node.source.path === resolvedPath) {

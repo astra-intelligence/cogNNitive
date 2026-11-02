@@ -9,19 +9,19 @@ import { roleOf } from '../../src/naming/contract.js'
  * `blueprint -> { role, nature }` map. This test freezes today's decision for
  * every core blueprint so the refactor cannot silently change a role.
  *
- * The roles `changeset` (blueprint `changes`) and `lineage-record` (blueprint
- * `cognnitive`) have live consumers in `lineage/` (`project.ts`, `fs-snapshot.ts`,
- * `record.ts`); keeping them stable is what lets lineage stay untouched.
+ * The role `changeset` (blueprint `changes`) has a live consumer in `lineage/`
+ * (`project.ts`, `fs-snapshot.ts`). The retired `lineage-record` role (blueprint
+ * `cognnitive`) now falls through to `knowledge`.
  *
  * It MUST stay GREEN before AND after the refactor.
  */
 describe('core blueprint role decisions (characterization pin)', () => {
   const cases: Array<{ label: string; path: string; parentSpecName: string; role: string }> = [
     {
-      label: 'cognnitive -> lineage-record',
+      label: 'cognnitive -> knowledge (record retired)',
       path: 'cognnitive_V_0-1-0_NN.md',
       parentSpecName: 'cognnitive_V_0-1-0',
-      role: 'lineage-record',
+      role: 'knowledge',
     },
     {
       label: 'sidecar -> sidecar',

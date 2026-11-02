@@ -41,12 +41,17 @@ describe('isModelCandidate', () => {
     ).toBe(false)
   })
 
-  for (const bp of ['cogNNitive', 'workspace', 'procedures', 'sources', 'artifacts', 'sidecar']) {
+  for (const bp of ['workspace', 'procedures', 'sources', 'artifacts', 'sidecar']) {
     it(`rejects documents whose parent_spec is the non-knowledge bluepriNNt ${bp}`, () => {
       expect(isModelCandidate({ path: `x/Thing_${bp}_NN.md`, frontmatter: fm(bp) })).toBe(false)
       expect(isModelCandidate({ path: `x/Thing_${bp}_NN.md`, frontmatter: fm(`${bp}_V_0-1-0`) })).toBe(false)
     })
   }
+
+  it('accepts a cogNNitive document as knowledge (the record role is retired)', () => {
+    expect(isModelCandidate({ path: 'Acme_cogNNitive_NN.md', frontmatter: fm('cogNNitive') })).toBe(true)
+    expect(isModelCandidate({ path: 'x/Thing_cogNNitive_V_0-1-0_NN.md', frontmatter: fm('cogNNitive_V_0-1-0') })).toBe(true)
+  })
 
   it('rejects the entrypoint and spec files', () => {
     expect(isModelCandidate({ path: 'domaiNN_NN.md', frontmatter: fm('domaiNN') })).toBe(false)
@@ -128,7 +133,7 @@ describe('list_models and ## NN Models agree', () => {
     }
     reconcilable.sort()
 
-    expect(listed).toEqual(['Client_business_NN', 'Other_projects_NN'])
+    expect(listed).toEqual(['Acme_cogNNitive_NN', 'Client_business_NN', 'Other_projects_NN'])
     expect(reconcilable).toEqual(listed)
   })
 })

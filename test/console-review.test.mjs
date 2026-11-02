@@ -493,7 +493,7 @@ describe('Console Review Workflow & Feedback Roundtrip Contract', () => {
       assert.ok(document.querySelector('#nn-banner [data-nn="new-element"]'))
     })
 
-    it('stores a new draft whose export is add_element with concept, name and fields', () => {
+    it('stores a new draft whose export is add_element then one update_field per field', () => {
       const { ctl, store } = mountController()
       assert.equal(ctl.openNew(), true)
       const modal = document.querySelector('[data-nn-component="new-element-modal"]')
@@ -529,7 +529,16 @@ describe('Console Review Workflow & Feedback Roundtrip Contract', () => {
       assert.match(res.text, /^target:: strategy@Goal$/m)
       assert.match(res.text, /^concept:: Goal$/m)
       assert.match(res.text, /^name:: "Grow revenue"$/m)
-      assert.match(res.text, /^fields:: [{]"owner":"CFO"[}]$/m)
+      // add_element carries no inline fields: each filled field is its own
+      // update_field with its own evidence and no `from` (the field is new).
+      assert.match(res.text, /^op:: update_field$/m)
+      assert.match(res.text, /^target:: strategy@grow-revenue&owner$/m)
+      assert.match(res.text, /^to:: CFO$/m)
+      assert.doesNotMatch(res.text, /^fields::/m, 'no emitter writes fields')
+      assert.doesNotMatch(res.text, /^from::/m, 'creation-time updates omit from')
+      const blocks = res.text.match(/^## NN Change: (.+)$/gm) || []
+      assert.equal(blocks.length, 2, 'one add_element block plus one update_field block')
+      assert.equal(new Set(blocks).size, 2, 'each block has a distinct id')
     })
 
     function mountDomainController(models) {

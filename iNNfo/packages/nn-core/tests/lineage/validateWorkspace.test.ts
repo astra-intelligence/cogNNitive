@@ -100,24 +100,19 @@ sources: ["sources/import/existing.md@## Overview"]
     },
   ]
 
-  it('validates artifact frontmatter and console meta citations from snapshot without false positives on ModelRecords.derived_from', () => {
+  it('validates artifact frontmatter citations from snapshot without false positives on ModelRecords.derived_from', () => {
     const diagnostics = validateWorkspaceSources(recursiveResult, mockResolver, snapshots)
 
-    // Should contain errors for dangling citations in artifacts/ files
+    // Should contain errors for dangling citations declared by artifact frontmatter
     const missingFileDiags = diagnostics.filter((d) => d.code === 'KU_DANGLING_FILE')
-    expect(missingFileDiags.length).toBe(2)
+    expect(missingFileDiags.length).toBe(1)
 
     const reportDiag = missingFileDiags.find((d) => d.path.startsWith('artifacts/DanglingReport.md'))
     expect(reportDiag).toBeDefined()
     expect(reportDiag?.message).toContain('sources/import/missing.md')
 
-    const consoleDiag = missingFileDiags.find((d) => d.path.startsWith('artifacts/DanglingConsole.html'))
-    expect(consoleDiag).toBeDefined()
-    expect(consoleDiag?.message).toContain('kNNowledge/MissingModel_NN.md')
-
-    // No legacy derivation key warning on ModelRecords.derived_from
-    const legacyDiags = diagnostics.filter((d) => d.code === 'LEGACY_DERIVATION_KEY')
-    expect(legacyDiags).toHaveLength(0)
+    // A console export's `meta.sources` names its model, not a citation (S5a.1).
+    expect(missingFileDiags.some((d) => d.path.startsWith('artifacts/DanglingConsole.html'))).toBe(false)
 
     // No errors on valid report
     const validDiags = diagnostics.filter((d) => d.path.startsWith('artifacts/ValidReport.md'))

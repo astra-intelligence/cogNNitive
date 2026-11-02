@@ -1,5 +1,6 @@
 import { parse as parseYaml } from 'yaml'
 import { addModelProblems, isChangeOp, isChangeStatus } from './types.js'
+import { splitSourceFieldValue } from '../sourceRef.js'
 import type {
   ChangesetDocument,
   ChangesetFrontmatter,
@@ -23,8 +24,26 @@ function stripQuotes(str: string): string {
   return trimmed
 }
 
-function parseFieldsValue(str: string): Record<string, string> | undefined {
+/** Parses a `{...}` JSON object argument (`seed::`), or `undefined` when malformed. */
+function parseJsonObject(str: string): Record<string, unknown> | undefined {
   const trimmed = str.trim()
+  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return undefined
+  try {
+    const parsed = JSON.parse(trimmed)
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function parseStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  return value.map((v) => String(v))
+}
+
+function parseFieldsValue(str: string): Record<string, string> | undefined {  const trimmed = str.trim()
   if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
     try {
       const parsed = JSON.parse(trimmed)
@@ -210,6 +229,26 @@ export function parseChangeset(rawContent: string): ChangesetDocument {
       case 'resolved_slug':
         currentChange.resolved_slug = rawVal
         break
+      case 'resolved_target':
+        currentChange.resolved_target = rawVal
+        break
+      case 'evidence_sha256': {
+        const shas = splitSourceFieldValue(rawVal)
+        if (shas.length > 0) currentChange.evidence_sha256 = shas
+        break
+      }
+      case 'seed': {
+        const parsedSeed = parseJsonObject(rawVal)
+        if (parsedSeed) {
+          const seed: { columns?: string[]; rows?: string[] } = {}
+          const columns = parseStringArray(parsedSeed.columns)
+          const rows = parseStringArray(parsedSeed.rows)
+          if (columns) seed.columns = columns
+          if (rows) seed.rows = rows
+          currentChange.seed = seed
+        }
+        break
+      }
       default:
         // Ignore unrecognized keys or comments
         break

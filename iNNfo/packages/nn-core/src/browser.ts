@@ -129,6 +129,8 @@ export {
   SpecResolutionError,
 } from './resolver.js'
 export type { SpecResolver } from './resolver.js'
+export * from './changelog/index.js'
+export * from './changelog/load.js'
 export * from './lineage/index.js'
 
 export * from './naming/index.js'

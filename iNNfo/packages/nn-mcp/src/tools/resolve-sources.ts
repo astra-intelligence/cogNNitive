@@ -6,7 +6,6 @@
  * Reuses the canonical citation resolution logic from `@cognnitive/nn-core`.
  */
 import {
-  SOURCE_FIELD_NAMES,
   findDeclaredField,
   splitSourceFieldValue,
   resolveCitation,
@@ -14,6 +13,9 @@ import {
   CHANGE_CONCEPT,
   KNOWN_AGENT_TOOL_IDS,
   createFsSourceResolver,
+  buildChangeLog,
+  readLineageSnapshot,
+  splitEvidence,
 } from '@cognnitive/nn-core'
 import type {
   ParsedKnowledge,
@@ -39,8 +41,13 @@ export type { CitationOrigin, ResolvedCitation }
  */
 export async function resolveSources(
   rootDir: string,
-  input: { model: string; elementId: string; fieldName?: string },
+  input: { model: string; elementId: string; fieldName?: string; target?: string },
 ): Promise<ResolvedCitation[]> {
+  // A unit address answers "where did THIS value come from?" through the change
+  // log: the evidence of the last applied change of that unit (change-provenance,
+  // consumers read the log). Superseded evidence never wins.
+  if (input.target) return resolveTargetEvidence(rootDir, input.model, input.target)
+
   let modelPath: string | null = null
   try {
     modelPath = await findKnowledgeFile(rootDir, input.model)
@@ -103,6 +110,48 @@ interface FoundElement {
   fields: Record<string, unknown>
 }
 
+/** The unit part of a target address (`owner`, `#body`, `row&col`). */function unitLabelOf(target: string): string {
+  const at = target.indexOf('@')
+  if (at === -1) return ''
+  const rest = target.slice(at + 1)
+  const amp = rest.indexOf('&')
+  return amp === -1 ? '' : rest.slice(amp + 1)
+}
+
+/**
+ * The evidence of the origin change of a unit address, resolved to citations.
+ * Keyword evidence (`decision`, `unknown`) is not a source and yields nothing;
+ * a unit with no applied change yields nothing.
+ */
+async function resolveTargetEvidence(
+  rootDir: string,
+  model: string,
+  target: string,
+): Promise<ResolvedCitation[]> {
+  const log = buildChangeLog(readLineageSnapshot(rootDir))
+  const origin = log.origin(target)
+  if (!origin) return []
+
+  let modelPath: string | null = null
+  try {
+    modelPath = await findKnowledgeFile(rootDir, model)
+  } catch {
+    modelPath = null
+  }
+
+  const resolver = createFsSourceResolver(rootDir)
+  const label = unitLabelOf(target)
+  const citations: ResolvedCitation[] = []
+  for (const item of origin.evidenceItems ?? splitEvidence(origin.evidence)) {
+    const keyword = item.toLowerCase()
+    if (keyword === 'decision' || keyword === 'unknown') continue
+    citations.push({
+      ...resolveCitation(item, label, resolver, modelPath ?? ''),
+      changeId: origin.id,
+    })
+  }
+  return citations
+}
 function findElement(model: ParsedKnowledge, elementId: string): FoundElement | undefined {
   for (const [concept, nodes] of model.elements.entries()) {
     const match = nodes.find((n) => n.name.toLowerCase() === elementId.toLowerCase())
@@ -115,8 +164,8 @@ function findElement(model: ParsedKnowledge, elementId: string): FoundElement | 
  * Field selection (design D6): explicit `fieldName` skips schema resolution
  * entirely (works standalone, no A3 dependency). When omitted, the schema
  * comes from `resolveBlueprintWithCache` + `buildBlueprintSchemaResolverFromCache`
- * — a single-model read, never a full `recursiveParse` — and falls back to
- * `SOURCE_FIELD_NAMES` only when no schema resolves.
+ * — a single-model read, never a full `recursiveParse` — and returns no field
+ * when no schema resolves (`sources::` is no longer read).
  */
 async function resolveFieldNames(
   rootDir: string,
@@ -127,17 +176,12 @@ async function resolveFieldNames(
   if (explicitFieldName) return [explicitFieldName]
 
   const candidateNames = Object.keys(element.fields)
-  const nameBased = candidateNames.filter((f) => SOURCE_FIELD_NAMES.has(f.toLowerCase()))
-
   const schema = await resolveSchemaForModel(rootDir, model)
-  if (!schema) return nameBased
+  if (!schema) return []
 
-  const schemaTyped = candidateNames.filter(
-    (f) =>
-      !SOURCE_FIELD_NAMES.has(f.toLowerCase()) &&
-      findDeclaredField(schema, element.concept, f)?.type === 'citation',
+  return candidateNames.filter(
+    (f) => findDeclaredField(schema, element.concept, f)?.type === 'citation',
   )
-  return [...nameBased, ...schemaTyped]
 }
 
 async function resolveSchemaForModel(

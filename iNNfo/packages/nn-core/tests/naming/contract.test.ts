@@ -14,6 +14,7 @@ import {
   isExcludedPath,
   roleOf,
   isModelCandidate,
+  isRegenerableView,
 } from '../../src/naming/contract.js'
 
 describe('naming contract constants', () => {
@@ -279,6 +280,26 @@ describe('deep archive exclusion & changeset role', () => {
     const frontmatter = { level: 3, parent_spec: { name: 'business_V_0-2-0' } }
     expect(isModelCandidate({ path: 'Sources/import/foo_NN.md', frontmatter })).toBe(false)
     expect(isModelCandidate({ path: 'SOURCES\\import\\foo_NN.md', frontmatter })).toBe(false)
+  })
+})
+
+describe('isRegenerableView', () => {
+  it('accepts console exports and the impact audit family', () => {
+    expect(isRegenerableView('artifacts/Domain_console/index.html')).toBe(true)
+    expect(isRegenerableView('artifacts/Impact_Audit_report_20261002T101500Z.md')).toBe(true)
+    expect(isRegenerableView('artifacts/Impact_Audit_report.md')).toBe(true)
+  })
+
+  it('rejects timestamped family artifacts, knowledge, sources and sidecars', () => {
+    expect(isRegenerableView('artifacts/Report_20261002T101500Z.md')).toBe(false)
+    expect(isRegenerableView('kNNowledge/A_NN.md')).toBe(false)
+    expect(isRegenerableView('sources/import/a.md')).toBe(false)
+    expect(isRegenerableView('sources/import/a.md_sidecar_NN.md')).toBe(false)
+  })
+
+  it('is case-insensitive on Windows-style paths and never throws', () => {
+    expect(isRegenerableView('Artifacts\\Domain_Console\\index.html')).toBe(true)
+    expect(isRegenerableView('')).toBe(false)
   })
 })
 

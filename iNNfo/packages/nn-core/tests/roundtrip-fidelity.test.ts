@@ -128,6 +128,9 @@ describe('round-trip fidelity over the shipped corpus', () => {
         for (const node of nodes) {
           for (const field of Object.keys(node.fields)) {
             hasAnyField = true
+            // `description` is the element prose body, not a field
+            // (changeset-document-model): update_field refuses it.
+            if (field.toLowerCase() === 'description') continue
             const index = fieldLineIndex(baseline, node.name, field)
             if (index !== -1) {
               target = { element: node.name, field, index }

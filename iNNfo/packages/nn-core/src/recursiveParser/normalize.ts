@@ -9,53 +9,23 @@ import type {
 import { extractBlueprintSchema, findDeclaredField, type BlueprintSchema } from '../schema/index.js'
 import { normalizeSeparators } from '../parser/slug.js'
 import {
-  SOURCE_FIELD_NAMES,
   parseCitation,
   splitSourceFieldValue,
   type SourceRef,
 } from '../sourceRef.js'
 import type { ParseContext } from './types.js'
 import { addFieldAndMentionEdges } from './relationships.js'
+import type { ChangeLog } from '../changelog/index.js'
+import { splitEvidence } from '../changeset/evidence.js'
+import { slugifyHeading } from '../sourceRef.js'
 
 /**
- * Reads a node's `sources`/`source` field, parses every value as a
- * {@link SourceRef}, and — when at least one parses — attaches `node.sources`
- * plus one `origin: 'source'` relationship per ref (targetId = the
- * workspace-relative file path, since Sources are not graph nodes). Values that
- * do not parse are left for the workspace source validator to report; they do
- * not populate `node.sources`.
- */
-export function attachSourceCitations(node: KnowledgeNode): void {
-  for (const [fieldName, fv] of Object.entries(node.fields)) {
-    if (!SOURCE_FIELD_NAMES.has(fieldName.toLowerCase())) continue
-    const refs: SourceRef[] = []
-    for (const raw of splitSourceFieldValue(fv.value)) {
-      const ref = parseCitation(raw)
-      if (ref) refs.push(ref)
-    }
-    if (refs.length > 0) {
-      node.sources = refs
-      for (const ref of refs) {
-        node.relationships.push({ targetId: ref.filePath, label: fieldName, origin: 'source' })
-      }
-    }
-  }
-}
-
-/**
- * Additive second pass, run once a node's composed `templateSchema` is known
- * (design D3): any field the schema declares `type:: citation`, whose name is
- * NOT already in `SOURCE_FIELD_NAMES` (that path stays byte-identical, see
- * {@link attachSourceCitations}), is resolved the same way — appended to
- * `node.sources` and emitting one `origin: 'source'` relationship. The union
- * of the two paths (name OR declared type) is intentional (design D5): a
- * field named `sources`/`source` keeps working even when the schema declares
- * it as something else.
+ * Graph edges from the schema: any field the schema declares `type:: citation`
+ * is resolved to `node.sources` plus one `origin: 'source'` relationship.
  */
 export function attachSchemaTypedCitations(node: KnowledgeNode, schema: BlueprintSchema | undefined): void {
   if (!schema) return
   for (const [fieldName, fv] of Object.entries(node.fields)) {
-    if (SOURCE_FIELD_NAMES.has(fieldName.toLowerCase())) continue
     const declared = findDeclaredField(schema, node.type, fieldName)
     if (declared?.type !== 'citation') continue
 
@@ -77,6 +47,40 @@ export function nowIso(): string {
   return new Date().toISOString()
 }
 
+/**
+ * Graph edges from the change log (change-provenance): the source edges of an
+ * element are the evidence of the LIVE units of that element — the last applied
+ * change of each unit after the epoch cut. A superseded change contributes no
+ * edge, and a removed element contributes none. The schema-typed citation fields
+ * (`attachSchemaTypedCitations`) still contribute edges until the L3 ban lands.
+ */
+export function attachLiveEvidence(node: KnowledgeNode, log: ChangeLog): void {
+  const slug = node.slug ?? slugifyHeading(node.name)
+  const refs: SourceRef[] = []
+  const seen = new Set<string>()
+
+  for (const unit of log.units()) {
+    const at = unit.key.indexOf('@')
+    if (at === -1) continue
+    const parts = unit.key.slice(at + 1).split('&')
+    if (parts[0] !== slug) continue
+    const origin = log.origin(unit.key)
+    if (!origin) continue
+
+    const label = parts.slice(1).join('&')
+    for (const item of origin.evidenceItems ?? splitEvidence(origin.evidence)) {
+      const keyword = item.toLowerCase()
+      if (keyword === 'decision' || keyword === 'unknown') continue
+      const ref = parseCitation(item)
+      if (!ref || seen.has(ref.filePath)) continue
+      seen.add(ref.filePath)
+      refs.push(ref)
+      node.relationships.push({ targetId: ref.filePath, label, origin: 'source' })
+    }
+  }
+
+  if (refs.length > 0) node.sources = [...(node.sources ?? []), ...refs]
+}
 /** Extracts a node's own locally-declared metamodel from its body-level
  *  `Concept Definition` / `Field Definition` / `Matrix Definition` elements
  *  (level-2 templates instantiate the root primitives of the Metaplantilla
@@ -267,7 +271,7 @@ export function normalizeElementsIntoGraph(
         rawSections: el.description ? { description: el.description } : {},
         source: { path: sourcePath },
       }
-      attachSourceCitations(node)
+      if (ctx.changeLog) attachLiveEvidence(node, ctx.changeLog)
       ctx.nodes[qualifiedId] = node
       if (actualParentId && ctx.nodes[actualParentId] && !ctx.nodes[actualParentId].childIds.includes(qualifiedId)) {
         ctx.nodes[actualParentId].childIds.push(qualifiedId)

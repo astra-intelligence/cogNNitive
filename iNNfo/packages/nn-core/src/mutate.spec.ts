@@ -116,38 +116,38 @@ describe('level gate for template-authoring mutations (H5)', () => {
   })
 })
 
-describe('addElement sources propagation (H3a)', () => {
-  it('persists a sources field alongside fields when provided', () => {
+describe('addElement carries no inline fields and no sources (changeset-document-model)', () => {
+  it('rejects a fields key, pointing at update_field', () => {
     const model = parseKnowledge(LEVEL3_MODEL)
     const result = applyMutation(model, 'add_element', {
       conceptName: 'Phase',
       elementName: 'Second',
       fields: { note: 'keep' },
+    })
+    expect(result.success).toBe(false)
+    expect(result.errors?.[0].message).toContain('update_field')
+    expect((model.elements.get('Phase') ?? []).some((e) => e.name === 'Second')).toBe(false)
+  })
+
+  it('never persists a sources field', () => {
+    const model = parseKnowledge(LEVEL3_MODEL)
+    const result = applyMutation(model, 'add_element', {
+      conceptName: 'Phase',
+      elementName: 'Second',
       sources: ['a.md#x', 'b.md#y'],
     })
     expect(result.success).toBe(true)
     const el = (model.elements.get('Phase') ?? []).find((e) => e.name === 'Second')
-    expect(el?.fields).toEqual({ note: 'keep', sources: ['a.md#x', 'b.md#y'] })
+    expect(el?.fields).toEqual({})
+    expect(el?.fields.sources).toBeUndefined()
   })
 
-  it('persists sources when it is the only argument beyond the required ones', () => {
+  it('still accepts root-level field args on the direct mutation API', () => {
     const model = parseKnowledge(LEVEL3_MODEL)
     const result = applyMutation(model, 'add_element', {
       conceptName: 'Phase',
       elementName: 'Second',
-      sources: 'a.md#x',
-    })
-    expect(result.success).toBe(true)
-    const el = (model.elements.get('Phase') ?? []).find((e) => e.name === 'Second')
-    expect(el?.fields).toEqual({ sources: 'a.md#x' })
-  })
-
-  it('behaves exactly as before when sources is omitted', () => {
-    const model = parseKnowledge(LEVEL3_MODEL)
-    const result = applyMutation(model, 'add_element', {
-      conceptName: 'Phase',
-      elementName: 'Second',
-      fields: { note: 'keep' },
+      note: 'keep',
     })
     expect(result.success).toBe(true)
     const el = (model.elements.get('Phase') ?? []).find((e) => e.name === 'Second')

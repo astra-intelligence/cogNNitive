@@ -166,7 +166,8 @@ describe('add_model: model creation', () => {
   it('add_model then add_element in one changeset: scaffold plus element, no extra bump', async () => {
     const cs = await writeCs([
       ADD_ACME,
-      { id: 'c-02', op: 'add_element', target: 'acme@Work', concept: 'Work', name: 'Pillar One', fields: { statement: 'Own the market' } },
+      { id: 'c-02', op: 'add_element', target: 'acme@Work', concept: 'Work', name: 'Pillar One' },
+      { id: 'c-03', op: 'update_field', target: 'acme@pillar-one&statement', to: 'Own the market' },
     ])
     const res = await applyChange(root, cs)
 

@@ -32,7 +32,7 @@ export const SAMPLE_MAPPINGS = [
   },
   {
     source: 'Ghostbusters_business-model_NN.md',
-    target: path.join('business-model', 'samples', 'Ghostbusters_V_0-4-1_business-model_NN.md')
+    target: path.join('business-model', 'samples', 'Ghostbusters_V_0-4-2_business-model_NN.md')
   },
   {
     source: 'Ghostbusters_documentation_NN.md',
@@ -44,11 +44,11 @@ export const SAMPLE_MAPPINGS = [
   },
   {
     source: 'Ghostbusters_metrics_NN.md',
-    target: path.join('metrics', 'samples', 'Ghostbusters_V_0-5-0_metrics_NN.md')
+    target: path.join('metrics', 'samples', 'Ghostbusters_V_0-5-1_metrics_NN.md')
   },
   {
     source: 'Ghostbusters_organization_NN.md',
-    target: path.join('organization', 'samples', 'Ghostbusters_V_0-4-0_organization_NN.md')
+    target: path.join('organization', 'samples', 'Ghostbusters_V_0-4-1_organization_NN.md')
   },
   {
     source: 'Ghostbusters_procedures_NN.md',
