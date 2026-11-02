@@ -1944,3 +1944,61 @@ worktree.
 
 ---
 
+## PR 29 — S5b.5 (branch `lac/s5b5`, base `lac/s5b4`) — RELEASE PREP ONLY, NO TAG
+
+Applied: 2026-11-02. Status: **partially applied, stopped at the hard stop**: the
+maintainer authorized finishing PRs 26–32 and the merge, but the tag itself was not in
+the authorization and `tasks.md` requires explicit confirmation before creating or
+re-pinning any release tag.
+
+Tasks: 5b.6, 5b.7, 5b.8e — done up to (not including) the tag.
+
+- `manifest/source.yaml`: the `changes` blueprint pin moved to `V_0-6-0` (its
+  `blueprint_version`); `sidecar` stays `V_0-1-3` and `visual-catalog` `V_0-3-3`, both
+  unversioned in the manifest by design. `npm run sync:versions` clean.
+- Rehearsal: a detached worktree at the PR tip ran the full `node scripts/verify.js
+  --release` — green — and `node scripts/manifest/validate-manifest.js --channel
+  preview`, which fails on 24 ref pins (the local manifest pins commit `4f06d2e` while
+  `cogNNitive-web` main is at `cfb2010a`). That is an external-state mismatch the
+  release workflow resolves when it renders and pins the stable manifest; it is not a
+  code failure.
+- NOT done (needs the tag): cutting `templates-v*` (and `skills-v*` / `innfo-mcp` if
+  their versions moved), repinning `channels.stable.refs`, regenerating
+  `docs/use/manifest.md` for the stable channel (the generator refuses stable outside
+  the release workflow: "stable manifest is assembled by release workflow").
+
+### Verification
+
+- FULL `node scripts/verify.js --release` in the detached rehearsal worktree: green.
+- `npm run verify:fast` green on the PR tip.
+- `validate-manifest --channel preview`: 24 pin mismatches against the external repo
+  (expected before the release pins refs).
+
+### Deviations
+
+83. PR 29 lands as release **prep**: the tag and the stable-channel repin are the one
+    step reserved for explicit maintainer approval (hard stop in the handoff and in
+    `tasks.md`). Everything that can be verified without a tag is verified.
+84. The preview-channel manifest mismatch is external (the pinned commit in
+    `cogNNitive-web` moved). The release workflow re-renders and re-pins it; chasing it
+    locally would mean pinning an unreleased commit.
+
+---
+
+## Handoff — start here next session (after PR 29 prep)
+
+Chain state: `lac/s5b5` is the tip, in release prep; **no tag exists**.
+Next: PR 30 (`lac/s6a`), then 31 (`lac/s6b`), 32 (`lac/s6c`), then S7.
+
+**Release step still open (needs the maintainer's "go"):** cut `templates-v*` at the
+tracker tip, repin `channels.stable.refs`, regenerate `docs/use/manifest.md`, and
+`validate-manifest --channel stable` in a detached worktree.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
