@@ -69,7 +69,13 @@ async function run() {
 
     const rValid = checkLineage(proj);
     eq(rValid.errors.length, 0, 'a synced workspace has no error');
-    eq(rValid.warnings.length, 0, 'a synced workspace has no warning');
+    // An artifact with no `produce_artifact` change is advice, not a broken
+    // workspace (change-provenance: ARTIFACT_WITHOUT_RECORD is a warning).
+    eq(
+      rValid.warnings.filter((w) => !w.includes('has no applied produce_artifact change')).length,
+      0,
+      'a synced workspace has no warning',
+    );
 
     // (b) Dangling citation produces an error via validateCitations (P2-1 MISSING_SOURCE_FOR_DERIVED_FROM)
     put(proj, 'kNNowledge/Plan_business_NN.md', PLAN('sources/import/nonexistent.md@## Item'));

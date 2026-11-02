@@ -50,6 +50,7 @@ __export(index_exports, {
   isModelCandidate: () => isModelCandidate,
   isNNName: () => isNNName,
   isProcedureDocument: () => isProcedureDocument,
+  isRegenerableView: () => isRegenerableView,
   isSidecarName: () => isSidecarName,
   nextStamp: () => nextStamp,
   parentSpecNameOf: () => parentSpecNameOf,
@@ -164,6 +165,14 @@ function isExcludedPath(path) {
   const segs = segmentsOf(path);
   if (segs.length > 0 && IGNORED_DIRECTORIES.has(segs[0])) return true;
   return segs.some((s) => s === "archive" || s === "staging" || s.startsWith(".") && s !== "..");
+}
+function isRegenerableView(path) {
+  const normalized = String(path ?? "").replace(/\\/g, "/").toLowerCase();
+  if (!normalized) return false;
+  const segs = normalized.split("/").filter((seg) => seg.length > 0);
+  if (segs[0] !== "artifacts") return false;
+  if (segs.length >= 3 && segs[1].endsWith("_console")) return true;
+  return segs.length === 2 && /^impact_audit_report.*\.md$/.test(segs[1]);
 }
 function familyOf(path) {
   const normalized = path.replace(/\\/g, "/");

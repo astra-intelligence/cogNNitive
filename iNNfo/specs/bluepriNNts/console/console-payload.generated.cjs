@@ -9925,6 +9925,281 @@ function sectionOwnLines(content, slug) {
   return owned;
 }
 
+// iNNfo/packages/nn-core/src/changeset/parser.ts
+var import_yaml6 = __toESM(require_dist(), 1);
+
+// iNNfo/packages/nn-core/src/changeset/types.ts
+var CHANGE_OPS = [
+  "update_field",
+  "add_element",
+  "remove_element",
+  "rename_element",
+  "rename_concept",
+  "update_matrix_cell",
+  "update_concept_text",
+  "update_concept_field",
+  "remove_matrix",
+  "add_matrix",
+  "comment",
+  "add_model",
+  "freeze_slugs",
+  "bump_version",
+  "update_element_text",
+  "produce_artifact"
+];
+function isChangeStatus(val) {
+  return typeof val === "string" && ["proposed", "applied", "partially_applied", "rejected", "conflict"].includes(val);
+}
+function isChangeOp(val) {
+  return typeof val === "string" && CHANGE_OPS.includes(val);
+}
+function addModelProblems(change) {
+  if (change.op !== "add_model") return [];
+  const problems = [];
+  const id = change.id;
+  for (const key of ["from", "to", "base_hash"]) {
+    if (change[key] !== void 0) {
+      problems.push(`change "${id}": add_model must not carry "${key}"`);
+    }
+  }
+  if (change.concept !== void 0 || change.fields !== void 0 || change.slug !== void 0) {
+    problems.push(`change "${id}": add_model must not carry element payload (concept, slug, fields)`);
+  }
+  if (!change.blueprint_name) problems.push(`change "${id}": add_model requires "blueprint_name"`);
+  if (!change.blueprint_url) problems.push(`change "${id}": add_model requires "blueprint_url"`);
+  const target = change.target;
+  if (!target || target.includes("@") || target.includes("&") || target.includes("..") || /^[a-zA-Z]:/.test(target) || /[\\/]/.test(target)) {
+    problems.push(`change "${id}": add_model target must be a plain model id (no "@", "&", "..", path separators, or absolute path)`);
+  }
+  return problems;
+}
+
+// iNNfo/packages/nn-core/src/changeset/parser.ts
+function stripQuotes(str2) {
+  const trimmed = str2.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "string") return parsed;
+    } catch {
+    }
+    return trimmed.slice(1, -1);
+  }
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+function parseJsonObject(str2) {
+  const trimmed = str2.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return void 0;
+  try {
+    const parsed = JSON.parse(trimmed);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function parseStringArray(value) {
+  if (!Array.isArray(value)) return void 0;
+  return value.map((v) => String(v));
+}
+function parseFieldsValue(str2) {
+  const trimmed = str2.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "object" && parsed !== null) {
+        const out = {};
+        for (const [k, v] of Object.entries(parsed)) {
+          out[k] = String(v);
+        }
+        return out;
+      }
+    } catch {
+    }
+  }
+  return void 0;
+}
+var CHANGESET_FRONTMATTER_INVALID = "CHANGESET_FRONTMATTER_INVALID";
+function invalidFrontmatter(detail) {
+  throw new Error(`${CHANGESET_FRONTMATTER_INVALID}: ${detail}`);
+}
+function validateFrontmatter(fm) {
+  if (fm.level !== 3) {
+    invalidFrontmatter("level must be 3");
+  }
+  const parent = fm.parent_spec;
+  if (typeof parent !== "object" || parent === null || Array.isArray(parent)) {
+    invalidFrontmatter("parent_spec must be an object with name and url");
+  }
+  const parentObj = parent;
+  if (parentObj.name !== "changes") {
+    invalidFrontmatter('parent_spec.name must be "changes"');
+  }
+  if (typeof parentObj.url !== "string" || parentObj.url.length === 0) {
+    invalidFrontmatter("missing parent_spec.url");
+  }
+  if (typeof fm.spec_version !== "string" || fm.spec_version.length === 0) {
+    invalidFrontmatter("missing spec_version");
+  }
+  if (typeof fm.blueprint_version !== "string" || fm.blueprint_version.length === 0) {
+    invalidFrontmatter("missing blueprint_version");
+  }
+  if (!isChangeStatus(fm.status)) {
+    invalidFrontmatter(
+      "status must be one of proposed|applied|partially_applied|rejected|conflict"
+    );
+  }
+  return fm;
+}
+function parseChangeset(rawContent) {
+  const frontmatterMatch = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(rawContent.trimStart());
+  if (!frontmatterMatch) {
+    invalidFrontmatter("missing frontmatter block");
+  }
+  const yamlText = frontmatterMatch[1];
+  const body = frontmatterMatch[2];
+  let parsedYaml;
+  try {
+    parsedYaml = (0, import_yaml6.parse)(yamlText);
+  } catch {
+    invalidFrontmatter("frontmatter is not valid YAML");
+  }
+  if (typeof parsedYaml !== "object" || parsedYaml === null || Array.isArray(parsedYaml)) {
+    invalidFrontmatter("missing frontmatter block");
+  }
+  const frontmatter = validateFrontmatter(parsedYaml);
+  const changeHeadingRegex = /^##\s+NN\s+Change:\s*(.+)$/i;
+  const lines = body.split(/\r?\n/);
+  const changes = [];
+  let currentChange = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headingMatch = changeHeadingRegex.exec(line.trim());
+    if (headingMatch) {
+      if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
+        changes.push(currentChange);
+      }
+      currentChange = {
+        id: headingMatch[1].trim()
+      };
+      continue;
+    }
+    if (!currentChange) continue;
+    const propMatch = /^([a-zA-Z0-9_-]+)::\s*(.*)$/.exec(line.trim());
+    if (!propMatch) continue;
+    const key = propMatch[1].trim();
+    const rawVal = propMatch[2].trim();
+    switch (key) {
+      case "op":
+        if (!isChangeOp(rawVal)) {
+          throw new Error(`Invalid changeset op: "${rawVal}"`);
+        }
+        currentChange.op = rawVal;
+        break;
+      case "target":
+        currentChange.target = rawVal;
+        break;
+      case "from":
+        currentChange.from = stripQuotes(rawVal);
+        break;
+      case "to":
+        currentChange.to = stripQuotes(rawVal);
+        break;
+      case "base_hash":
+        currentChange.base_hash = stripQuotes(rawVal);
+        break;
+      case "concept":
+        currentChange.concept = rawVal;
+        break;
+      case "name":
+        currentChange.name = stripQuotes(rawVal);
+        break;
+      case "slug":
+        currentChange.slug = rawVal;
+        break;
+      case "fields": {
+        const parsedObj = parseFieldsValue(rawVal);
+        if (parsedObj) {
+          currentChange.fields = parsedObj;
+        }
+        break;
+      }
+      case "author":
+        currentChange.author = stripQuotes(rawVal);
+        break;
+      case "notes":
+        currentChange.notes = stripQuotes(rawVal);
+        break;
+      case "evidence":
+        currentChange.evidence = stripQuotes(rawVal);
+        break;
+      case "blueprint_name":
+        currentChange.blueprint_name = stripQuotes(rawVal);
+        break;
+      case "blueprint_url":
+        currentChange.blueprint_url = stripQuotes(rawVal);
+        break;
+      case "knowledge_version":
+        currentChange.knowledge_version = stripQuotes(rawVal);
+        break;
+      case "applied_at":
+        currentChange.applied_at = stripQuotes(rawVal);
+        break;
+      case "batch":
+        currentChange.batch = stripQuotes(rawVal);
+        break;
+      case "status":
+        if (!isChangeStatus(rawVal)) {
+          throw new Error(`Invalid changeset status: "${rawVal}"`);
+        }
+        currentChange.status = rawVal;
+        break;
+      case "resolution":
+        currentChange.resolution = stripQuotes(rawVal);
+        break;
+      case "resolved_slug":
+        currentChange.resolved_slug = rawVal;
+        break;
+      case "resolved_target":
+        currentChange.resolved_target = rawVal;
+        break;
+      case "evidence_sha256": {
+        const shas = splitSourceFieldValue(rawVal);
+        if (shas.length > 0) currentChange.evidence_sha256 = shas;
+        break;
+      }
+      case "seed": {
+        const parsedSeed = parseJsonObject(rawVal);
+        if (parsedSeed) {
+          const seed = {};
+          const columns = parseStringArray(parsedSeed.columns);
+          const rows = parseStringArray(parsedSeed.rows);
+          if (columns) seed.columns = columns;
+          if (rows) seed.rows = rows;
+          currentChange.seed = seed;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
+    changes.push(currentChange);
+  }
+  const problems = changes.flatMap(addModelProblems);
+  if (problems.length > 0) {
+    throw new Error(`Invalid add_model change: ${problems.join("; ")}`);
+  }
+  return {
+    frontmatter,
+    changes,
+    rawContent
+  };
+}
+
 // iNNfo/packages/nn-core/src/changeset/evidence.ts
 var EVIDENCE_KEYWORDS = ["decision", "unknown"];
 function isKeyword(value) {
@@ -9946,6 +10221,23 @@ function splitEvidence(value) {
     );
   }
   return splitSourceFieldValue(value).map((item) => isKeyword(item) ? item.toLowerCase() : item);
+}
+
+// iNNfo/packages/nn-core/src/changelog/order.ts
+function changeStamp(changeset) {
+  return changesetStampOf(String(changeset ?? ""))?.stamp ?? "";
+}
+function compareStrings(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+function compareChanges(a, b) {
+  const byAppliedAt = compareStrings(a.appliedAt ?? "", b.appliedAt ?? "");
+  if (byAppliedAt !== 0) return byAppliedAt;
+  const byStamp = compareStrings(changeStamp(a.changeset), changeStamp(b.changeset));
+  if (byStamp !== 0) return byStamp;
+  const byFile = compareStrings(a.changeset, b.changeset);
+  if (byFile !== 0) return byFile;
+  return a.index - b.index;
 }
 
 // iNNfo/packages/nn-core/src/references.ts
@@ -9995,23 +10287,6 @@ function updateWikiLinks(text, oldName, newName) {
     }
     return match;
   });
-}
-
-// iNNfo/packages/nn-core/src/changelog/order.ts
-function changeStamp(changeset) {
-  return changesetStampOf(String(changeset ?? ""))?.stamp ?? "";
-}
-function compareStrings(a, b) {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-function compareChanges(a, b) {
-  const byAppliedAt = compareStrings(a.appliedAt ?? "", b.appliedAt ?? "");
-  if (byAppliedAt !== 0) return byAppliedAt;
-  const byStamp = compareStrings(changeStamp(a.changeset), changeStamp(b.changeset));
-  if (byStamp !== 0) return byStamp;
-  const byFile = compareStrings(a.changeset, b.changeset);
-  if (byFile !== 0) return byFile;
-  return a.index - b.index;
 }
 
 // iNNfo/packages/nn-core/src/changelog/fold.ts
@@ -10278,281 +10553,6 @@ var ChangeLogImpl = class {
 };
 function createChangeLog(changes) {
   return new ChangeLogImpl(changes);
-}
-
-// iNNfo/packages/nn-core/src/changeset/parser.ts
-var import_yaml7 = __toESM(require_dist(), 1);
-
-// iNNfo/packages/nn-core/src/changeset/types.ts
-var CHANGE_OPS = [
-  "update_field",
-  "add_element",
-  "remove_element",
-  "rename_element",
-  "rename_concept",
-  "update_matrix_cell",
-  "update_concept_text",
-  "update_concept_field",
-  "remove_matrix",
-  "add_matrix",
-  "comment",
-  "add_model",
-  "freeze_slugs",
-  "bump_version",
-  "update_element_text",
-  "produce_artifact"
-];
-function isChangeStatus(val) {
-  return typeof val === "string" && ["proposed", "applied", "partially_applied", "rejected", "conflict"].includes(val);
-}
-function isChangeOp(val) {
-  return typeof val === "string" && CHANGE_OPS.includes(val);
-}
-function addModelProblems(change) {
-  if (change.op !== "add_model") return [];
-  const problems = [];
-  const id = change.id;
-  for (const key of ["from", "to", "base_hash"]) {
-    if (change[key] !== void 0) {
-      problems.push(`change "${id}": add_model must not carry "${key}"`);
-    }
-  }
-  if (change.concept !== void 0 || change.fields !== void 0 || change.slug !== void 0) {
-    problems.push(`change "${id}": add_model must not carry element payload (concept, slug, fields)`);
-  }
-  if (!change.blueprint_name) problems.push(`change "${id}": add_model requires "blueprint_name"`);
-  if (!change.blueprint_url) problems.push(`change "${id}": add_model requires "blueprint_url"`);
-  const target = change.target;
-  if (!target || target.includes("@") || target.includes("&") || target.includes("..") || /^[a-zA-Z]:/.test(target) || /[\\/]/.test(target)) {
-    problems.push(`change "${id}": add_model target must be a plain model id (no "@", "&", "..", path separators, or absolute path)`);
-  }
-  return problems;
-}
-
-// iNNfo/packages/nn-core/src/changeset/parser.ts
-function stripQuotes(str2) {
-  const trimmed = str2.trim();
-  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (typeof parsed === "string") return parsed;
-    } catch {
-    }
-    return trimmed.slice(1, -1);
-  }
-  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
-    return trimmed.slice(1, -1);
-  }
-  return trimmed;
-}
-function parseJsonObject(str2) {
-  const trimmed = str2.trim();
-  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return void 0;
-  try {
-    const parsed = JSON.parse(trimmed);
-    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : void 0;
-  } catch {
-    return void 0;
-  }
-}
-function parseStringArray(value) {
-  if (!Array.isArray(value)) return void 0;
-  return value.map((v) => String(v));
-}
-function parseFieldsValue(str2) {
-  const trimmed = str2.trim();
-  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (typeof parsed === "object" && parsed !== null) {
-        const out = {};
-        for (const [k, v] of Object.entries(parsed)) {
-          out[k] = String(v);
-        }
-        return out;
-      }
-    } catch {
-    }
-  }
-  return void 0;
-}
-var CHANGESET_FRONTMATTER_INVALID = "CHANGESET_FRONTMATTER_INVALID";
-function invalidFrontmatter(detail) {
-  throw new Error(`${CHANGESET_FRONTMATTER_INVALID}: ${detail}`);
-}
-function validateFrontmatter(fm) {
-  if (fm.level !== 3) {
-    invalidFrontmatter("level must be 3");
-  }
-  const parent = fm.parent_spec;
-  if (typeof parent !== "object" || parent === null || Array.isArray(parent)) {
-    invalidFrontmatter("parent_spec must be an object with name and url");
-  }
-  const parentObj = parent;
-  if (parentObj.name !== "changes") {
-    invalidFrontmatter('parent_spec.name must be "changes"');
-  }
-  if (typeof parentObj.url !== "string" || parentObj.url.length === 0) {
-    invalidFrontmatter("missing parent_spec.url");
-  }
-  if (typeof fm.spec_version !== "string" || fm.spec_version.length === 0) {
-    invalidFrontmatter("missing spec_version");
-  }
-  if (typeof fm.blueprint_version !== "string" || fm.blueprint_version.length === 0) {
-    invalidFrontmatter("missing blueprint_version");
-  }
-  if (!isChangeStatus(fm.status)) {
-    invalidFrontmatter(
-      "status must be one of proposed|applied|partially_applied|rejected|conflict"
-    );
-  }
-  return fm;
-}
-function parseChangeset(rawContent) {
-  const frontmatterMatch = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(rawContent.trimStart());
-  if (!frontmatterMatch) {
-    invalidFrontmatter("missing frontmatter block");
-  }
-  const yamlText = frontmatterMatch[1];
-  const body = frontmatterMatch[2];
-  let parsedYaml;
-  try {
-    parsedYaml = (0, import_yaml7.parse)(yamlText);
-  } catch {
-    invalidFrontmatter("frontmatter is not valid YAML");
-  }
-  if (typeof parsedYaml !== "object" || parsedYaml === null || Array.isArray(parsedYaml)) {
-    invalidFrontmatter("missing frontmatter block");
-  }
-  const frontmatter = validateFrontmatter(parsedYaml);
-  const changeHeadingRegex = /^##\s+NN\s+Change:\s*(.+)$/i;
-  const lines = body.split(/\r?\n/);
-  const changes = [];
-  let currentChange = null;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const headingMatch = changeHeadingRegex.exec(line.trim());
-    if (headingMatch) {
-      if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
-        changes.push(currentChange);
-      }
-      currentChange = {
-        id: headingMatch[1].trim()
-      };
-      continue;
-    }
-    if (!currentChange) continue;
-    const propMatch = /^([a-zA-Z0-9_-]+)::\s*(.*)$/.exec(line.trim());
-    if (!propMatch) continue;
-    const key = propMatch[1].trim();
-    const rawVal = propMatch[2].trim();
-    switch (key) {
-      case "op":
-        if (!isChangeOp(rawVal)) {
-          throw new Error(`Invalid changeset op: "${rawVal}"`);
-        }
-        currentChange.op = rawVal;
-        break;
-      case "target":
-        currentChange.target = rawVal;
-        break;
-      case "from":
-        currentChange.from = stripQuotes(rawVal);
-        break;
-      case "to":
-        currentChange.to = stripQuotes(rawVal);
-        break;
-      case "base_hash":
-        currentChange.base_hash = stripQuotes(rawVal);
-        break;
-      case "concept":
-        currentChange.concept = rawVal;
-        break;
-      case "name":
-        currentChange.name = stripQuotes(rawVal);
-        break;
-      case "slug":
-        currentChange.slug = rawVal;
-        break;
-      case "fields": {
-        const parsedObj = parseFieldsValue(rawVal);
-        if (parsedObj) {
-          currentChange.fields = parsedObj;
-        }
-        break;
-      }
-      case "author":
-        currentChange.author = stripQuotes(rawVal);
-        break;
-      case "notes":
-        currentChange.notes = stripQuotes(rawVal);
-        break;
-      case "evidence":
-        currentChange.evidence = stripQuotes(rawVal);
-        break;
-      case "blueprint_name":
-        currentChange.blueprint_name = stripQuotes(rawVal);
-        break;
-      case "blueprint_url":
-        currentChange.blueprint_url = stripQuotes(rawVal);
-        break;
-      case "knowledge_version":
-        currentChange.knowledge_version = stripQuotes(rawVal);
-        break;
-      case "applied_at":
-        currentChange.applied_at = stripQuotes(rawVal);
-        break;
-      case "batch":
-        currentChange.batch = stripQuotes(rawVal);
-        break;
-      case "status":
-        if (!isChangeStatus(rawVal)) {
-          throw new Error(`Invalid changeset status: "${rawVal}"`);
-        }
-        currentChange.status = rawVal;
-        break;
-      case "resolution":
-        currentChange.resolution = stripQuotes(rawVal);
-        break;
-      case "resolved_slug":
-        currentChange.resolved_slug = rawVal;
-        break;
-      case "resolved_target":
-        currentChange.resolved_target = rawVal;
-        break;
-      case "evidence_sha256": {
-        const shas = splitSourceFieldValue(rawVal);
-        if (shas.length > 0) currentChange.evidence_sha256 = shas;
-        break;
-      }
-      case "seed": {
-        const parsedSeed = parseJsonObject(rawVal);
-        if (parsedSeed) {
-          const seed = {};
-          const columns = parseStringArray(parsedSeed.columns);
-          const rows = parseStringArray(parsedSeed.rows);
-          if (columns) seed.columns = columns;
-          if (rows) seed.rows = rows;
-          currentChange.seed = seed;
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }
-  if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
-    changes.push(currentChange);
-  }
-  const problems = changes.flatMap(addModelProblems);
-  if (problems.length > 0) {
-    throw new Error(`Invalid add_model change: ${problems.join("; ")}`);
-  }
-  return {
-    frontmatter,
-    changes,
-    rawContent
-  };
 }
 
 // iNNfo/packages/nn-core/src/changelog/load.ts

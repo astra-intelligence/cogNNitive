@@ -178,6 +178,21 @@ export function isExcludedPath(path: string): boolean {
   return segs.some((s) => s === 'archive' || s === 'staging' || (s.startsWith('.') && s !== '..'))
 }
 
+/**
+ * THE regenerable-view predicate (change-provenance A8): console exports
+ * (`artifacts/<name>_console/**`) and the `Impact_Audit_report*` family are
+ * regenerable from the log, so they never need a `produce_artifact` record.
+ * Shared by the projection and gc, so there is no per-caller exemption list.
+ */
+export function isRegenerableView(path: string): boolean {
+  const normalized = String(path ?? '').replace(/\\/g, '/').toLowerCase()
+  if (!normalized) return false
+  const segs = normalized.split('/').filter((seg) => seg.length > 0)
+  if (segs[0] !== 'artifacts') return false
+  if (segs.length >= 3 && segs[1].endsWith('_console')) return true
+  return segs.length === 2 && /^impact_audit_report.*\.md$/.test(segs[1])
+}
+
 /** Family identity `(dir, key, ext)`; `null` for `_NN.md` documents, which are not write-once families. */
 export function familyOf(path: string): { dir: string; key: string; ext: string } | null {
   const normalized = path.replace(/\\/g, '/')

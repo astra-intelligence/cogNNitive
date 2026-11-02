@@ -208,7 +208,7 @@ sources:
 
   it('reports SIDECAR_SUBJECT_MISMATCH when source_file disagrees with the name-derived subject', () => {
     const projection = projectLineage(fixtureFiles)
-    expect(projection.diagnostics).toEqual([
+    expect(projection.diagnostics.filter((d) => d.code === 'SIDECAR_SUBJECT_MISMATCH')).toEqual([
       expect.objectContaining({
         code: 'SIDECAR_SUBJECT_MISMATCH',
         path: 'sources/import/a.csv_sidecar_NN.md',

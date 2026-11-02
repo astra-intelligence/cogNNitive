@@ -18,11 +18,15 @@ import {
   familyOf,
   isExcludedPath,
   isModelCandidate,
+  isRegenerableView,
   parseName,
   parentSpecNameOf,
   rawPathOfSidecar,
   roleOf,
 } from '../naming/contract.js'
+import { buildChangeLog } from '../changelog/load.js'
+import { canonicalUnitModelId } from '../changeset/resolved-target.js'
+import type { ChangeLog } from '../changelog/index.js'
 
 export interface LineageSource {
   name: string
@@ -58,10 +62,24 @@ export interface LineageArtifact {
 }
 
 export interface LineageDiagnostic {
-  code: 'SIDECAR_SUBJECT_MISMATCH'
+  code: 'SIDECAR_SUBJECT_MISMATCH' | 'ARTIFACT_WITHOUT_RECORD'
   /** The offending sidecar. */
   path: string
   message: string
+}
+
+/** One log-derived edge of the lineage graph. */
+export interface LineageEdge {
+  from: string
+  to: string
+  /**
+   * `evidence`: a cited file and the unit owner it feeds.
+   * `target`: a unit address and the model or artifact that owns it.
+   * `produced`: an artifact and the changeset that recorded its production.
+   */
+  kind: 'evidence' | 'target' | 'produced'
+  /** Id of the applied change the edge derives from. */
+  change: string
 }
 
 /**
@@ -83,6 +101,11 @@ export interface LineageProjection {
   artifacts: LineageArtifact[]
   changesets: LineageChangeset[]
   diagnostics: LineageDiagnostic[]
+}
+
+/** The computed view: the filesystem inventory plus the log-derived edges. */
+export interface LineageView extends LineageProjection {
+  edges: LineageEdge[]
 }
 
 const SOURCE_FORMAT_OPTIONS = new Set(['txt', 'md', 'csv', 'json', 'docx', 'pdf', 'xlsx'])
@@ -214,9 +237,20 @@ function familyKey(path: string): string | null {
 }
 
 /**
- * Pure projection from FileSnapshot[] to LineageProjection.
+ * Pure projection from FileSnapshot[] to LineageView.
+ *
+ * Inventory (sources, knowledge, artifacts, changesets) comes from the files
+ * and their sidecars. Edges come from the change log: `live` evidence by default
+ * (the last applied change of each unit, after the epoch cut), every applied
+ * change with `{ scope: 'all-time' }`. A non-regenerable artifact with no
+ * `produce_artifact` change is an `ARTIFACT_WITHOUT_RECORD` warning. Nothing is
+ * read from or written to disk here.
  */
-export function projectLineage(files: FileSnapshot[]): LineageProjection {
+export function projectLineage(
+  files: FileSnapshot[],
+  log: ChangeLog = buildChangeLog(files),
+  options: { scope?: 'live' | 'all-time' } = {},
+): LineageView {
   const live = files
     .map((f) => ({ path: posixPath(f.path), content: f.content }))
     .filter((f) => !isExcludedPath(f.path))
@@ -387,5 +421,67 @@ export function projectLineage(files: FileSnapshot[]): LineageProjection {
     })
   }
 
-  return { sources, knowledge, artifacts, changesets, diagnostics }
+  return { sources, knowledge, artifacts, changesets, diagnostics, edges: buildEdges() }
+
+  /** Log-derived edges: live evidence by default, every applied change all-time. */
+  function buildEdges(): LineageEdge[] {
+    const modelRefByModel = new Map<string, string>()
+    for (const entry of knowledge) {
+      const stem = displayStem(getBasename(entry.model_ref))
+      modelRefByModel.set(canonicalUnitModelId(stem), entry.model_ref)
+    }
+    const artifactRefs = new Set(artifacts.map((artifact) => artifact.artifact_ref))
+
+    /** The model or artifact a unit belongs to; the unit address when unknown. */
+    const ownerOf = (unit: string): string => {
+      if (artifactRefs.has(unit)) return unit
+      const at = unit.indexOf('@')
+      if (at === -1) return modelRefByModel.get(canonicalUnitModelId(unit)) ?? unit
+      return modelRefByModel.get(canonicalUnitModelId(unit.slice(0, at))) ?? unit
+    }
+
+    const edges: LineageEdge[] = []
+    const seen = new Set<string>()
+    const push = (edge: LineageEdge): void => {
+      const key = `${edge.kind}\u0000${edge.from}\u0000${edge.to}\u0000${edge.change}`
+      if (seen.has(key)) return
+      seen.add(key)
+      edges.push(edge)
+    }
+
+    for (const [citation, sites] of log.evidence(options.scope ?? 'live')) {
+      for (const site of sites) {
+        const owner = ownerOf(site.unit)
+        push({ from: citation, to: owner, kind: 'evidence', change: site.changeId })
+        if (site.unit.includes('@')) push({ from: site.unit, to: owner, kind: 'target', change: site.changeId })
+      }
+    }
+
+    // Production records: one edge per applied `produce_artifact` change. In live
+    // scope only the change that still owns the artifact counts.
+    for (const change of log.all) {
+      if (!change.applied || change.op !== 'produce_artifact') continue
+      const ref = change.resolvedTarget ?? change.target
+      if ((options.scope ?? 'live') === 'live' && log.origin(ref)?.id !== change.id) continue
+      push({ from: ref, to: change.changeset, kind: 'produced', change: change.id })
+    }
+
+    // A non-regenerable artifact without a production record is a warning; a
+    // regenerable console view or audit report needs none.
+    const recorded = new Set(
+      log.all
+        .filter((change) => change.applied && change.op === 'produce_artifact')
+        .map((change) => change.resolvedTarget ?? change.target),
+    )
+    for (const artifact of artifacts) {
+      if (recorded.has(artifact.artifact_ref) || isRegenerableView(artifact.artifact_ref)) continue
+      diagnostics.push({
+        code: 'ARTIFACT_WITHOUT_RECORD',
+        path: artifact.artifact_ref,
+        message: `Artifact "${artifact.artifact_ref}" has no applied produce_artifact change; record how it was produced`,
+      })
+    }
+
+    return edges.sort((a, b) => compareStrings(a.from, b.from) || compareStrings(a.to, b.to) || compareStrings(a.kind, b.kind) || compareStrings(a.change, b.change))
+  }
 }

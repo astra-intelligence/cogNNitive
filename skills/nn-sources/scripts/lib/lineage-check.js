@@ -80,7 +80,11 @@ function checkLineage(projectDir) {
   }
 
   for (const d of projection.diagnostics) {
-    errors.push(`${d.path}: ${d.message}`);
+    const line = `${d.path}: ${d.message}`;
+    // A non-regenerable artifact without a produce_artifact change is advice, not
+    // a broken workspace (change-provenance: ARTIFACT_WITHOUT_RECORD is a warning).
+    if (d.code === 'ARTIFACT_WITHOUT_RECORD') warnings.push(line);
+    else errors.push(line);
   }
 
   // Coverage invariant: warn when files in sources/ are never cited by any element
