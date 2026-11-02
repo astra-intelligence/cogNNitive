@@ -1140,3 +1140,77 @@ worktree.
 
 ---
 
+## PR 17 — S3b.1 (branch `lac/s3b1`, base `lac/s3a2`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 3b.1, 3b.2, 3b.3, 3b.4, 3b.7a.
+
+- `trannsformPrimitives.ts` (the CJS mirror entry) now re-exports `buildChangeLog`
+  and `isRegenerableView`, so the skill consumers read the log through the mirror.
+- `gc.js`: `citedPaths` adds the ALL-TIME evidence of the log, so a source cited by
+  any applied change is protected even when a later change superseded that evidence;
+  `planProjectGc` filters `changes/` out of the candidate list (changesets are the
+  lineage itself).
+- `impact-checker.js`: new `findEvidenceSourceChanges(projectDir)` compares each
+  applied change's stamped `evidence_sha256` with the current bytes of the cited file
+  and returns `{changeId, unit, citation, expected, actual}`. `auditModelCitations`
+  exposes it as `evidenceImpacts` and warns with `[IMPACT WARNING]` naming the change
+  and the unit it set.
+- `duplicate-guards.js`: `auditUncitedSources` marks a source cited when the all-time
+  evidence of the log cites it (`uncitedCount` drops accordingly).
+- New suite `skills/nn-sources/test/unit/test-evidence-index-consumers.js` (8
+  assertions: gc protects an evidence-cited family member and never proposes a
+  changeset; impact reports nothing while the bytes match and one impact + warning
+  after the source changes; duplicate-guards counts the evidence citation), registered
+  in `test/run.js`.
+- Regenerated: the two `nn-core.generated.cjs` mirrors (generated).
+- Size: ~230 hand-authored lines (~110 source, ~120 tests). Inside the 400-line
+  budget.
+- Verification: `npm --prefix skills/nn-sources test` 662 passed / 0 failed;
+  `node --test scripts/build-core-mirrors.test.mjs` green; `npm run verify:fast` fully
+  green (202 steps, including `Typecheck Scripts`).
+
+### Deviations
+
+52. The three consumers ADD the evidence index to their existing citation readers
+    instead of replacing them: `sources::` still exists and its removal is S5a's job.
+    Once S5a lands, the projection-based sites drop out and the evidence index is the
+    only source of citations.
+53. `findEvidenceSourceChanges` skips a missing file: the citation validator already
+    reports a dangling path, and an impact entry needs two byte hashes to compare.
+54. gc's `changes/` guard is an explicit filter in `planProjectGc`, not in core
+    `planGc`: core is generic over families and the changeset directory is a domain
+    convention.
+
+---
+
+## Handoff — start here next session (after PR 17)
+
+Chain state: `lac/s3b1` is the tip (PR 17). Next branch:
+`git switch lac/s3b1 && git switch -c lac/s3b2`.
+
+**PR 18 — S3b.2 (producer payloads)** — tasks 3b.5 [RED], 3b.6 [GREEN], 3b.7b.
+
+- `curate-csv`, `normalize-file` (when it produces an artifact) and `converge` print a
+  ready `propose_changeset` JSON payload with exactly one `produce_artifact` change
+  (target, evidence, author = procedure) and apply nothing; `--scan`, cognitivize and
+  import emit none. Same pattern as `--converge --plan`.
+- `core/writeOnce/plan.ts`: `derived_from` is no longer written.
+- Verification: `npm --prefix skills/nn-sources test`,
+  `npm --workspace=@cognnitive/nn-core test -- writeOnce` (run vitest directly),
+  `npm run verify:fast`.
+
+**Then:** PR 19 (S4a) deletes the nn-sources record/provenance/journal; PR 20 (S4b)
+deletes `core/lineage/{record,render,drift}.ts` and `sync_lineage`; PR 21 (S4c) removes
+the `cogNNitive` blueprint and vocabulary. Verify at PR 20 with the full
+`node scripts/verify.js`.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+

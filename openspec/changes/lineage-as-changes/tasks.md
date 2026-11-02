@@ -1,4 +1,4 @@
-# Tasks: Lineage as Changes
+﻿# Tasks: Lineage as Changes
 
 Change: `lineage-as-changes`. Mode: Strict TDD (every behavior task is `[RED]` failing test, then `[GREEN]` implementation, then `[REFACTOR]` where useful). Artifact store: openspec. Delivery: `sub-divide` (no `size:exception`; every PR is at most 400 changed lines excluding generated files). Chain strategy: `feature-branch-chain` (CONFIRMED by the maintainer).
 
@@ -69,7 +69,7 @@ Rollback: revert; no apply behavior changed yet.
 - [x] 1a.7 [S] Standard PR gate plus `node scripts/verify.js` (template inventory guard and `template_version` guard). Open PR 4.
 
 Files: `core/changeset/{evidence,types,parser,serializer,hasher}.ts`, `core/schema/canonical-registry.ts` and `bluepriNNts/catalog.json` (regenerated, excluded from the budget), `iNNfo/specs/bluepriNNts/changes/spec_NN.md`, matching tests.
-Note (apply): `SHIPPED_TEMPLATE_VERSIONS` does not exist in this repository, and `template_version` is only honoured for frozen bluepriNNts (`blueprint-catalog.mjs`). The `changes` blueprint is catalogued by `blueprint_version`, so the bump went to `blueprint_version` (`V_0-5-5` → `V_0-6-0`); `spec_version` stays pinned to the L1 parent. Recorded in `apply-progress.md`.
+Note (apply): `SHIPPED_TEMPLATE_VERSIONS` does not exist in this repository, and `template_version` is only honoured for frozen bluepriNNts (`blueprint-catalog.mjs`). The `changes` blueprint is catalogued by `blueprint_version`, so the bump went to `blueprint_version` (`V_0-5-5` â†’ `V_0-6-0`); `spec_version` stays pinned to the L1 parent. Recorded in `apply-progress.md`.
 Verification: `npm --workspace=@cognnitive/nn-core test -- changeset`, `npm run sync:versions` leaves a clean diff, `node scripts/verify.js`.
 
 ---
@@ -266,11 +266,11 @@ Goal: CJS consumers read the evidence index through the regenerated mirror.
 Depends on: PR 16 (mirror of the log available).
 Rollback: revert; record-based paths still exist.
 
-- [ ] 3b.1 [RED] [P] `sources/test/impact-checker*.test.js`: reads evidence sites and compares with `evidence_sha256`; a changed source reports an impact for the dependent change and the unit it set; `[IMPACT WARNING]`, `checkScanImpact`, `detectSourceFamilyEvolution`, `writeImpactReport` (writes into the exempt `Impact_Audit_report*` family) keep their contract. (clv: Consumers)
-- [ ] 3b.2 [RED] [P] `sources/test/gc*.test.js`: `citedPaths` = all-time evidence (superseded evidence still protects; cited sidecar counts as cited member); `isRegenerableView` shared (no own exemption list); GC never proposes or deletes anything under `changes/`. (cp: Changesets never pruned)
-- [ ] 3b.3 [RED] [P] `sources/test/duplicate-guards*.test.js`: `auditUncitedSources` searches the evidence index and reports `UNCITED_SOURCE_IN_WORKSPACE`.
-- [ ] 3b.4 [GREEN] [S] Edit `sources/impact-checker.js`, `gc.js`, `duplicate-guards.js` over the regenerated CJS mirror of `changelog/` (add the new exports to the mirror export list in `scripts/build-core-mirrors.mjs` and its test).
-- [ ] 3b.7a [S] (was 3b.7) `node scripts/build-core-mirrors.mjs`, `node --test scripts/build-core-mirrors.test.mjs`, `npm --prefix skills/nn-sources test`, standard PR gate. Open PR 17.
+- [x] 3b.1 [RED] [P] `sources/test/impact-checker*.test.js`: reads evidence sites and compares with `evidence_sha256`; a changed source reports an impact for the dependent change and the unit it set; `[IMPACT WARNING]`, `checkScanImpact`, `detectSourceFamilyEvolution`, `writeImpactReport` (writes into the exempt `Impact_Audit_report*` family) keep their contract. (clv: Consumers)
+- [x] 3b.2 [RED] [P] `sources/test/gc*.test.js`: `citedPaths` = all-time evidence (superseded evidence still protects; cited sidecar counts as cited member); `isRegenerableView` shared (no own exemption list); GC never proposes or deletes anything under `changes/`. (cp: Changesets never pruned)
+- [x] 3b.3 [RED] [P] `sources/test/duplicate-guards*.test.js`: `auditUncitedSources` searches the evidence index and reports `UNCITED_SOURCE_IN_WORKSPACE`.
+- [x] 3b.4 [GREEN] [S] Edit `sources/impact-checker.js`, `gc.js`, `duplicate-guards.js` over the regenerated CJS mirror of `changelog/` (add the new exports to the mirror export list in `scripts/build-core-mirrors.mjs` and its test).
+- [x] 3b.7a [S] (was 3b.7) `node scripts/build-core-mirrors.mjs`, `node --test scripts/build-core-mirrors.test.mjs`, `npm --prefix skills/nn-sources test`, standard PR gate. Open PR 17.
 
 Files: `sources/{impact-checker,gc,duplicate-guards}.js`, `scripts/build-core-mirrors.mjs` and test, matching tests.
 Verification: `npm --prefix skills/nn-sources test`, `node --test scripts/build-core-mirrors.test.mjs`, `npm run verify:fast`.
