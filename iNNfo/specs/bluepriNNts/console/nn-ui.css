@@ -8357,7 +8357,7 @@ input[type="text"], input[type="search"], textarea, select {
 
 .nn-files-kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
@@ -8661,6 +8661,7 @@ input[type="text"], input[type="search"], textarea, select {
 }
 
 .nn-pipeline-card-name {
+  display: block;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -8668,6 +8669,7 @@ input[type="text"], input[type="search"], textarea, select {
 }
 
 .nn-pipeline-card-sub {
+  display: block;
   font-size: 0.7rem;
   color: var(--muted);
   font-family: var(--mono);

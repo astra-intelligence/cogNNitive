@@ -10,7 +10,7 @@ procedure bluepriNNt bluepriNNt:procedures/assets/console-view-procedure.js sha2
          appends the hashes to script-src when it inlines the bundle and views. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/gh/cogNNitive/ 'sha256-GuDXBamO36MOzmeBoWS6W05qoSRkYpFFnI00+hFI67s=' 'sha256-zC9fVwLc2q24v4oZn4Fteg3v+oeo5flE7QnTeXYGe/0=' 'sha256-4BakFr9B7k7vTNs7WaAC3TizluFw/OU+mWJ5aKCYGuo=' 'sha256-soSXjK2mmrYGjTKfxADrnupPRdn7nsM/OFZxV6is0ww=' 'sha256-8W71n/9hUwRahXqNzg6jT50S2D60JdlmA/f7yVCFsc0=' 'sha256-ARDX3RKWShyoDagjlGvT8l0KMybANvtfFkhXWWniMy0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://raw.githubusercontent.com/cogNNitive/ https://cdn.jsdelivr.net/gh/cogNNitive/; font-src 'self' data:; frame-src 'self' blob: data: about:; connect-src 'self'; object-src 'none'; base-uri 'none'"
+      content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/gh/cogNNitive/ 'sha256-GuDXBamO36MOzmeBoWS6W05qoSRkYpFFnI00+hFI67s=' 'sha256-zC9fVwLc2q24v4oZn4Fteg3v+oeo5flE7QnTeXYGe/0=' 'sha256-4BakFr9B7k7vTNs7WaAC3TizluFw/OU+mWJ5aKCYGuo=' 'sha256-soSXjK2mmrYGjTKfxADrnupPRdn7nsM/OFZxV6is0ww=' 'sha256-1IgOoovgoSIT08XPw1cMS/X9b9UT1GIJ5zx6xdfK6Q8=' 'sha256-ARDX3RKWShyoDagjlGvT8l0KMybANvtfFkhXWWniMy0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://raw.githubusercontent.com/cogNNitive/ https://cdn.jsdelivr.net/gh/cogNNitive/; font-src 'self' data:; frame-src 'self' blob: data: about:; connect-src 'self'; object-src 'none'; base-uri 'none'"
     />
     <title>iNNfo Console</title>
     <!--
@@ -8387,7 +8387,7 @@ input[type="text"], input[type="search"], textarea, select {
 
 .nn-files-kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
@@ -8691,6 +8691,7 @@ input[type="text"], input[type="search"], textarea, select {
 }
 
 .nn-pipeline-card-name {
+  display: block;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -8698,6 +8699,7 @@ input[type="text"], input[type="search"], textarea, select {
 }
 
 .nn-pipeline-card-sub {
+  display: block;
   font-size: 0.7rem;
   color: var(--muted);
   font-family: var(--mono);
@@ -10854,7 +10856,7 @@ pre.nn-file-preview-code {
     "model": "testlab",
     "modelId": "testlab",
     "domainId": "testlab-61a5e012",
-    "generated": "2026-11-02T10:23:38.468Z",
+    "generated": "2026-11-02T10:43:23.635Z",
     "changesBlueprintVersion": "V_0-5-5",
     "models": [
       {
@@ -10865,7 +10867,7 @@ pre.nn-file-preview-code {
         "family": "testlab",
         "version": "V_0-1-1",
         "sha256": "fbbbdc83b527a54a479ea8a5588c52a0e56af785d94ea10a0d956f3fa7ba0a31",
-        "citationsResolvedAt": "2026-11-02T10:23:38.353Z",
+        "citationsResolvedAt": "2026-11-02T10:43:23.294Z",
         "sources": [
           "kNNowledge/TestLab_coverage_TestLab_NN.md"
         ],
@@ -14030,10 +14032,10 @@ pre.nn-file-preview-code {
           "sourceFile": "demo.mp4",
           "error": "Missing or malformed sha256"
         },
-        "citationsCount": 0,
-        "excerptCount": 0,
+        "citationsCount": 2,
+        "excerptCount": 2,
         "changesCount": 0,
-        "uncited": true
+        "uncited": false
       },
       {
         "id": "sources/import/field-notes.md",
@@ -14070,10 +14072,10 @@ pre.nn-file-preview-code {
           "sourceFile": "interview.mp3",
           "error": "Missing or malformed sha256"
         },
-        "citationsCount": 0,
-        "excerptCount": 0,
+        "citationsCount": 2,
+        "excerptCount": 2,
         "changesCount": 0,
-        "uncited": true
+        "uncited": false
       },
       {
         "id": "sources/import/manual.txt",
@@ -14110,10 +14112,10 @@ pre.nn-file-preview-code {
           "sourceFile": "photo.png",
           "error": "Missing or malformed sha256"
         },
-        "citationsCount": 0,
-        "excerptCount": 0,
+        "citationsCount": 2,
+        "excerptCount": 2,
         "changesCount": 0,
-        "uncited": true
+        "uncited": false
       },
       {
         "id": "sources/import/report.pdf",
@@ -14130,10 +14132,10 @@ pre.nn-file-preview-code {
           "sourceFile": "report.pdf",
           "error": "Missing or malformed sha256"
         },
-        "citationsCount": 0,
-        "excerptCount": 0,
+        "citationsCount": 6,
+        "excerptCount": 6,
         "changesCount": 0,
-        "uncited": true
+        "uncited": false
       }
     ],
     "watchRoots": [
@@ -14169,12 +14171,12 @@ pre.nn-file-preview-code {
         "evidence": 0,
         "artifact": 1521740
       },
-      "sourceCoverageRate": 0.375,
-      "uncitedSourceCount": 5,
+      "sourceCoverageRate": 0.875,
+      "uncitedSourceCount": 1,
       "sidecarMissingCount": 4,
       "sidecarInvalidCount": 4,
       "sidecarMismatchCount": 0,
-      "excerptCount": 22
+      "excerptCount": 34
     },
     "lineage": {
       "artifacts/TestLab_coverage_TestLab_console/innfo-console.bundle_20261013T045336Z.js": {
@@ -26306,7 +26308,17 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
       if (f && f.path) byPath[f.path] = f
     })
 
-    // Which units cite which file, matched the same way export does.
+    // Which units cite which file, matched the same way export does. A unit cites
+    // the sidecar document, so the path is folded back to its subject file.
+    var SIDECAR_SUFFIX = '_sidecar_NN.md'
+    function citationSubject(raw) {
+      var norm = String(raw).replace(/\\/g, '/').replace(/^\/+/, '').split('#')[0]
+      if (norm.length > SIDECAR_SUFFIX.length && norm.slice(-SIDECAR_SUFFIX.length) === SIDECAR_SUFFIX) {
+        return norm.slice(0, norm.length - SIDECAR_SUFFIX.length)
+      }
+      return norm
+    }
+
     var unitsByPath = {}
     elements.forEach(function (e) {
       if (!e || !e.citations) return
@@ -26316,7 +26328,7 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
         list.forEach(function (cit) {
           var raw = cit && (cit.path || cit.href)
           if (!raw) return
-          var norm = String(raw).replace(/\\/g, '/').replace(/^\/+/, '').split('#')[0]
+          var norm = citationSubject(raw)
           inventory.forEach(function (f) {
             if (f.path === norm || f.path.endsWith('/' + norm) || norm.endsWith('/' + f.path)) {
               if (!unitsByPath[f.path]) unitsByPath[f.path] = []
@@ -26329,17 +26341,25 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
 
     var state = { mode: 'explorer', selected: '', collapsed: {}, query: '' }
 
+    var elementsById = {}
+    elements.forEach(function (e) {
+      if (e && e.id) elementsById[e.id] = e
+    })
+
     function kuBadge(unitId) {
-      if (!UI || typeof UI.Ku !== 'function') return el('span', 'nn-badge', String(unitId))
+      var target = elementsById[unitId]
+      var ref = { id: String(unitId), label: (target && (target.name || target.slug)) || String(unitId) }
+      if (target && target.concept) ref.concept = target.concept
+      if (!UI || typeof UI.Ku !== 'function') return el('span', 'nn-badge', ref.label)
       try {
-        return UI.Ku('element', { id: String(unitId), label: String(unitId) }, {
+        return UI.Ku('element', ref, {
           doc: doc,
           onAction: function (action, descriptor) {
             if (action === 'reveal' && typeof opts.onReveal === 'function') opts.onReveal(descriptor)
           },
         })
       } catch {
-        return el('span', 'nn-badge', String(unitId))
+        return el('span', 'nn-badge', ref.label)
       }
     }
 
@@ -26524,17 +26544,29 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
       }
 
       var alerts = el('div', 'nn-files-alerts')
-      function alert(label, count) {
+      function alert(count, one, many) {
         if (!count) return
         var card = el('div', 'nn-integrity-alert')
         card.appendChild(el('strong', null, String(count)))
-        card.appendChild(el('span', null, ' ' + label))
+        card.appendChild(el('span', null, ' ' + (count === 1 ? one : many)))
         alerts.appendChild(card)
       }
-      alert('source files no knowledge unit or change cites', stats.uncitedSourceCount)
-      alert('files without a sidecar', stats.sidecarMissingCount)
-      alert('sidecars with an invalid frontmatter', stats.sidecarInvalidCount)
-      alert('sidecars whose digest no longer matches the file', stats.sidecarMismatchCount)
+      alert(
+        stats.uncitedSourceCount,
+        'source file is never cited by a knowledge unit or a change',
+        'source files are never cited by a knowledge unit or a change',
+      )
+      alert(stats.sidecarMissingCount, 'file has no sidecar', 'files have no sidecar')
+      alert(
+        stats.sidecarInvalidCount,
+        'sidecar has an invalid frontmatter',
+        'sidecars have an invalid frontmatter',
+      )
+      alert(
+        stats.sidecarMismatchCount,
+        'sidecar digest no longer matches its file',
+        'sidecar digests no longer match their file',
+      )
       if (alerts.childNodes.length) {
         var alertsWrap = el('div', 'nn-files-section')
         alertsWrap.appendChild(el('h3', 'nn-files-section-title', 'Integrity signals'))
@@ -26700,13 +26732,24 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
         })
       })
       var unitIds = Object.keys(unitSet).sort()
-      var changeSet = {}
+      // Changes come from the domain's own changeset records; lineage only adds
+      // the highlighting, so the column is never empty when changes exist.
+      var changeRecords = Array.isArray(opts.changes) ? opts.changes : []
+      var changeNode = {}
+      changeRecords.forEach(function (cs) {
+        var path = String((cs && cs.path) || '')
+        var id = path
+          .split('/')
+          .pop()
+          .replace(/_changes_NN\.md$/i, '')
+        if (id) changeNode[id] = { name: (cs && cs.title) || id, sub: (cs && cs.status) || 'changeset' }
+      })
       Object.keys(lineage).forEach(function (k) {
         ;(lineage[k].changesetIds || []).forEach(function (id) {
-          changeSet[id] = true
+          if (!changeNode[id]) changeNode[id] = { name: id, sub: 'changeset' }
         })
       })
-      var changeIds = Object.keys(changeSet).sort()
+      var changeIds = Object.keys(changeNode).sort()
 
       var content = {
         origins: watchRoots.map(function (r) {
@@ -26716,10 +26759,15 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
           return { id: 'file:' + f.path, name: filesBaseName(f.path), sub: FILES_CATEGORY_LABEL[f.category] + ' · ' + filesFmtBytes(f.size) }
         }),
         changes: changeIds.map(function (id) {
-          return { id: 'change:' + id, name: id, sub: 'changeset' }
+          return { id: 'change:' + id, name: changeNode[id].name, sub: changeNode[id].sub }
         }),
         units: unitIds.map(function (id) {
-          return { id: 'unit:' + id, name: id, sub: 'knowledge unit' }
+          var target = elementsById[id]
+          return {
+            id: 'unit:' + id,
+            name: (target && (target.name || target.slug)) || id,
+            sub: 'knowledge unit',
+          }
         }),
         artifacts: artifactsStage.map(function (f) {
           return { id: 'file:' + f.path, name: filesBaseName(f.path), sub: filesFmtBytes(f.size) }
@@ -29380,6 +29428,7 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     renderMatrices(active, matrices, concepts, (meta && (meta.modelId || meta.model)) || '')
     renderFilesTab(active, model && model.files, {
       elements: elements,
+      changes: (model && Array.isArray(model.changes) ? model.changes : []),
       onReveal: function (descriptor) {
         revealUnit(descriptor)
       },
