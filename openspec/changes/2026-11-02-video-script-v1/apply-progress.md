@@ -10,7 +10,7 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 
 - Branch: `feature/conntent-v1-d` (base `feature/conntent-v1`)
 - PR: https://github.com/cogNNitive/cogNNitive/pull/462
-- Commits: `d3c002f2` docs(openspec): align coNNtent V_1-0-0 artifacts with the resolved decisions
+- Commits: `d3c002f2` docs(openspec): align coNNtent V_0-15-0 artifacts with the resolved decisions
 - Scope: `proposal.md`, `design.md`, `specs/*/spec.md`, `tasks.md` in this change folder.
 - Changes:
   - Four Layer behaviour types (`avatar`, `media`, `text`, `animation`); appearance and visual
@@ -114,3 +114,21 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
   - The frozen `video-golden` corpus keeps its historical `<nn-video-script>` strings; it is a frozen fixture of earlier episodes, like the archives.
   - `openspec/changes/**` and `openspec/specs/**` keep `video-*` capability names by decision 9.
 - Open issues: none.
+
+## Slice 2a — Spec text V_0-15-0 (maintainer decisions 1–9 + D1–D5)
+
+- Branch: `feature/conntent-v1-2a` (base `feature/conntent-v1-r`)
+- PR: pending
+- Decisions resolved by the maintainer: D1 `style` enum on `text` Layers; D2 explicit `source:: narration`; D3 conditional fields as OR groups keyed by the four types; D4 catalog Concepts in the same blueprint; D5 a single `blueprint_version` axis, **versioned `V_0-15-0`** (never a `1.0`). Recorded in `decisions-2a.md`; the requirement matrix is `traceability-2a.md` (138 requirements: 22 owned by 2a, 19 spec+code, 97 out of scope).
+- Changes:
+  - `spec_NN.md` rewritten to V_0-15-0: 6 new Concepts (`Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model`, `Voice`), four Layer behaviour types with `style`/`source`/`placement`/`timing`, `kind`/`review`/`for`, the delivery fields (`language`, `budget`, `daily_budget`, `output_formats`, `script_review`), the catalog fields, the six-level cascade, the conditional-fields table and a Removed Fields section.
+  - `defaults/video-defaults_NN.md`: `parent_spec` `coNNtent_V_0-15-0`; no `budget`, no `language`; adds `image_size`, `output_formats`, `script_review`; drops `master_resolution`.
+  - Blueprint `V_0-15-0`; both catalogs regenerated; `references/parameters.md` regenerated (12 scopes).
+- Deviations needed to keep the tree green before the engine slices (each removed by a later slice):
+  - The compiler resolves the master size from the first `output_formats` entry, keeping `master_resolution` as a legacy fallback until Slice 5.
+  - `DEFAULT_CONDITIONAL_FIELDS` carries the four behaviour types; the V_0-14-x visual types live in a private `LEGACY_LAYER_FIELDS` map so pre-V_0-15-0 fixtures keep compiling until Slice 5.
+  - `PRESET_PARAMETERS`: `voice_tone` out, `image_size` in. Both tables are deleted by Slice 2b in favour of the generated registry.
+  - The maintainer's D5 note replaces the old `template_version`/`SHIPPED_TEMPLATE_VERSIONS` instruction, which does not apply to this repo (no such registry; `template_version` belongs to frozen blueprints).
+  - Every artifact in the change folder was swept from the planned `V_1-0-0` to `V_0-15-0`.
+- Verification: skill suite 420 tests, 420 pass; `node scripts/verify.js` green (230 steps); `check-openspec-deltas` green; `prettier` clean.
+- Open issues: the editor's shipped-template registry lives in `cogNNitive-web`; carry it into Slice 10.

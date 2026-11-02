@@ -1,4 +1,4 @@
-# Proposal: coNNtent V_1-0-0 (decision-in redesign, formerly `coNNtent`)
+# Proposal: coNNtent V_0-15-0 (decision-in redesign, formerly `coNNtent`)
 
 ## Intent
 
@@ -23,7 +23,7 @@ Success means:
 
 ### In scope
 - **Slice 0, quick wins**: ships on the V_0-14-x line before the redesign (see below).
-- A breaking bump of the bluepriNNt to V_1-0-0. Episodes pin the version.
+- A breaking bump of the bluepriNNt to V_0-15-0. Episodes pin the version.
 - The rename of the bluepriNNt to `coNNtent` (folder and catalog id) and of the skill to `nn-conntent`, with no alias or redirect. OpenSpec capability names keep `video-*`.
 - Exactly four Layer behaviour types (`avatar`, `media`, `text`, `animation`), with appearance and visual components moved into Presets; `presenter` and the other visual names stop being types.
 - Scene kinds, series chrome, the `Libre` escape hatch, and the cascade extended with a kind level.
@@ -74,7 +74,7 @@ Success means:
 
 ### Modified capabilities
 - `video-script-model`: the kind level in the cascade; `language`, `budget`, `output_formats`, `script_review`; dead and phantom fields removed; master size taken from the field.
-- `video-blueprint`: V_1-0-0; the single-option `master_resolution` requirements are removed.
+- `video-blueprint`: V_0-15-0; the single-option `master_resolution` requirements are removed.
 - `video-presets`: kind-level presets.
 - `cognnitive-video-engine`: catalog-driven guard and estimator, the image cache key, hardlinked staging, the `build/` and CLI-flag requirements, a hermetic GSAP.
 - `video-script-skill`: draft procedure and changeset. The requirements for the quine draft tools, the in-chat phrase approval and the manual workflow sequence are removed.
@@ -98,7 +98,7 @@ Success means:
 
 | Area | Impact |
 |---|---|
-| `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md` (+ catalog, defaults) | Modified: V_1-0-0 |
+| `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md` (+ catalog, defaults) | Modified: V_0-15-0 |
 | `.../skills/nn-conntent/scripts/` (`scene-compiler`, `lib/knowledge-model`, `lib/presets`, `asset-cost-estimator`, `video-engine-cli`, `build-script-from-draft`, `render-formats`) | Modified or rewritten |
 | `.../scripts/draft-template.html` | Removed |
 | `.../skills/nn-conntent/SKILL.md`, `references/`, `test/` | Modified |
@@ -108,7 +108,7 @@ Success means:
 ## Rollout
 
 1. Slice 0 ships first.
-2. V_1-0-0 spec and contract, then the engine and `produce`, then the console views.
+2. V_0-15-0 spec and contract, then the engine and `produce`, then the console views.
 3. Pilot: cognitive-use-cases. Cleanup of active-series duplicates happens here, deleting only files whose bytes already exist in the cache.
 4. Port villabotijos-today, then innteresante.
 5. inntrevistas and cosicah are left untouched.
@@ -120,13 +120,13 @@ Success means:
 | HyperFrames does not render through hardlinks (or links break across volumes) | Med | Spike first; the fallback is defined in design |
 | nn-core changesets cannot carry variants or per-scene verdicts | Med | Check `changeset-document-model` early; a sidecar is the fallback |
 | The console bundle exceeds the `console-view-registry` size budget | Med | Measure during the views slice; split the views if needed |
-| Breaking V_1-0-0 strands old episodes | High (intended) | No compat code; old episodes stay archives under their pinned version |
+| Breaking V_0-15-0 strands old episodes | High (intended) | No compat code; old episodes stay archives under their pinned version |
 | Quick win 1 re-bills images | High (once) | Accepted; documented in the release note |
 | Scope exceeds the 400-line budget | High | Chained slices (ask-on-risk) |
 
 ## Rollback plan
 
-Slice 0 and the V_1-0-0 slices are separate commits on `dev`. Reverting them restores V_0-14-1. Ported series keep their pre-port files until the pilot is accepted, and the duplicate cleanup only deletes bytes that are still present in the cache.
+Slice 0 and the V_0-15-0 slices are separate commits on `dev`. Reverting them restores V_0-14-1. Ported series keep their pre-port files until the pilot is accepted, and the duplicate cleanup only deletes bytes that are still present in the cache.
 
 ## Success criteria
 
@@ -153,6 +153,6 @@ All open questions above are settled by the maintainer decisions table in `tasks
 ## Proposal question round
 
 Not asked (automatic mode). Assumptions for review:
-1. Slice 0 ships on V_0-14-x and is not folded into V_1-0-0.
+1. Slice 0 ships on V_0-14-x and is not folded into V_0-15-0.
 2. The console view bundle may grow, within the registry budget.
 3. Ported series are rewritten by hand; there is no tool.

@@ -1,12 +1,12 @@
 # Delta for video-blueprint
 
-Change `2026-11-02-video-script-v1`. The blueprint is bumped to the breaking version V_1-0-0 (no in-place migration, no aliases).
+Change `2026-11-02-video-script-v1`. The blueprint is bumped to the breaking version V_0-15-0 (no in-place migration, no aliases).
 
 ## ADDED Requirements
 
-### Requirement: Blueprint Is V_1-0-0 And Episodes Pin It
+### Requirement: Blueprint Is V_0-15-0 And Episodes Pin It
 
-This change MUST set `blueprint_version` to `V_1-0-0` in `spec_NN.md`, set the package defaults `parent_spec` to the same version, regenerate both `catalog.json` files in the same slice, regenerate the field registry, and bump the skill `version:` once. A V_1-0-0 episode MUST pin the version in its frontmatter `blueprint_version: V_1-0-0`, and `produce` MUST refuse any other value.
+This change MUST set `blueprint_version` to `V_0-15-0` in `spec_NN.md`, set the package defaults `parent_spec` to the same version, regenerate both `catalog.json` files in the same slice, regenerate the field registry, and bump the skill `version:` once. A V_0-15-0 episode MUST pin the version in its frontmatter `blueprint_version: V_0-15-0`, and `produce` MUST refuse any other value.
 
 Source: D7, proposal Scope.
 
@@ -14,7 +14,7 @@ Source: D7, proposal Scope.
 
 - GIVEN `origin/main` carries the last V_0-14-x blueprint
 - WHEN this change edits `spec_NN.md`
-- THEN `blueprint_version` is `V_1-0-0`, the package defaults `parent_spec` names `coNNtent_V_1-0-0`, and both catalogs name `coNNtent` at `V_1-0-0`
+- THEN `blueprint_version` is `V_0-15-0`, the package defaults `parent_spec` names `coNNtent_V_0-15-0`, and both catalogs name `coNNtent` at `V_0-15-0`
 
 #### Scenario: Guards stay green
 
@@ -26,7 +26,7 @@ Source: D7, proposal Scope.
 
 - GIVEN a new episode document
 - WHEN its frontmatter is read
-- THEN `blueprint_version` is `V_1-0-0`
+- THEN `blueprint_version` is `V_0-15-0`
 
 ### Requirement: Blueprint Text Describes The Declared Master
 
@@ -119,10 +119,10 @@ The blueprint `validation.conditional_fields` MUST key its rules by the four Lay
 
 ### Requirement: Blueprint Version Bump And Catalog Parity
 
-(Reason: pinned to the superseded version V_0-14-0 and to the standalone console (`draft-template.html`) that this change deletes; replaced by "Blueprint Is V_1-0-0 And Episodes Pin It".)
+(Reason: pinned to the superseded version V_0-14-0 and to the standalone console (`draft-template.html`) that this change deletes; replaced by "Blueprint Is V_0-15-0 And Episodes Pin It".)
 (Migration: None.)
 
 ### Requirement: This Change Bumps The Blueprint To Its Own Version
 
-(Reason: pinned to V_0-14-1; replaced by "Blueprint Is V_1-0-0 And Episodes Pin It".)
+(Reason: pinned to V_0-14-1; replaced by "Blueprint Is V_0-15-0 And Episodes Pin It".)
 (Migration: None.)

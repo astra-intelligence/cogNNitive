@@ -1,4 +1,4 @@
-# Traceability: delta requirements → V_1-0-0 artifacts (Slice 2a)
+# Traceability: delta requirements → V_0-15-0 artifacts (Slice 2a)
 
 Generated from the 138 requirements of the 20 delta specs in this change folder.
 `2a` = the requirement lands in `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md` (or its package defaults);
@@ -23,14 +23,14 @@ Generated from the 138 requirements of the 20 delta specs in this change folder.
 
 | Requirement | Type | 2a | Target artifact | Verified by |
 |---|---|---|---|---|
-| Blueprint Is V_1-0-0 And Episodes Pin It | ADDED | yes | spec: frontmatter `blueprint_version` + both catalogs | verify.js: immutability, catalog parity |
+| Blueprint Is V_0-15-0 And Episodes Pin It | ADDED | yes | spec: frontmatter `blueprint_version` + both catalogs | verify.js: immutability, catalog parity |
 | Blueprint Text Describes The Declared Master | ADDED | yes | spec: Field Definition `master` and `position` descriptions | verify.js: field catalogue |
 | Blueprint Ships The Catalog, Scene Kind, Chrome And Variant Concepts | ADDED | yes | spec: six Concept Definitions + `## NN index` | verify.js: metaschema self-describe |
 | Native L2 Video-Script Blueprint | MODIFIED | yes | spec: Concept list and `## NN index` | verify.js: field catalogue |
 | Conditional Fields Are Keyed By Layer Type | MODIFIED | yes | spec: frontmatter `validation.conditional_fields` | verify.js: field catalogue |
 | Blueprint Declares master_resolution With One Option | REMOVED | no | — retired (see Field catalogue) | test: guard-hardening |
 | Blueprint Text Describes A Single Square Master | REMOVED | no | — retired (master text) | verify.js: field catalogue |
-| Blueprint Version Bump And Catalog Parity | REMOVED | no | — superseded by the V_1-0-0 bump | verify.js: catalog parity |
+| Blueprint Version Bump And Catalog Parity | REMOVED | no | — superseded by the V_0-15-0 bump | verify.js: catalog parity |
 | This Change Bumps The Blueprint To Its Own Version | REMOVED | no | — superseded | verify.js: immutability |
 
 ## video-script-model (12)

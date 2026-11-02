@@ -1,4 +1,4 @@
-# Design: coNNtent V_1-0-0 (decision-in redesign, formerly `coNNtent`)
+# Design: coNNtent V_0-15-0 (decision-in redesign, formerly `coNNtent`)
 
 Note on length: this design exceeds the 800-word skill budget on purpose. The orchestrator asked it to settle 12 named questions (Q1–Q7 plus engine, console and slicing), and each one constrains the tasks. Decisions are in tables, and code appears only for data shapes.
 
@@ -32,7 +32,7 @@ The engine reads a model and runs one command; it never invents data. Data lives
   - `Scene Kind` has `role`, `narration:: on|off`, `max_duration` (seconds), `variants` (count), `fixed:: none|first|last|after:<kind>` with `asset` for fixed scenes, `chrome:: [watermark, cta, …]` and `presets`.
   - `Chrome` (one element per language) has `language`, `watermark`, `cta`, `bumper` and `music`; its media live in `series/<s>/assets/`.
 - **Episode:**
-  - `Video` has `status:: idea|draft|approved|produced|published|archived`, `published_url`, `master`, `language`, `budget`, `script_review` and `output_formats` (the first entry is the master size; the master is named `<slug>_<W>x<H>.mp4`). The frontmatter pins `blueprint_version: V_1-0-0`.
+  - `Video` has `status:: idea|draft|approved|produced|published|archived`, `published_url`, `master`, `language`, `budget`, `script_review` and `output_formats` (the first entry is the master size; the master is named `<slug>_<W>x<H>.mp4`). The frontmatter pins `blueprint_version: V_0-15-0`.
   - `Scene` has `kind`, the body as narration, `review` and `presets`.
   - `Layer` states exactly one of four behaviour types: `avatar` (lip-synced, paid job), `media` (image or video, with `placement:: full|inset` and `timing:: scene|slot`), `text` (overlay text, whose `style::` names the visual component: title, lower-third, caption, watermark, quote; `source:: narration` takes the scene narration) and `animation` (an authored HyperFrames sub-composition). Appearance lives in Presets ("Lower third", "Title", "Quote", "Captions", "B-roll"). `presenter` is not a type: the name is `avatar` everywhere.
   - `Variant` is described in A3.
@@ -88,7 +88,7 @@ The engine discovers episodes only under `series/<s>/episodes/`; a legacy episod
 
 | File | Action | Description |
 |---|---|---|
-| `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md` | Modify | V_1-0-0: concepts Scene Kind, Chrome, Variant; new and removed fields |
+| `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md` | Modify | V_0-15-0: concepts Scene Kind, Chrome, Variant; new and removed fields |
 | `.../coNNtent/catalog/model-catalog_NN.md` | Create | Dated reference catalog |
 | `.../coNNtent/procedures/` (draft procedure) | Create | Agent draft procedure that emits P |
 | `.../coNNtent/assets/console-view-episode-review.js`, `console-view-series.js` (+ `.data.mjs`) | Create | The two views |
@@ -124,7 +124,7 @@ The engine discovers episodes only under `series/<s>/episodes/`; a legacy episod
 | 0a | QW1 image cache key, QW5 `--fill crop`, QW3 avatar render refusal (V_0-14-x) | — |
 | 0b | QW2 remove non-preset console controls, QW4 unpriced-model warning | — |
 | 1 | Mirror target `coNNtent`; replace `knowledge-model.mjs` | 0 |
-| 2a | `spec_NN.md` V_1-0-0 text (docs-only; likely `size:exception`) | 1 |
+| 2a | `spec_NN.md` V_0-15-0 text (docs-only; likely `size:exception`) | 1 |
 | 2b | Field registry generator, validator, consumers, delete drift tests | 2a |
 | 3 | Catalog document, `catalog.mjs`, adapters, estimator rewrite, `plan_hash` with prices, ledger v2, delete guard JSON | 2b |
 | 4 | Series kinds and chrome, `cascade.mjs` with kind level, language | 2b |
@@ -138,7 +138,7 @@ The engine discovers episodes only under `series/<s>/episodes/`; a legacy episod
 
 ## Migration / Rollout
 
-There is no migration code. Old episodes stay archives under their pinned version, and `produce` refuses a non-V_1 `blueprint_version`. The series are ported by hand, in the order cognitive-use-cases, villabotijos-today, innteresante.
+There is no migration code. Old episodes stay archives under their pinned version, and `produce` refuses a non-V_0-15-0 `blueprint_version`. The series are ported by hand, in the order cognitive-use-cases, villabotijos-today, innteresante.
 
 ## Resolved by the maintainer (2026-11-02)
 

@@ -1,4 +1,4 @@
-# Tasks: coNNtent V_1-0-0 (decision-in redesign)
+# Tasks: coNNtent V_0-15-0 (decision-in redesign)
 
 Skill root `S` = `iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent`. Tests live in `S/test` (`node --test`). Strict TDD: every slice lists RED (failing test) before GREEN (code) before REFACTOR. Chain strategy is `feature-branch-chain`: tracker branch `feature/conntent-v1` cut from `origin/dev`; PR D targets the tracker, every later slice PR targets the previous slice's branch; only the tracker merges into `dev`, and only on the maintainer's word. After Slice R, `S` moves to `iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent`.
 
@@ -25,7 +25,7 @@ Chain strategy: feature-branch-chain
 | 0a | QW1 image cache key, QW5 `--fill crop`, QW3 avatar render refusal | 150 | PR 0a | Independent; V_0-14-x. Base: main or tracker |
 | 0b | QW2 remove non-preset console controls, QW4 unpriced warning | 120 | PR 0b | Independent of 0a |
 | 1 | Mirror target `coNNtent` | 300 | PR 1 | Needs 0a/0b merged; generated bundle excluded |
-| 2a | `spec_NN.md` V_1-0-0 text | 600 | PR 2a | Docs-only, likely `size:exception` |
+| 2a | `spec_NN.md` V_0-15-0 text | 600 | PR 2a | Docs-only, likely `size:exception` |
 | 2b | Field registry generator, validator, consumers | 450 | PR 2b | Depends on 2a |
 | 3a | Catalog doc, `catalog.mjs`, adapters | 450 | PR 3a | Depends on 2b |
 | 3b | Estimator rewrite, `plan_hash`, ledger v2, delete guard JSON | 400 | PR 3b | Depends on 3a |
@@ -96,12 +96,12 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 - [x] 1.4 Measure bundle size and record it (design A10).
 - [x] Verify: `node scripts/build-core-mirrors.mjs --check`, `node scripts/verify.js`.
 
-## Slice 2a: Spec V_1-0-0 text
+## Slice 2a: Spec V_0-15-0 text
 
-- [ ] 2a.1 Apply decisions 1–9, then edit `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md`: Scene Kind, Chrome, Variant, new and removed fields, `blueprint_version: V_1-0-0`. Never edit a published `_V_x-y-z_` file.
-- [ ] 2a.2 Bump `template_version` and register it in the editor's `SHIPPED_TEMPLATE_VERSIONS`; keep `manifest/source.yaml` `version:` on the spec axis.
-- [ ] 2a.3 Sync `openspec/specs/` deltas only at archive time, not here.
-- [ ] Verify: `node scripts/verify.js`, `check:spec-urls`.
+- [x] 2a.1 Apply decisions 1-9, then edit `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md`: Scene Kind, Chrome, Variant, new and removed fields, `blueprint_version: V_0-15-0`. Never edit a published `_V_x-y-z_` file.
+- [x] 2a.2 Bump `blueprint_version` (V_0-15-0); the editor's shipped-template registry lives in cogNNitive-web and is a Slice 10 follow-up; `manifest/source.yaml` has no coNNtent entry, so its `version:` axis does not apply.
+- [x] 2a.3 Sync `openspec/specs/` deltas only at archive time, not here.
+- [x] Verify: `node scripts/verify.js`, `check:spec-urls`.
 
 ## Slice 2b: Field registry
 
@@ -143,7 +143,7 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 7a: `produce` core
 
-- [ ] 7a.1 RED: integration tests on a tmp domaiNN with injected synthesizer and `hyperframesRun`: every transition, exit codes 0/10/11/1, intake dry-apply, skip never bypasses budget, resume, refusal of non-V_1 episodes.
+- [ ] 7a.1 RED: integration tests on a tmp domaiNN with injected synthesizer and `hyperframesRun`: every transition, exit codes 0/10/11/1, intake dry-apply, skip never bypasses budget, resume, refusal of non-V_0-15-0 episodes.
 - [ ] 7a.2 GREEN: `S/scripts/produce.mjs`, `lib/episode.mjs`, `lib/changes.mjs` (engine changesets via `writeProposedChangeset` and `executeChangesetApply`). Apply decision 5.
 
 ## Slice 7b: Remove old pipeline

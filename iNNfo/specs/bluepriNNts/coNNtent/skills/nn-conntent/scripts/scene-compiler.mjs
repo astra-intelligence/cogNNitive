@@ -85,12 +85,25 @@ export const TYPE_RENDERERS = {
 };
 
 /**
- * Default `type::` → required Fields contract. This is the effective contract the
- * pre-compile guard enforces and MUST stay in sync with the `coNNtent`
- * blueprint's `validation.conditional_fields` frontmatter; they are currently
- * identical. The engine does not read the blueprint map at compile time.
+ * Default `type::` → required Fields contract for the four behaviour types. This is the
+ * effective contract the pre-compile guard enforces and MUST stay in sync with the
+ * `coNNtent` blueprint's `validation.conditional_fields` frontmatter. The engine does
+ * not read the blueprint map at compile time; Slice 2b replaces both with the generated
+ * field registry.
  */
 export const DEFAULT_CONDITIONAL_FIELDS = {
+  avatar: ['asset', 'prompt'],
+  media: ['asset', 'prompt'],
+  text: ['text', 'source'],
+  animation: ['asset'],
+};
+
+/**
+ * Transitional: the visual `type::` names of the V_0-14-x line. Documents written before
+ * V_0-15-0 still compile during the chain; Slice 5 retires them with the lowering rewrite.
+ * Never exported to the drift guard and never added to the blueprint.
+ */
+const LEGACY_LAYER_FIELDS = {
   presenter: ['asset', 'prompt', 'avatar'],
   background: ['asset', 'prompt'],
   'b-roll': ['asset', 'prompt'],
@@ -100,8 +113,8 @@ export const DEFAULT_CONDITIONAL_FIELDS = {
   caption: ['text'],
   brand: ['asset'],
   watermark: ['text'],
-  animation: ['asset'],
 };
+
 
 /**
  * Field names that declare duration or timing. The `coNNtent` blueprint
@@ -312,7 +325,7 @@ export class SceneCompiler {
         }
       }
     }
-    const conditional = options.conditionalFields || DEFAULT_CONDITIONAL_FIELDS;
+    const conditional = options.conditionalFields || { ...LEGACY_LAYER_FIELDS, ...DEFAULT_CONDITIONAL_FIELDS };
     const guardBags = options.bags || null;
     const videoFields = (elements.Video || [])[0]?.fields || {};
     const sceneFieldsBySlug = new Map();
@@ -448,9 +461,14 @@ export class SceneCompiler {
       };
     });
 
-    // One declared master size for the whole episode: the delivery formats are
-    // derived from it, never rendered on their own (design D3).
-    const declared = resolve('master_resolution', { ...bags, video: videoEl.fields || {} }).value;
+    // The master size is the first entry of the declared `output_formats`. The retired
+    // `master_resolution` stays readable for documents written before V_0-15-0 until the
+    // staging slice deletes it. Delivery formats are derived from the master, never rendered
+    // on their own (design D3).
+    const formats = resolve('output_formats', { ...bags, video: videoEl.fields || {} }).value;
+    const firstFormat = Array.isArray(formats) ? formats[0] : String(formats ?? '').replace(/^\[|\]$/g, '').split(',')[0];
+    const legacyMaster = resolve('master_resolution', { ...bags, video: videoEl.fields || {} }).value;
+    const declared = String(firstFormat ?? '').trim() || (legacyMaster == null ? null : String(legacyMaster).trim()) || null;
     let width = options.width ?? this.width;
     let height = options.height ?? this.height;
     if (declared !== null && declared !== undefined && String(declared).trim() !== '') {

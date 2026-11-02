@@ -99,7 +99,7 @@ Every video domain MUST use one layout: the domain root holds at least `domaiNN_
 
 Source: D1, D8.
 
-An episode folder `E` MUST contain `<slug>_coNNtent_<s>_NN.md` (the episode document: record and script, where `<s>` is the series name), and MAY contain `sources/`, `media/`, `animations/<project>/`, `description.md`, the master `<slug>_<W>x<H>.mp4`, `formats/`, `thumbnail.png` and the regenerable `hyperframes/`, each optional until its producing step has run. A bare `<slug>_NN.md` MUST be rejected. `E` MUST NOT contain `build/`, `public/`, `draft.json`, `reviewed.json`, `review_console.html`, `asset_plan.md` or `asset_plan.approved.json`. The engine MUST discover episodes only under `series/<s>/episodes/`; a legacy episode folder left in `series/<s>/assets/` MUST be ignored and left for the maintainer to reorganise by hand. Episodes authored before V_1-0-0 stay where they are as an archive and are not required to match this layout.
+An episode folder `E` MUST contain `<slug>_coNNtent_<s>_NN.md` (the episode document: record and script, where `<s>` is the series name), and MAY contain `sources/`, `media/`, `animations/<project>/`, `description.md`, the master `<slug>_<W>x<H>.mp4`, `formats/`, `thumbnail.png` and the regenerable `hyperframes/`, each optional until its producing step has run. A bare `<slug>_NN.md` MUST be rejected. `E` MUST NOT contain `build/`, `public/`, `draft.json`, `reviewed.json`, `review_console.html`, `asset_plan.md` or `asset_plan.approved.json`. The engine MUST discover episodes only under `series/<s>/episodes/`; a legacy episode folder left in `series/<s>/assets/` MUST be ignored and left for the maintainer to reorganise by hand. Episodes authored before V_0-15-0 stay where they are as an archive and are not required to match this layout.
 
 #### Scenario: Fully produced episode matches the layout
 
@@ -121,7 +121,7 @@ An episode folder `E` MUST contain `<slug>_coNNtent_<s>_NN.md` (the episode docu
 
 #### Scenario: Old episodes are not moved
 
-- GIVEN a pre-V_1-0-0 episode at `series/<s>/assets/<slug>/`
+- GIVEN a pre-V_0-15-0 episode at `series/<s>/assets/<slug>/`
 - WHEN the layout is checked
 - THEN it is reported as archive and no tool moves it
 

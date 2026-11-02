@@ -36,7 +36,7 @@ The Series document (`<s>_series_NN.md`, frontmatter `scope: true`) MUST be able
 
 ### Requirement: Every Scene States Its Kind
 
-Every `Scene` of a V_1-0-0 episode MUST state `kind::` with the name of a Scene Kind of its Series or the reserved name `Libre`. A scene's content MUST be its narration body plus its `Layer` elements (for example a `media` Layer with an asset or an image prompt, a `text` Layer whose `style` names a component, or an `avatar` Layer with a cached clip). An unknown kind name MUST fail the pre-compile check with `unknown-kind`, naming the scene, the name and the kinds available, before any spend.
+Every `Scene` of a V_0-15-0 episode MUST state `kind::` with the name of a Scene Kind of its Series or the reserved name `Libre`. A scene's content MUST be its narration body plus its `Layer` elements (for example a `media` Layer with an asset or an image prompt, a `text` Layer whose `style` names a component, or an `avatar` Layer with a cached clip). An unknown kind name MUST fail the pre-compile check with `unknown-kind`, naming the scene, the name and the kinds available, before any spend.
 
 #### Scenario: Known kind validates
 

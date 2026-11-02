@@ -81,14 +81,14 @@ test('the blueprint declares the current field names only', () => {
   const spec = fs
     .readFileSync(path.join(ROOT, 'iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md'), 'utf8')
     .replace(/\r\n/g, '\n');
-  for (const retired of ['template', 'tool', 'tts_model', 'music', 'music_volume', 'presenter_asset', 'intro_asset', 'level', 'speed', 'emotion', 'voice_id']) {
+  for (const retired of ['template', 'tool', 'tts_model', 'music_volume', 'presenter_asset', 'intro_asset', 'level', 'speed', 'emotion', 'voice_tone', 'master_resolution', 'scene_duration', 'scene_tts_model']) {
     assert.doesNotMatch(
       spec,
       new RegExp(`^## NN Field Definition: ${retired}$`, 'm'),
       `retired Field Definition "${retired}" must be gone`,
     );
   }
-  for (const current of ['presets', 'voice_model', 'voice_speed', 'voice_emotion', 'voice_tone', 'avatar', 'intro', 'background_audio', 'background_audio_volume', 'z_index', 'master_resolution']) {
+  for (const current of ['presets', 'voice_model', 'voice_speed', 'voice_emotion', 'avatar', 'avatar_model', 'intro', 'background_audio', 'background_audio_volume', 'z_index', 'image_model', 'image_size', 'language', 'budget', 'daily_budget', 'output_formats', 'script_review', 'kind', 'review', 'for', 'style', 'source', 'placement', 'timing', 'role', 'narration', 'max_duration', 'variants', 'fixed', 'chrome', 'watermark', 'cta', 'bumper', 'music', 'api_base', 'provider', 'api_id', 'capability', 'controls', 'sizes', 'adapter', 'price', 'price_unit', 'price_date', 'price_source', 'stale_after_days', 'allowed', 'voice_id']) {
     assert.match(spec, new RegExp(`^## NN Field Definition: ${current}$`, 'm'), `${current} is declared`);
   }
 });

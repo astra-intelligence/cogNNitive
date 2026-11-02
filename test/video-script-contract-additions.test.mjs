@@ -64,9 +64,10 @@ function fieldDefinition(name) {
 async function runTests() {
   console.log('Running coNNtent contract-additions tests...');
 
-  // 1. watermark: contract entry, guard and overlay.
+  // 1. watermark: a legacy visual type that now compiles as `text` + `style:: watermark`.
+  //    The legacy `type::` names stay compilable until Slice 5 rewrites the lowering.
   {
-    assert.deepStrictEqual(DEFAULT_CONDITIONAL_FIELDS.watermark, ['text']);
+    assert.deepStrictEqual(Object.keys(DEFAULT_CONDITIONAL_FIELDS).sort(), ['animation', 'avatar', 'media', 'text']);
 
     const ok = compiler.compile(model({
       scenes: [scene('s1')],
@@ -162,64 +163,99 @@ async function runTests() {
     }
   }
 
-  // 6. The blueprint contract itself (capability video-blueprint and video-presets).
+  // 6. The blueprint contract itself (capability video-blueprint and video-presets), V_0-15-0.
   {
-    assert.match(SPEC, /^blueprint_version: "V_0-14-5"$/m, 'the blueprint declares V_0-14-5');
+    assert.match(SPEC, /^blueprint_version: "V_0-15-0"$/m, 'the blueprint declares V_0-15-0');
     assert.match(SPEC, /^## NN Concept Definition: Preset$/m, 'Preset is a top-level Concept');
     assert.doesNotMatch(SPEC, /^## NN Concept Definition: Template$/m, 'Template is gone');
     assert.doesNotMatch(SPEC, /^## NN Field Definition: Template$/m);
 
-    // Preset has no Field of its own: no Field Definition lists only `Preset`
-    // without also listing a cascade level (the preset parameters are shared).
-    for (const name of ['template', 'tool', 'tts_model', 'music', 'music_volume', 'presenter_asset', 'intro_asset', 'level', 'voice_id', 'speed', 'emotion']) {
+    for (const name of ['template', 'tool', 'tts_model', 'music_volume', 'presenter_asset', 'intro_asset', 'voice_tone', 'scene_duration', 'scene_tts_model', 'master_resolution', 'level', 'speed', 'emotion']) {
       assert.strictEqual(fieldDefinition(name), null, `retired Field "${name}" must be absent`);
     }
+    // `music` is the one retired Scene field that survives as a Chrome field, and
+    // `voice_id` the one retired Video field that survives on a Voice element.
+    assert.match(fieldDefinition('music'), /^concept:: Chrome$/m);
+    assert.match(fieldDefinition('voice_id'), /^concept:: Voice$/m);
 
     const presets = fieldDefinition('presets');
     assert.ok(presets, 'the presets Field Definition exists');
-    assert.match(presets, /^concept:: \[Video, Scene, Series, Video Defaults\]$/m);
+    assert.match(presets, /^concept:: \[Video, Scene, Scene Kind, Series, Video Defaults\]$/m);
     assert.match(presets, /^type:: select$/m);
     assert.match(presets, /^multiple:: true$/m);
     assert.doesNotMatch(presets, /^options::/m, 'an open-vocabulary multi-select declares no options');
 
-    for (const name of ['voice', 'voice_model', 'voice_speed', 'voice_emotion', 'voice_tone', 'avatar', 'avatar_model', 'image_model', 'background_audio', 'background_audio_volume', 'transition', 'frame', 'fit', 'components', 'sounds', 'intro']) {
+    for (const name of ['voice', 'voice_model', 'voice_speed', 'voice_emotion', 'avatar', 'avatar_model', 'image_model', 'image_size', 'background_audio', 'background_audio_volume', 'transition', 'frame', 'fit', 'components', 'sounds', 'intro']) {
       const def = fieldDefinition(name);
       assert.ok(def, `cascade parameter ${name} is declared`);
       assert.match(def, /Preset/, `${name} lists Preset among its concepts`);
     }
-    // avatar and intro are no longer Series-only; z_index replaces level.
     assert.match(fieldDefinition('avatar'), /^concept:: \[Video, Scene, Preset, Series, Video Defaults\]$/m);
     assert.match(fieldDefinition('avatar'), /^type:: file$/m);
     assert.match(fieldDefinition('z_index'), /^concept:: Layer$/m);
 
-    assert.deepStrictEqual(DEFAULT_CONDITIONAL_FIELDS.presenter, ['asset', 'prompt', 'avatar']);
-    assert.match(SPEC, /^    presenter: \[asset, prompt, avatar\]$/m, 'the blueprint frontmatter agrees');
+    // Four behaviour types only; the visual names are not values any more.
+    const typeDef = fieldDefinition('type');
+    assert.match(typeDef, /^options:: \[avatar, media, text, animation\]$/m);
+    for (const retired of ['presenter', 'talking_avatar', 'talking-avatar', 'background', 'b-roll', 'title', 'lower-third', 'caption', 'brand', 'quote', 'watermark']) {
+      assert.doesNotMatch(typeDef, new RegExp(`\\b${retired}\\b`), `the type Field does not offer "${retired}"`);
+    }
+    // `style` carries the five text components, `source` the reserved narration value.
+    assert.match(fieldDefinition('style'), /^options:: \[title, lower-third, caption, watermark, quote\]$/m);
+    assert.match(fieldDefinition('source'), /^options:: \[narration\]$/m);
+    assert.match(fieldDefinition('placement'), /^options:: \[full, inset\]$/m);
+    assert.match(fieldDefinition('timing'), /^options:: \[scene, slot\]$/m);
 
-    // The blueprint package ships no Preset and no presets default: otherwise a
-    // TTS key would gain a value and every narration would be billed again.
+    assert.deepStrictEqual(DEFAULT_CONDITIONAL_FIELDS, {
+      avatar: ['asset', 'prompt'],
+      media: ['asset', 'prompt'],
+      text: ['text', 'source'],
+      animation: ['asset'],
+    });
+    assert.match(SPEC, /^    avatar: \[asset, prompt\]$/m, 'the blueprint frontmatter agrees');
+    assert.match(SPEC, /^    text: \[text, source\]$/m, 'the blueprint frontmatter agrees');
+
+    // New cascade and record fields.
+    for (const name of ['language', 'budget', 'daily_budget', 'output_formats', 'script_review', 'published_url', 'kind', 'review', 'for']) {
+      assert.ok(fieldDefinition(name), `${name} is declared`);
+    }
+    assert.match(fieldDefinition('status'), /^options:: \[idea, draft, approved, produced, published, archived\]$/m);
+    assert.match(fieldDefinition('language'), /^concept:: \[Video, Series, Video Defaults, Chrome\]$/m);
+    assert.match(fieldDefinition('daily_budget'), /^concept:: Video Defaults$/m);
+
+    // The blueprint package ships no Preset, no presets default, no budget and no language:
+    // otherwise a TTS key would gain a value or a default would silently approve spend.
     assert.doesNotMatch(DEFAULTS, /^presets::/m);
     assert.doesNotMatch(DEFAULTS, /^## NN Preset:/m);
     assert.doesNotMatch(DEFAULTS, /voice_speed::|voice_emotion::|voice_tone::/);
+    assert.doesNotMatch(DEFAULTS, /^budget::/m, 'no budget default: an unset budget always asks');
+    assert.doesNotMatch(DEFAULTS, /^language::/m, 'no language default: an unset language is a validation error');
     assert.match(DEFAULTS, /^voice_model:: minimax\/speech-2\.8-hd$/m);
     assert.match(DEFAULTS, /^background_audio_volume:: 0\.2$/m);
-    assert.match(DEFAULTS, /^parent_spec:\n  name: "coNNtent_V_0-14-5"$/m);
+    assert.match(DEFAULTS, /^image_size:: 1024x1024$/m);
+    assert.match(DEFAULTS, /^output_formats:: \[1920x1920, 1080x1920, 1920x1080, 1080x1080\]$/m);
+    assert.match(DEFAULTS, /^script_review:: required$/m);
+    assert.match(DEFAULTS, /^parent_spec:\n  name: "coNNtent_V_0-15-0"$/m);
 
-    // One declared master size; every delivery format is derived from it.
-    const masterResolution = fieldDefinition('master_resolution');
-    assert.ok(masterResolution, 'master_resolution is declared');
-    assert.match(masterResolution, /^concept:: Video Defaults$/m);
-    assert.match(masterResolution, /^type:: select$/m);
-    assert.match(masterResolution, /^options:: \[1920x1920\]$/m);
-    assert.match(DEFAULTS, /^master_resolution:: 1920x1920$/m);
+    // The declared master replaces master_resolution; delivery formats are derived.
+    assert.strictEqual(fieldDefinition('master_resolution'), null, 'master_resolution is retired');
+    assert.match(fieldDefinition('master'), /^description:: .*`output_formats`/m);
+    assert.match(fieldDefinition('master'), /<slug>_<W>x<H>\.mp4/);
+    assert.match(fieldDefinition('position'), /central safe square/);
     assert.strictEqual(fieldDefinition('resolution'), null, 'resolution stays undeclared');
     assert.strictEqual(fieldDefinition('format'), null, 'format stays undeclared');
     assert.strictEqual(fieldDefinition('fps'), null, 'fps stays undeclared');
-    assert.match(fieldDefinition('master'), /square master `<slug>_1920x1920\.mp4`/);
-    assert.match(fieldDefinition('position'), /central safe square/);
     assert.doesNotMatch(SPEC, /center 12%/);
     assert.doesNotMatch(SPEC, /\bdual\b/);
-    console.log('OK one declared square master; delivery formats are derived, never modeled');
-    console.log('OK blueprint contract: Preset concept, presets shape, retired names gone, defaults preset-free');
+
+    // The catalog schema lives in the blueprint; the instance is an L3 document.
+    for (const concept of ['Scene Kind', 'Chrome', 'Variant', 'Provider', 'Model', 'Voice']) {
+      assert.match(SPEC, new RegExp(`^## NN Concept Definition: ${concept}$`, 'm'), `${concept} is a Concept`);
+    }
+    for (const field of ['role', 'max_duration', 'variants', 'fixed', 'chrome', 'watermark', 'cta', 'bumper', 'api_base', 'capability', 'controls', 'price_unit', 'price_date', 'allowed', 'voice_id']) {
+      assert.ok(fieldDefinition(field), `${field} is declared`);
+    }
+    console.log('OK V_0-15-0 contract: four Layer types, kind/review/variant, catalog schema, no budget or language default');
   }
 
   // 7. The console template carries no literal blueprint version.

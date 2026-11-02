@@ -74,21 +74,20 @@ test('undeclared delivery values add nothing to the key', () => {
   assert.equal('emotion' in opts, false);
 });
 
-test('voice_tone never reaches the TTS options', () => {
-  const toneBags = {
-    presetIndex: loadPresetIndex([
-      {
-        doc: 'script',
-        elements: {
-          Preset: [{ type: 'Preset', name: 'Warm', slug: 'warm', fields: { voice: 'Ana', voice_tone: 'warm' } }],
+test('voice_tone is a retired key and never reaches the TTS options', () => {
+  assert.throws(
+    () =>
+      loadPresetIndex([
+        {
+          doc: 'script',
+          elements: {
+            Preset: [{ type: 'Preset', name: 'Warm', slug: 'warm', fields: { voice: 'Ana', voice_tone: 'warm' } }],
+          },
         },
-      },
-    ]),
-  };
-  const lowered = compiler.lowerKnowledgeModel(model({ presets: ['Warm'] }), { bags: toneBags });
-  const opts = buildTtsVoiceOptions(lowered.scenes[0], {});
-  assert.equal('tone' in opts, false);
-  assert.equal(Object.values(opts).includes('warm'), false);
+      ]),
+    /voice_tone/,
+    'a Preset declaring the retired voice_tone fails loudly',
+  );
 });
 
 test('a presenter avatar_model does not change the TTS key', () => {

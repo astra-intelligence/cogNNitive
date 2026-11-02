@@ -67,13 +67,13 @@ The check MUST enforce: `approved` and `produced` require a script; `produced` r
 
 ### Requirement: Episodes Pin The Blueprint Version
 
-Every V_1-0-0 episode MUST record the blueprint version it was authored against in its frontmatter `blueprint_version`. A tool run on an episode whose pin differs from the installed blueprint MUST fail with a named error and MUST NOT convert, alias or reinterpret it.
+Every V_0-15-0 episode MUST record the blueprint version it was authored against in its frontmatter `blueprint_version`. A tool run on an episode whose pin differs from the installed blueprint MUST fail with a named error and MUST NOT convert, alias or reinterpret it.
 
 #### Scenario: Pin recorded
 
-- GIVEN a new episode created under `coNNtent_V_1-0-0`
+- GIVEN a new episode created under `coNNtent_V_0-15-0`
 - WHEN its record is read
-- THEN its frontmatter has `blueprint_version: V_1-0-0`
+- THEN its frontmatter has `blueprint_version: V_0-15-0`
 
 #### Scenario: Mismatch fails
 
@@ -99,10 +99,10 @@ The list of a Series' episodes by state MUST be computed from the episode record
 
 ### Requirement: Old Episodes Stay An Archive
 
-Episodes authored before V_1-0-0 MUST NOT be migrated or converted by any tool; they remain readable under their pinned version.
+Episodes authored before V_0-15-0 MUST NOT be migrated or converted by any tool; they remain readable under their pinned version.
 
 #### Scenario: No converter exists
 
 - GIVEN the skill's scripts
-- WHEN they are searched for a converter of pre-V_1-0-0 episodes
+- WHEN they are searched for a converter of pre-V_0-15-0 episodes
 - THEN none is found

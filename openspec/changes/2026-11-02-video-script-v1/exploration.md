@@ -1,4 +1,4 @@
-# Exploration: coNNtent V_1-0-0 (from-scratch redesign)
+# Exploration: coNNtent V_0-15-0 (from-scratch redesign)
 
 Date: 2026-11-02. Status: exploration complete, decisions settled with the maintainer in a grill session.
 Persona/language contract: all artifacts in English; neutral technical tone.
@@ -228,7 +228,7 @@ D13. **Dogfooding principle.** Use cogNNitive formats wherever they fit naturall
 Do not force it: append-only facts stay JSONL.
 
 ## 4. Defaults accepted at grill close
-- The blueprint name stays `coNNtent`, bumped to V_1-0-0 (breaking); episodes pin the version.
+- The blueprint name stays `coNNtent`, bumped to V_0-15-0 (breaking); episodes pin the version.
 - `budget::` is a cascade field with a single currency per domaiNN.
 - `output_formats::` is a cascade field; the master size comes from the declared field, never hard-coded.
 - Series chrome (watermark, CTA) is declared once on the Series, per language, and applied by the engine

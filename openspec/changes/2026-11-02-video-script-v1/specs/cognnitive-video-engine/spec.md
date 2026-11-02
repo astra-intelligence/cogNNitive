@@ -1,10 +1,10 @@
 # Delta for cognnitive-video-engine
 
-Change `2026-11-02-video-script-v1`. Requirements marked `Slice: 0` ship first on the V_0-14-x line, before the V_1-0-0 redesign. Disposition of the Slice 0 requirements:
+Change `2026-11-02-video-script-v1`. Requirements marked `Slice: 0` ship first on the V_0-14-x line, before the V_0-15-0 redesign. Disposition of the Slice 0 requirements:
 
-| Slice 0 item | Requirement | Disposition at V_1-0-0 |
+| Slice 0 item | Requirement | Disposition at V_0-15-0 |
 |---|---|---|
-| 1 image cache key | Image Cache Key Follows The Cascaded Model | durable (V_1-0-0 extends it with `image_size`, see "Image Size Is A Cascade Field And Cache Input") |
+| 1 image cache key | Image Cache Key Follows The Cascaded Model | durable (V_0-15-0 extends it with `image_size`, see "Image Size Is A Cascade Field And Cache Input") |
 | 3 avatar clip refusal | Render Refuses Missing Avatar Clips | durable |
 | 4 unpriced models | Allowed Models Must Be Priced | interim, superseded by video-model-catalog "Unpriced Allowed Models Block, Unknown Models Fail" (drop at archive of slice 3) |
 | 4 infinitetalk | video-model-catalog "infinitetalk Is An Active Allowed Avatar Model" | durable; the model stays active with no warning (maintainer decision 8) |

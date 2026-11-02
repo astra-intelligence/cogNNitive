@@ -1,6 +1,6 @@
 # Slice 2a — the five product decisions
 
-Slice 2a writes the V_1-0-0 text of `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md`. The 20 delta specs
+Slice 2a writes the V_0-15-0 text of `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md`. The 20 delta specs
 already settle most of the contract; five points are still open because the deltas describe intent while
 the Level-2 blueprint must name a Field, a Concept or a version axis. Each decision below states the fork,
 what it looks like in a real episode, and a recommendation. Nothing is applied until the table at the end
@@ -43,7 +43,7 @@ person makes once per series). A stays registry-checkable (`options::`), keeps `
 still lets a series restyle a lower-third without inventing a type, because the component lookup
 (`components/<style>.html`, episode → series → domain → skill fallback) already exists.
 
-**Cost if wrong.** If a series needs a text component outside the five names, V_1-x adds a `custom` value
+**Cost if wrong.** If a series needs a text component outside the five names, V_0-15-x adds a `custom` value
 plus a `component::` path. That is a minor bump, not a redesign.
 
 ---
@@ -79,7 +79,7 @@ lives in the engine, and a scene cannot opt out or be explicit.
 `title`. More power, more surface, more validation.
 
 **Recommendation: A.** One reserved value (`narration`), stated by the document, validated by the registry,
-and no inference by component name. C is a plausible V_1-x addition if a real need appears; it is not
+and no inference by component name. C is a plausible V_0-15-x addition if a real need appears; it is not
 needed by any of the three ported series.
 
 **Cost if wrong.** B saves one field but reintroduces a silent rule; C would add a second reserved value
@@ -127,7 +127,7 @@ sibling; no document changes.
 `coNNtent` blueprint or a separate document.
 
 **Option A — same `spec_NN.md`.** Three Concepts plus their Field Definitions; the package ships the
-instance as `catalog/model-catalog_NN.md` (L3, `parent_spec: coNNtent_V_1-0-0`).
+instance as `catalog/model-catalog_NN.md` (L3, `parent_spec: coNNtent_V_0-15-0`).
 
 **Option B — a sibling blueprint**, e.g. `catalog/spec_NN.md`, composed with `includes`.
 
@@ -155,10 +155,10 @@ the editor's `SHIPPED_TEMPLATE_VERSIONS`", but in this repository:
 - `manifest/source.yaml` has no `coNNtent` entry, so its `version:` axis does not apply here; the catalogs
   are the version surface.
 
-**Option A — single axis.** `blueprint_version: "V_1-0-0"`; package defaults `parent_spec: coNNtent_V_1-0-0`;
-both catalogs regenerated; episodes pin `V_1-0-0`. The editor registry is a recorded cross-repo follow-up.
+**Option A — single axis.** `blueprint_version: "V_0-15-0"`; package defaults `parent_spec: coNNtent_V_0-15-0`;
+both catalogs regenerated; episodes pin `V_0-15-0`. The editor registry is a recorded cross-repo follow-up.
 
-**Option B — dual axis.** Add `template_version: V_1-0-0` beside `blueprint_version`. Two versions of the
+**Option B — dual axis.** Add `template_version: V_0-15-0` beside `blueprint_version`. Two versions of the
 same document drift on the first patch.
 
 **Option C — hold 2a** until the editor registry is located.
@@ -172,12 +172,17 @@ the other docs work instead of blocking 2a and 2b–10 behind it.
 
 ---
 
-## Decision table (fill this before 2a is written)
+## Decision table (resolved by the maintainer, 2026-11-02)
 
 | # | Decision | Recommended | Chosen |
 |---|---|---|---|
-| D1 | `style` on `text` Layers | A: enum Field (5 options), component by name | |
-| D2 | `source:: narration` | A: explicit single-value Field | |
-| D3 | `conditional_fields` | A: OR groups keyed by the four types | |
-| D4 | Catalog Concepts location | A: same `spec_NN.md`, instance as L3 | |
-| D5 | Version axis | A: `blueprint_version: V_1-0-0`, editor registry external | |
+| D1 | `style` on `text` Layers | A: enum Field (5 options), component by name | **A** |
+| D2 | `source:: narration` | A: explicit single-value Field | **A** |
+| D3 | `conditional_fields` | A: OR groups keyed by the four types | **A** |
+| D4 | Catalog Concepts location | A: same `spec_NN.md`, instance as L3 | **A** |
+| D5 | Version axis | A: single `blueprint_version`, editor registry external | **A, with the version renamed `V_0-15-0`** |
+
+Note on D5: the maintainer keeps the `0` major and bumps the minor digit, so the redesign ships as
+**`V_0-15-0`** instead of a breaking `1.0` version. Every artifact in this change folder has been swept to
+`V_0-15-0` (episode pins, `parent_spec` names, the `produce` refusal and the catalog entry).
+

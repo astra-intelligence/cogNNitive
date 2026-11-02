@@ -30,6 +30,7 @@ export const PRESET_PARAMETERS = new Set([
   'fit',
   'frame',
   'image_model',
+  'image_size',
   'intro',
   'sounds',
   'transition',
@@ -37,7 +38,6 @@ export const PRESET_PARAMETERS = new Set([
   'voice_emotion',
   'voice_model',
   'voice_speed',
-  'voice_tone',
 ]);
 
 /** Reserved iNNfo identity keys: never preset parameters, never a preset-field error. */
