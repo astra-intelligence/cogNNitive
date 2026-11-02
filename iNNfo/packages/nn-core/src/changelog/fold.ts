@@ -36,6 +36,8 @@ export interface FoldedUnit {
 export interface FoldResult {
   /** Live units after the epoch cut, in first-set order. */
   readonly units: Map<string, FoldedUnit>
+  /** Unit keys whose last applied change cleared them (`to:: ''`), expected absent. */
+  readonly cleared: ReadonlySet<string>
   /** remove_element / remove_matrix changes, in canonical order. */
   readonly tombstones: readonly LoggedChange[]
   /** Element key -> position of the latest add_element (the epoch cut). */
@@ -96,6 +98,7 @@ export function unitKindOf(key: string): FoldUnitKind {
 
 function setUnit(
   units: Map<string, FoldedUnit>,
+  cleared: Set<string>,
   key: string,
   kind: FoldUnitKind,
   raw: string | undefined,
@@ -104,16 +107,19 @@ function setUnit(
 ): void {
   const value = canonicalValue(raw)
   if (value === '') {
-    // An empty value is the same as absent (A4).
+    // An empty value is the same as absent (A4); remember it so a hand re-add is drift.
     units.delete(key)
+    cleared.add(key)
     return
   }
   units.set(key, { key, kind, value, origin, setOrder: order })
+  cleared.delete(key)
 }
 
 /** Collects the log into unit state. `changes` MUST already be in canonical order. */
 export function foldChanges(changes: readonly LoggedChange[]): FoldResult {
   const units = new Map<string, FoldedUnit>()
+  const cleared = new Set<string>()
   const tombstones: LoggedChange[] = []
   const epochs = new Map<string, number>()
   const elements = new Map<string, LoggedChange>()
@@ -143,20 +149,23 @@ export function foldChanges(changes: readonly LoggedChange[]): FoldResult {
         for (const unitKey of [...units.keys()]) {
           if (unitKey.startsWith(`${key}&`)) units.delete(unitKey)
         }
+        for (const unitKey of [...cleared]) {
+          if (unitKey.startsWith(`${key}&`)) cleared.delete(unitKey)
+        }
         return
       }
       case 'update_field':
-        setUnit(units, address, 'field', change.to, change, order)
+        setUnit(units, cleared, address, 'field', change.to, change, order)
         return
       case 'update_element_text':
-        setUnit(units, address, 'body', change.to, change, order)
+        setUnit(units, cleared, address, 'body', change.to, change, order)
         return
       case 'update_concept_text':
       case 'update_concept_field':
-        setUnit(units, address, 'concept', change.to, change, order)
+        setUnit(units, cleared, address, 'concept', change.to, change, order)
         return
       case 'update_matrix_cell':
-        setUnit(units, address, 'cell', change.to, change, order)
+        setUnit(units, cleared, address, 'cell', change.to, change, order)
         return
       case 'rename_element': {
         const { model, parts } = splitUnitKey(address)
@@ -211,14 +220,14 @@ export function foldChanges(changes: readonly LoggedChange[]): FoldResult {
         return
       }
       case 'produce_artifact':
-        setUnit(units, address, 'artifact', address, change, order)
+        setUnit(units, cleared, address, 'artifact', address, change, order)
         return
       default:
         return
     }
   })
 
-  return { units, tombstones, epochs, elements, relinks }
+  return { units, cleared, tombstones, epochs, elements, relinks }
 }
 
 /**

@@ -6,6 +6,7 @@ import type { ChangeItem, ChangeOp, ChangeStatus } from '../changeset/types.js'
 import type { FileSnapshot } from '../queryUnits.js'
 import { isNNName, isSidecarName, parseName } from '../naming/contract.js'
 import { parseChangeset } from '../changeset/parser.js'
+import { splitEvidence } from '../changeset/evidence.js'
 import { createChangeLog, type ChangeLog, type LoggedChange } from './index.js'
 
 export type { ChangeLog, LoggedChange } from './index.js'
@@ -34,6 +35,7 @@ export interface ChangeLike {
   batch?: string
   author?: string
   evidence?: string
+  evidence_sha256?: readonly string[]
   resolved_target?: string
   from?: string
   to?: string
@@ -93,6 +95,8 @@ function loggedChanges(cs: ChangesetLike): LoggedChange[] {
       target: change.target,
       resolvedTarget: change.resolved_target,
       evidence: change.evidence,
+      evidenceItems: splitEvidence(change.evidence),
+      evidenceSha256: change.evidence_sha256,
       from: change.from,
       to: change.to,
       concept: change.concept,

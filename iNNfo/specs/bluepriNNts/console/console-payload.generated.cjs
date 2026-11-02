@@ -10017,16 +10017,19 @@ function elementKeyOf(unitKey) {
   const amp = unitKey.indexOf("&");
   return amp === -1 ? unitKey : unitKey.slice(0, amp);
 }
-function setUnit(units, key, kind, raw, origin, order) {
+function setUnit(units, cleared, key, kind, raw, origin, order) {
   const value = canonicalValue2(raw);
   if (value === "") {
     units.delete(key);
+    cleared.add(key);
     return;
   }
   units.set(key, { key, kind, value, origin, setOrder: order });
+  cleared.delete(key);
 }
 function foldChanges(changes) {
   const units = /* @__PURE__ */ new Map();
+  const cleared = /* @__PURE__ */ new Set();
   const tombstones = [];
   const epochs = /* @__PURE__ */ new Map();
   const elements = /* @__PURE__ */ new Map();
@@ -10049,20 +10052,23 @@ function foldChanges(changes) {
         for (const unitKey of [...units.keys()]) {
           if (unitKey.startsWith(`${key}&`)) units.delete(unitKey);
         }
+        for (const unitKey of [...cleared]) {
+          if (unitKey.startsWith(`${key}&`)) cleared.delete(unitKey);
+        }
         return;
       }
       case "update_field":
-        setUnit(units, address, "field", change.to, change, order);
+        setUnit(units, cleared, address, "field", change.to, change, order);
         return;
       case "update_element_text":
-        setUnit(units, address, "body", change.to, change, order);
+        setUnit(units, cleared, address, "body", change.to, change, order);
         return;
       case "update_concept_text":
       case "update_concept_field":
-        setUnit(units, address, "concept", change.to, change, order);
+        setUnit(units, cleared, address, "concept", change.to, change, order);
         return;
       case "update_matrix_cell":
-        setUnit(units, address, "cell", change.to, change, order);
+        setUnit(units, cleared, address, "cell", change.to, change, order);
         return;
       case "rename_element": {
         const { model, parts } = splitUnitKey(address);
@@ -10115,13 +10121,13 @@ function foldChanges(changes) {
         return;
       }
       case "produce_artifact":
-        setUnit(units, address, "artifact", address, change, order);
+        setUnit(units, cleared, address, "artifact", address, change, order);
         return;
       default:
         return;
     }
   });
-  return { units, tombstones, epochs, elements, relinks };
+  return { units, cleared, tombstones, epochs, elements, relinks };
 }
 function applyRelinks(unit, relinks) {
   if (unit.kind === "cell" || unit.kind === "artifact") return unit.value;
@@ -10153,6 +10159,29 @@ function unitsFromFold(fold, model) {
     });
   }
   return out;
+}
+
+// iNNfo/packages/nn-core/src/changeset/evidence.ts
+var EVIDENCE_KEYWORDS = ["decision", "unknown"];
+function isKeyword(value) {
+  return EVIDENCE_KEYWORDS.includes(value.toLowerCase());
+}
+function evidenceKeywordInList(value) {
+  const items = splitSourceFieldValue(value);
+  if (items.length < 2) return null;
+  for (const item of items) {
+    if (isKeyword(item)) return item.toLowerCase();
+  }
+  return null;
+}
+function splitEvidence(value) {
+  const keyword = evidenceKeywordInList(value);
+  if (keyword) {
+    throw new Error(
+      `EVIDENCE_KEYWORD_IN_LIST: "${keyword}" is only valid alone in evidence; cite the document, or use the keyword by itself`
+    );
+  }
+  return splitSourceFieldValue(value).map((item) => isKeyword(item) ? item.toLowerCase() : item);
 }
 
 // iNNfo/packages/nn-core/src/changelog/index.ts
@@ -10188,6 +10217,12 @@ var ChangeLogImpl = class {
   }
   units(model) {
     return unitsFromFold(this.fold, model);
+  }
+  get cleared() {
+    return this.fold.cleared;
+  }
+  get elements() {
+    return this.fold.elements;
   }
   elementOrigin(elementKey) {
     return this.fold.elements.get(elementKey);
@@ -10504,6 +10539,8 @@ function loggedChanges(cs) {
       target: change.target,
       resolvedTarget: change.resolved_target,
       evidence: change.evidence,
+      evidenceItems: splitEvidence(change.evidence),
+      evidenceSha256: change.evidence_sha256,
       from: change.from,
       to: change.to,
       concept: change.concept,

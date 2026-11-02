@@ -64,6 +64,10 @@ export interface ChangeLog {
   origin(unit: string): LoggedChange | undefined
   /** Live units after the epoch cut (optionally scoped to one model id). */
   units(model?: string): Iterable<UnitState>
+  /** Unit keys whose last applied change cleared them (`to:: ''`). */
+  readonly cleared: ReadonlySet<string>
+  /** Element key -> the change that created or removed it. */
+  readonly elements: ReadonlyMap<string, LoggedChange>
   /** The change that created or removed the element at `elementKey`, if any. */
   elementOrigin(elementKey: string): LoggedChange | undefined
   /** Removal changes kept as tombstones. */
@@ -115,6 +119,14 @@ class ChangeLogImpl implements ChangeLog {
     return unitsFromFold(this.fold, model)
   }
 
+  get cleared(): ReadonlySet<string> {
+    return this.fold.cleared
+  }
+
+  get elements(): ReadonlyMap<string, LoggedChange> {
+    return this.fold.elements
+  }
+
   elementOrigin(elementKey: string): LoggedChange | undefined {
     return this.fold.elements.get(elementKey)
   }
@@ -158,3 +170,10 @@ export {
   type Relink,
 } from './fold.js'
 export { unitsFromFold, type UnitState } from './units.js'
+export {
+  checkProvenance,
+  type ProvenanceDiagnostic,
+  type ProvenanceModel,
+  type ProvenanceOptions,
+  type ProvenanceReport,
+} from './drift.js'
