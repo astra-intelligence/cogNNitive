@@ -1352,3 +1352,85 @@ worktree.
 
 ---
 
+## PR 20 — S4b (branch `lac/s4b`, base `lac/s4a`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 4.1b, 4.4b, 4.6b, 4.7b.
+
+- Deleted `core/lineage/{record,render,drift}.ts` and their three suites
+  (`record.test.ts`, `render.test.ts`, `drift.test.ts`), `mcp/tools/sync-lineage.ts`
+  (+ its spec), `scripts/lib/lineage-drift-guard.js` (+ its test), the
+  `lineage-fixture-domain` fixture, the `lineage-record` role and the
+  `cognnitive: 'lineage-record'` mapping in `naming/contract.ts`.
+- `lineage/index.ts` and `trannsformPrimitives.ts` keep the projection, the log and the
+  naming predicates the skill still uses; `readLineageRecord` is gone from both barrels
+  and `fs-snapshot.ts`.
+- `mcp/server.ts`: `sync_lineage` registration, handler and import removed (24 tools);
+  `check_domain`'s description no longer mentions the record. `check-workspace.ts`:
+  `LineageGateReport`, `checkLineageGate` and `report.lineage` removed.
+- `apply-change.ts`: `RECORD_UNVERSIONED`, the `TOOL_OWNED_DOCUMENT` record guard and
+  the `RECORD_BLUEPRINT` import removed (a cogNNitive document is ordinary knowledge).
+- `verify.js`: the `lineage-drift` step is gone (`verify.test.js` id list and `--only`
+  fixture updated); `legacy-write-guard.js` allowlist entries for the deleted
+  provenance scripts removed.
+- New gate suite `mcp/test/record-retired.test.ts` (3: read_lineage present /
+  sync_lineage absent, `roleOf` of a cogNNitive document is `knowledge`, and no
+  `findLineageRecord|sync_lineage|LINEAGE_DRIFT` in `core/src` or `mcp/src`).
+- Updated the suites that pinned the record: `naming/{core-blueprint-roles,roles,
+  discovery}`, `reconcile-manifest`, `lineage/{fsSnapshot,project}`,
+  `check-workspace.spec` (lineage gate block removed), `workspace-sync.spec`,
+  `provenance-contracts`, `console-export.test.mjs`, and the mirror export list.
+- Size: ~60 gate-test lines added; ~1,700 source lines and ~1,100 test lines deleted
+  (stated separately).
+- Verification: FULL `node scripts/verify.js` green (222 steps); nn-core 2.125 tests
+  green; nn-mcp 645 tests green; both typecheck; mirrors + payload regenerated.
+
+### Deviations
+
+61. `readLineageRecord` was exported from `core/index.ts`; deleting it is a public
+    surface change. Nothing in the repo consumed it after S4a, and the record itself is
+    gone, so it is removed rather than kept as a dead export.
+62. `cognnitive` documents are now ordinary models. Five suites assumed the opposite;
+    each was updated to assert the new contract (`roleOf` → `knowledge`,
+    `isModelCandidate` → true, discovery lists them, the console export lists them).
+63. Two test cases were deleted rather than rewritten: the tool-owned record guard and
+    `bump_version` on the record. Both assert behavior that no longer exists.
+64. The record's `# NN Procedures` journal and `sync_lineage` had no replacement feature
+    per se: the journal was a cache of what changes already record, and the record was a
+    derived view. `read_lineage` + `check_domain.provenance` are the replacements.
+
+---
+
+## Handoff — start here next session (after PR 20)
+
+Chain state: `lac/s4b` is the tip (PR 20). Next branch:
+`git switch lac/s4b && git switch -c lac/s4c`.
+
+**PR 21 — S4c (blueprint, manifest, catalog, vocabulary)** — tasks 4.1c [RED],
+4.5 [GREEN], 4.6c [REFACTOR], 4.7c.
+
+- Gate test: live code, skills and specs (archive excluded) contain no
+  `lineage-record`, `findLineageRecord`, `sync_lineage`, `LINEAGE_DRIFT`.
+- Delete `bluepriNNts/cogNNitive/` and `cogNNitive_V_0-2-1_NN.md`; update
+  `manifest/source.yaml`, `catalog.json`, `scripts/blueprint-catalog.mjs`,
+  `core/schema/canonical-registry.ts`, `iNNfo/specs/vocabulary.json`; run
+  `npm run sync:versions`. **Do not cut a tag here.**
+- Remaining docs/skills references are S6's job; this slice removes the blueprint and
+  the vocabulary entry, and the registry/catalog fallbacks that name it.
+- Verification: `rg "lineage-record|findLineageRecord|sync_lineage|LINEAGE_DRIFT"`
+  returns 0 outside `openspec/changes/archive/`; full `node scripts/verify.js`.
+
+**Then:** PR 22-24 (S5a) delete the legacy citation symbols, stop producers writing
+`sources`, and enforce `SOURCES_FIELD_BANNED` / `CITATION_FIELD_BANNED`; PR 25 (S5b.1)
+publishes `iNNfo_V_0-6-0`. Do NOT cut any `templates-v*` tag before S5b.5 (hard stop:
+ask the maintainer).
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+

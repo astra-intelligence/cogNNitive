@@ -316,10 +316,10 @@ Goal: no persisted record in core/mcp; `sync_lineage`, `LINEAGE_DRIFT`, `check_d
 Depends on: PR 19.
 Rollback: revert this PR (restores record, gate and tools); the view from S3 works in both states.
 
-- [ ] 4.1b [RED] [S] (was 4.1, core/mcp part) Gate tests: `sync_lineage` absent and `read_lineage` present in the tool list; `check_domain` has no `lineage` field; `roleOf('Acme_cogNNitive_NN.md')` is `knowledge`; live code contains no `findLineageRecord`, `sync_lineage`, `LINEAGE_DRIFT` in `core/` and `mcp/`. (clv; rm)
-- [ ] 4.4b [GREEN] [S] (was 4.4, core/mcp part) Delete `core/lineage/{record,render,drift}.ts`, `mcp/tools/sync-lineage.ts` (and `server.ts` registration), `scripts/lineage-drift-guard.js` and its `verify.js` step, the lineage fixture domain, the `lineage-record` role in `core/naming/contract.ts`, record guards in `apply-change.ts` (`RECORD_UNVERSIONED`, tool-owned record guard), `legacy-write-guard.js` allowlist entry, `check_domain.lineage` (the `provenance` field from S2b.2 is the replacement).
-- [ ] 4.6b [REFACTOR] [S] (was 4.6, core/mcp part) Delete about 1,000 lines of record/render/drift/guard tests, add about 130 lines of replacement tests, fix dangling imports.
-- [ ] 4.7b [S] (was 4.7) Mirrors, standard PR gate, `node scripts/verify.js`. Open PR 20.
+- [x] 4.1b [RED] [S] (was 4.1, core/mcp part) Gate tests: `sync_lineage` absent and `read_lineage` present in the tool list; `check_domain` has no `lineage` field; `roleOf('Acme_cogNNitive_NN.md')` is `knowledge`; live code contains no `findLineageRecord`, `sync_lineage`, `LINEAGE_DRIFT` in `core/` and `mcp/`. (clv; rm)
+- [x] 4.4b [GREEN] [S] (was 4.4, core/mcp part) Delete `core/lineage/{record,render,drift}.ts`, `mcp/tools/sync-lineage.ts` (and `server.ts` registration), `scripts/lineage-drift-guard.js` and its `verify.js` step, the lineage fixture domain, the `lineage-record` role in `core/naming/contract.ts`, record guards in `apply-change.ts` (`RECORD_UNVERSIONED`, tool-owned record guard), `legacy-write-guard.js` allowlist entry, `check_domain.lineage` (the `provenance` field from S2b.2 is the replacement).
+- [x] 4.6b [REFACTOR] [S] (was 4.6, core/mcp part) Delete about 1,000 lines of record/render/drift/guard tests, add about 130 lines of replacement tests, fix dangling imports.
+- [x] 4.7b [S] (was 4.7) Mirrors, standard PR gate, `node scripts/verify.js`. Open PR 20.
 
 Files: `core/lineage/*` (3 files deleted), `mcp/tools/{sync-lineage,apply-check}.ts` and `server.ts`, `scripts/lineage-drift-guard.js`, `scripts/verify.js`, `core/naming/contract.ts`, tests.
 Verification: `npm --workspace=@cognnitive/nn-core test`, `npm --workspace=@cognnitive/nn-mcp test`, `node scripts/verify.js`.
