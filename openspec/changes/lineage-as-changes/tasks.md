@@ -330,10 +330,10 @@ Goal: `cogNNitive` blueprint and its record vocabulary are gone; the global grep
 Depends on: PR 20.
 Rollback: revert this PR; do NOT cut a tag here.
 
-- [ ] 4.1c [RED] [S] (was 4.1, global part) Gate test: live code, skills and specs (archive excluded) contain no `lineage-record`, `findLineageRecord`, `sync_lineage`, `LINEAGE_DRIFT`.
-- [ ] 4.5 [GREEN] [S] Delete `bluepriNNts/cogNNitive/` and `cogNNitive_V_0-2-1_NN.md`; update `manifest/source.yaml`, `catalog.json`, `scripts/blueprint-catalog.mjs`, `core/canonical-registry.ts`, `iNNfo/specs/vocabulary.json` (record vocabulary removed); run `npm run sync:versions`. This is the first piece of the release event; do NOT cut a tag here.
-- [ ] 4.6c [REFACTOR] [S] (was 4.6, remainder) Delete the remaining record tests (about 500 lines), fix dangling imports and run `rg "lineage-record|findLineageRecord|sync_lineage|LINEAGE_DRIFT"` until 0 in live code.
-- [ ] 4.7c [S] (was 4.7) Mirrors, standard PR gate, `node scripts/verify.js` (expect the manifest/pin checks to need the S5b.5 re-pin; record any known-red release check in the PR as intentionally deferred to S5b.5). Open PR 21.
+- [x] 4.1c [RED] [S] (was 4.1, global part) Gate test: live code, skills and specs (archive excluded) contain no `lineage-record`, `findLineageRecord`, `sync_lineage`, `LINEAGE_DRIFT`.
+- [x] 4.5 [GREEN] [S] Delete `bluepriNNts/cogNNitive/` and `cogNNitive_V_0-2-1_NN.md`; update `manifest/source.yaml`, `catalog.json`, `scripts/blueprint-catalog.mjs`, `core/canonical-registry.ts`, `iNNfo/specs/vocabulary.json` (record vocabulary removed); run `npm run sync:versions`. This is the first piece of the release event; do NOT cut a tag here.
+- [x] 4.6c [REFACTOR] [S] (was 4.6, remainder) Delete the remaining record tests (about 500 lines), fix dangling imports and run `rg "lineage-record|findLineageRecord|sync_lineage|LINEAGE_DRIFT"` until 0 in live code.
+- [x] 4.7c [S] (was 4.7) Mirrors, standard PR gate, `node scripts/verify.js` (expect the manifest/pin checks to need the S5b.5 re-pin; record any known-red release check in the PR as intentionally deferred to S5b.5). Open PR 21.
 
 Files: `iNNfo/specs/bluepriNNts/cogNNitive/` (deleted), `manifest/source.yaml`, `scripts/blueprint-catalog.mjs`, `iNNfo/specs/vocabulary.json`, generated `catalog.json` and `canonical-registry.ts`.
 Verification: `rg "lineage-record|findLineageRecord|sync_lineage|LINEAGE_DRIFT"` returns 0 outside `openspec/changes/archive/`; `node scripts/verify.js`.

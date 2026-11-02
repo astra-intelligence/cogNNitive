@@ -1434,3 +1434,76 @@ worktree.
 
 ---
 
+## PR 21 — S4c (branch `lac/s4c`, base `lac/s4b`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 4.1c, 4.5, 4.6c, 4.7c.
+
+- Deleted `iNNfo/specs/bluepriNNts/cogNNitive/spec_NN.md` and the frozen instance
+  `iNNfo/specs/cogNNitive_V_0-2-1_NN.md`; `manifest/source.yaml` lost its entry,
+  `scripts/blueprint-catalog.mjs` keeps only `workspace` frozen (catalog regenerated: 19
+  bluepriNNts) and `iNNfo/specs/vocabulary.json` lost the `drift-gate` term.
+  `node scripts/generate-vocabulary-doc.mjs` regenerated `docs/documentation/content/
+  vocabulary.md`.
+- `npm run sync:versions` clean; canonical registry unchanged (it never embedded a
+  `cogNNitive` spec copy).
+- `skills/nn-preflight/scripts/domain-probe.js`: `findLineageRecord` → 
+  `findEntrypointDocument`, entrypoint-only (`domaiNN_NN.md` under `kNNowledge/` or the
+  root), `RECORD_TOKENS` gone.
+- `skills/nn-{innfo,sources}/SKILL.md` + `TESTING.md`: the `sync_lineage` row, the
+  record/drift sections and the `--lineage` flags were replaced with the change-based
+  provenance wording; the tool table's `check_domain` description matches S4b.
+- New gate `scripts/record-retired.test.mjs` (2: no `lineage-record|findLineageRecord|
+  sync_lineage|LINEAGE_DRIFT` in `nn-core/src`, `nn-mcp/src`, `skills/`,
+  `iNNfo/specs/` or `scripts/`; the blueprint dir and its catalog entry are gone).
+  Test files that assert the absence are excluded by name.
+- Updated the four suites that pinned the retired blueprint: `blueprint-catalog.test.mjs`
+  (frozen partition now asserted on `workspace`), `verify-inventory.test.js` (fixture
+  manifest + `['workspace']`), `domain-probe.test.js` (entrypoint), and the
+  `core-blueprint-roles` docblock.
+- Size: ~120 hand-authored lines added (gate + rewording), plus 2 deleted spec files and
+  a regenerated vocabulary doc. Inside the budget.
+- Verification: FULL `node scripts/verify.js` green (223 steps); the record-symbol grep
+  returns 0 outside `openspec/changes/archive/`, `docs/` and generated bundles.
+
+### Deviations
+
+65. `docs/documentation/**` still names the record (6 references): task 6.4c assigns docs
+    to S6c, and the gate test excludes `docs/` on purpose. Recorded so S6c closes it.
+66. The generated `nn-mcp.bundle.js` and console bundle still contain the old strings
+    until the release build regenerates them (S5b.5 / release event). They are build
+    artifacts, not sources.
+67. `iNNfo/specs/cogNNitive_V_0-2-1_NN.md` (the frozen instance) was deleted with the
+    blueprint: it was the frozen copy whose `spec_url` now 404s. No tag is cut here.
+
+---
+
+## Handoff — start here next session (after PR 21)
+
+Chain state: `lac/s4c` is the tip (PR 21). Next branch:
+`git switch lac/s4c && git switch -c lac/s5a1`.
+
+**PR 22 — S5a.1 (delete legacy citation symbols)** — tasks 5a.3 [RED], 5a.4 [GREEN],
+5a.7a.
+
+- Cleanup tests: `SOURCE_FIELD_NAMES`, `CONFLICT_FIELD_NAMES`, `dedupeCitationList`,
+  `citationFieldsFor`, `meta.sources` in the console payload and `LEGACY_DERIVATION_KEY`
+  no longer exist; serializer/normalize do not read `sources::`; the console payload
+  carries no `meta.sources`.
+- Delete those symbols and fix call sites in `core/` and the console; regenerate the
+  console payload/bundle and the testlab fixture.
+- Verification: `vitest run` in nn-core, `npm run verify:fast`.
+
+**Then:** PR 23 (S5a.2) stops sidecar/cognitivize writing `sources`; PR 24 (S5a.3)
+enforces `SOURCES_FIELD_BANNED` / `CITATION_FIELD_BANNED` on L3; PR 25 (S5b.1) publishes
+`iNNfo_V_0-6-0` and repins `changes`/`sidecar`/`visual-catalog`.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
