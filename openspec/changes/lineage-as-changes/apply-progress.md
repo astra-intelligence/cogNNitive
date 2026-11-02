@@ -104,3 +104,49 @@ Tasks: 0.8, 0.9, 0.10.
    Typecheck is run explicitly and is green for both packages.
 6. A local `tsup` build rewrites the tracked `iNNfo/packages/nn-mcp/bin/
    nn-mcp.bundle.js`; it was restored to the base bytes and is NOT part of any PR.
+7. The S0 documentation commit (the split) was authored after S0b/S0c branched.
+   The chain was rebased so every later branch carries it: `lac/s0b` onto
+   `lac/s0a`, `lac/s0c` onto `lac/s0b`, `lac/s1a` onto `lac/s0c`, then the three
+   pushed branches were force-pushed with `--force-with-lease`.
+
+---
+
+## PR 4 — S1a (branch `lac/s1a`, base `lac/s0c`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 1a.1, 1a.2, 1a.3, 1a.4, 1a.5, 1a.6, 1a.7.
+
+- `core/changeset/evidence.ts`: `splitEvidence` (via `splitSourceFieldValue`),
+  `EVIDENCE_KEYWORDS`, `evidenceKeywordInList`. A keyword beside another entry
+  throws `EVIDENCE_KEYWORD_IN_LIST`; keywords normalise to lowercase and are valid
+  only alone.
+- `core/changeset/{types,parser,serializer,hasher}.ts`: `ChangeItem` gains `seed`,
+  `resolved_target`, `evidence_sha256`; `EXECUTION_FACT_KEYS` is the single
+  exported list and the serializer's annotation regex is derived from it;
+  `PROPOSAL_KEYS` gains `seed` and loses `fields`; `seed` and the two facts round
+  trip (`seed:: {json}`, `evidence_sha256:: [a, b]`).
+- `iNNfo/specs/bluepriNNts/changes/spec_NN.md`: `blueprint_version` `V_0-5-5` →
+  `V_0-6-0`; op select gains `update_element_text` and `produce_artifact`;
+  `fields` field removed; `seed` / `resolved_target` / `evidence_sha256` /
+  `applied_at` / `batch` declared; prose updated (ops, seed, evidence list,
+  execution facts); template repinned to `V_0-6-0`. `evidence` stays `citation`.
+- Regenerated: `bluepriNNts/catalog.json`, `core/schema/canonical-registry.ts`,
+  `console-payload.generated.cjs` (generated, excluded from the budget).
+- Size: ~542 total, of which ~91 are generated → ~451 hand-authored (declared
+  over 400; the forecast was ~350).
+- Verification: `vitest run tests/changeset` → 16 files / 100 tests green;
+  `tsc --noEmit` clean; eslint 0 errors; `node scripts/verify.js` fully green
+  (224 steps).
+
+### Deviations
+
+8. `SHIPPED_TEMPLATE_VERSIONS` does not exist in this repository, and
+   `template_version` is only read for frozen bluepriNNts (`blueprint-catalog.mjs`
+   line 251). `changes` is catalogued by `blueprint_version`, so the bump went
+   there (`V_0-6-0`) and `spec_version` stayed at the L1 pin. Task 1a.6's
+   `template_version`/`SHIPPED_TEMPLATE_VERSIONS` step therefore does not apply.
+9. `fields` was removed from `PROPOSAL_KEYS` but is still parsed and serialized:
+   rejecting it outright is task 1b.5 (PR 8), and removing it from the model now
+   would break every emitter before S1b.3 (PR 7) stops sending it.
+

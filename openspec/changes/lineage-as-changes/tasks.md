@@ -54,21 +54,22 @@ Verification: `npm --workspace=@cognnitive/nn-mcp test -- validate`, `npm run ve
 
 ---
 
-## S1a - Change model: list evidence and execution facts in the parser/serializer (PR 4, `lac/s1a`, ~350 LOC)
+## S1a - Change model: list evidence and execution facts in the parser/serializer (PR 4, `lac/s1a`, ~450 hand-authored lines plus generated catalog/registry)
 
 Goal: parser, serializer and hasher understand list evidence and the new keys; the `changes` bluepriNNt is bumped.
-Depends on: PR 1.
+Depends on: PR 3 (`lac/s0c`).
 Rollback: revert; no apply behavior changed yet.
 
-- [ ] 1a.1 [RED] [S] `core-tests/changeset/evidence.test.ts`: `splitEvidence` via `splitSourceFieldValue`; `[A, B]` list grammar; `decision` and `unknown` valid only alone (mixed list is a loud error); serialized string stays the sealed value; single-item form still parses. (cdm: list evidence; ban: source-list-grammar)
-- [ ] 1a.2 [GREEN] [S] Create `core/changeset/evidence.ts`.
-- [ ] 1a.3 [RED] [S] Tests in `hasher.test.ts`, `serializer.test.ts`, `parser.test.ts`: `EXECUTION_FACT_KEYS` (`resolved_slug`, `resolved_target`, `evidence_sha256`) is the single exported list; the serializer and `normativeChangeLines` use it; the facts are excluded from `PROPOSAL_KEYS` so `verifyProposalSha` is unchanged after stamping; `seed` is sealed and `fields` is not in `PROPOSAL_KEYS`; annotation round trip of `resolved_target::` and `evidence_sha256::` (positional `[a, b]`). (cdm: sealing, execution facts)
-- [ ] 1a.4 [GREEN] [S] Update `core/changeset/{types,parser,serializer,hasher}.ts`: export `EXECUTION_FACT_KEYS`, remove the duplicated annotation-key regexes (`apply-change.ts:241`, `changeset/serializer.ts:5`) in favor of it, add `seed` to the sealed keys, drop `fields`.
-- [ ] 1a.5 [RED] [S] Blueprint test in `core-tests/changeset/template.test.ts`: the `changes` blueprint validates a changeset with ops `update_element_text` and `produce_artifact`, has `seed`, `resolved_target`, `evidence_sha256`, `applied_at`, `batch`, has no `fields`, and `evidence` stays `citation`. (cdm; apc: The op is valid in the blueprint)
-- [ ] 1a.6 [GREEN] [S] Edit `iNNfo/specs/bluepriNNts/changes/spec_NN.md`: bump `template_version` (and `spec_version` as the two axes require; see `manifest/source.yaml` `version:` = `spec_version`), then register the new `template_version` in the editor's `SHIPPED_TEMPLATE_VERSIONS` and run `npm run sync:versions`. Do NOT touch any published `_V_` file.
-- [ ] 1a.7 [S] Standard PR gate plus `node scripts/verify.js` (template inventory guard and `template_version` guard). Open PR 4.
+- [x] 1a.1 [RED] [S] `core-tests/changeset/evidence.test.ts`: `splitEvidence` via `splitSourceFieldValue`; `[A, B]` list grammar; `decision` and `unknown` valid only alone (mixed list is a loud error); serialized string stays the sealed value; single-item form still parses. (cdm: list evidence; ban: source-list-grammar)
+- [x] 1a.2 [GREEN] [S] Create `core/changeset/evidence.ts`.
+- [x] 1a.3 [RED] [S] Tests in `hasher.test.ts`, `serializer.test.ts`, `parser.test.ts`: `EXECUTION_FACT_KEYS` (`resolved_slug`, `resolved_target`, `evidence_sha256`) is the single exported list; the serializer and `normativeChangeLines` use it; the facts are excluded from `PROPOSAL_KEYS` so `verifyProposalSha` is unchanged after stamping; `seed` is sealed and `fields` is not in `PROPOSAL_KEYS`; annotation round trip of `resolved_target::` and `evidence_sha256::` (positional `[a, b]`). (cdm: sealing, execution facts)
+- [x] 1a.4 [GREEN] [S] Update `core/changeset/{types,parser,serializer,hasher}.ts`: export `EXECUTION_FACT_KEYS`, remove the duplicated annotation-key regexes (`apply-change.ts:241`, `changeset/serializer.ts:5`) in favor of it, add `seed` to the sealed keys, drop `fields`.
+- [x] 1a.5 [RED] [S] Blueprint test in `core-tests/changeset/template.test.ts`: the `changes` blueprint validates a changeset with ops `update_element_text` and `produce_artifact`, has `seed`, `resolved_target`, `evidence_sha256`, `applied_at`, `batch`, has no `fields`, and `evidence` stays `citation`. (cdm; apc: The op is valid in the blueprint)
+- [x] 1a.6 [GREEN] [S] Edit `iNNfo/specs/bluepriNNts/changes/spec_NN.md`: bump `template_version` (and `spec_version` as the two axes require; see `manifest/source.yaml` `version:` = `spec_version`), then register the new `template_version` in the editor's `SHIPPED_TEMPLATE_VERSIONS` and run `npm run sync:versions`. Do NOT touch any published `_V_` file.
+- [x] 1a.7 [S] Standard PR gate plus `node scripts/verify.js` (template inventory guard and `template_version` guard). Open PR 4.
 
-Files: `core/changeset/{evidence,types,parser,serializer,hasher}.ts`, `iNNfo/specs/bluepriNNts/changes/spec_NN.md`, `SHIPPED_TEMPLATE_VERSIONS`, matching tests.
+Files: `core/changeset/{evidence,types,parser,serializer,hasher}.ts`, `core/schema/canonical-registry.ts` and `bluepriNNts/catalog.json` (regenerated, excluded from the budget), `iNNfo/specs/bluepriNNts/changes/spec_NN.md`, matching tests.
+Note (apply): `SHIPPED_TEMPLATE_VERSIONS` does not exist in this repository, and `template_version` is only honoured for frozen bluepriNNts (`blueprint-catalog.mjs`). The `changes` blueprint is catalogued by `blueprint_version`, so the bump went to `blueprint_version` (`V_0-5-5` → `V_0-6-0`); `spec_version` stays pinned to the L1 parent. Recorded in `apply-progress.md`.
 Verification: `npm --workspace=@cognnitive/nn-core test -- changeset`, `npm run sync:versions` leaves a clean diff, `node scripts/verify.js`.
 
 ---
