@@ -5,7 +5,7 @@ previous entry.
 
 ---
 
-## PR 1-3 — S0a / S0b / S0c (branch chain `lac/s0a` → `lac/s0b` → `lac/s0c`)
+## PR 1-3 â€” S0a / S0b / S0c (branch chain `lac/s0a` â†’ `lac/s0b` â†’ `lac/s0c`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PRs opened against the chain.
 
@@ -17,12 +17,12 @@ mirror), 3.4x the budget, so it was stopped and reported. The maintainer chose t
 split it into three chained sub-PRs. `tasks.md` now carries S0a/S0b/S0c and the
 chain is renumbered 1..32 (every later PR moved by +2).
 
-### S0a — `changelog/` module and console rewire (PR 1, `lac/s0a`)
+### S0a â€” `changelog/` module and console rewire (PR 1, `lac/s0a`)
 
 Tasks: 0.1, 0.2, 0.3, 0.4, 0.5.
 
-- New `core/changelog/{order,load,index,node}.ts`: `compareChanges` (applied_at →
-  filename UTC stamp → filename → document index), `buildChangeLog(files)` plus
+- New `core/changelog/{order,load,index,node}.ts`: `compareChanges` (applied_at â†’
+  filename UTC stamp â†’ filename â†’ document index), `buildChangeLog(files)` plus
   `buildChangeLogFromChangesets(records)` for the console transport,
   `createChangeLog`, `history(unit)`, `origin(unit)`, `tombstones` (empty stub
   until S2a), `unitOf` (`resolved_target` when stamped, else `target`).
@@ -31,7 +31,7 @@ Tasks: 0.1, 0.2, 0.3, 0.4, 0.5.
 - Console: `provenance.ts` (`deriveValueHistory`, `deriveFieldOrigin`,
   `detectUnrecordedEdits` over the log), `element-history.ts` (applied-only
   per-field `provenance`, every-status element history, exact element-part
-  matching — `a-b` never matches `ab`), `payload-builder.ts` (element
+  matching â€” `a-b` never matches `ab`), `payload-builder.ts` (element
   `provenance` type), `console/index.ts` (exports the log builder for the
   payload mirror), `scripts/export-console.mjs` (builds the log for the drift
   warning).
@@ -40,14 +40,14 @@ Tasks: 0.1, 0.2, 0.3, 0.4, 0.5.
   `tests/console-element-history.test.ts`) and the regenerated
   `console-payload.generated.cjs`, `naming-contract.generated.cjs`,
   `nn-core.generated.cjs` (generated, excluded from the budget).
-- Size: 1,204+/447- total, of which 623 lines are the three generated mirrors →
+- Size: 1,204+/447- total, of which 623 lines are the three generated mirrors â†’
   ~1,028 hand-authored (~390 of them tests). Declared in `tasks.md` and in the PR
   body.
 - Verification: `vitest run tests/changelog tests/console
-  tests/console-element-history tests/mutate` → 43 files / 327 tests green;
+  tests/console-element-history tests/mutate` â†’ 43 files / 327 tests green;
   `tsc --noEmit` (core) clean; `npm run verify:fast` green on the tip.
 
-### S0b — `sources` out of the change model (PR 2, `lac/s0b`)
+### S0b â€” `sources` out of the change model (PR 2, `lac/s0b`)
 
 Tasks: 0.6, 0.7.
 
@@ -64,7 +64,7 @@ Tasks: 0.6, 0.7.
   24 passed; `convergence-delta.test.js` and `convergence-cli.test.js` pass;
   `npm run verify:fast` green on the tip.
 
-### S0c — `EVIDENCE_UNKNOWN` (PR 3, `lac/s0c`)
+### S0c â€” `EVIDENCE_UNKNOWN` (PR 3, `lac/s0c`)
 
 Tasks: 0.8, 0.9, 0.10.
 
@@ -95,10 +95,10 @@ Tasks: 0.8, 0.9, 0.10.
    `checkProvenance` (S2a.2) replaces it with model-scoped drift.
 5. Environment: this session worktree had no `node_modules` at all and the primary
    install has no `node_modules/.bin`. I linked per-entry junctions (root
-   `node_modules`, `@cognnitive/*` → this worktree's packages, `skills/nn-sources/
+   `node_modules`, `@cognnitive/*` â†’ this worktree's packages, `skills/nn-sources/
    node_modules`) and run `vitest`/`tsc`/`tsup` through their package entry files.
    `npm run verify:fast` works because it invokes node scripts and
-   `node_modules/typescript/bin/tsc` directly. `npm --workspace=… test` and the
+   `node_modules/typescript/bin/tsc` directly. `npm --workspace=â€¦ test` and the
    pre-push hook's `npm run typecheck` cannot resolve bins; the maintainer
    approved pushing with `--no-verify` for this chain while the shims are absent.
    Typecheck is run explicitly and is green for both packages.
@@ -111,7 +111,7 @@ Tasks: 0.8, 0.9, 0.10.
 
 ---
 
-## PR 4 — S1a (branch `lac/s1a`, base `lac/s0c`)
+## PR 4 â€” S1a (branch `lac/s1a`, base `lac/s0c`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
 
@@ -126,16 +126,16 @@ Tasks: 1a.1, 1a.2, 1a.3, 1a.4, 1a.5, 1a.6, 1a.7.
   exported list and the serializer's annotation regex is derived from it;
   `PROPOSAL_KEYS` gains `seed` and loses `fields`; `seed` and the two facts round
   trip (`seed:: {json}`, `evidence_sha256:: [a, b]`).
-- `iNNfo/specs/bluepriNNts/changes/spec_NN.md`: `blueprint_version` `V_0-5-5` →
+- `iNNfo/specs/bluepriNNts/changes/spec_NN.md`: `blueprint_version` `V_0-5-5` â†’
   `V_0-6-0`; op select gains `update_element_text` and `produce_artifact`;
   `fields` field removed; `seed` / `resolved_target` / `evidence_sha256` /
   `applied_at` / `batch` declared; prose updated (ops, seed, evidence list,
   execution facts); template repinned to `V_0-6-0`. `evidence` stays `citation`.
 - Regenerated: `bluepriNNts/catalog.json`, `core/schema/canonical-registry.ts`,
   `console-payload.generated.cjs` (generated, excluded from the budget).
-- Size: ~542 total, of which ~91 are generated → ~451 hand-authored (declared
+- Size: ~542 total, of which ~91 are generated â†’ ~451 hand-authored (declared
   over 400; the forecast was ~350).
-- Verification: `vitest run tests/changeset` → 16 files / 100 tests green;
+- Verification: `vitest run tests/changeset` â†’ 16 files / 100 tests green;
   `tsc --noEmit` clean; eslint 0 errors; `node scripts/verify.js` fully green
   (224 steps).
 
@@ -152,7 +152,7 @@ Tasks: 1a.1, 1a.2, 1a.3, 1a.4, 1a.5, 1a.6, 1a.7.
 
 ---
 
-## PR 5 — S1b.1 (branch `lac/s1b1`, base `lac/s1a`)
+## PR 5 â€” S1b.1 (branch `lac/s1b1`, base `lac/s1a`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
 
@@ -191,7 +191,7 @@ Tasks: 1b.1, 1b.2, 1b.3, 1b.4, 1b.13a.
 
 ---
 
-## PR 6 — S1b.2 (branch `lac/s1b2`, base `lac/s1b1`)
+## PR 6 â€” S1b.2 (branch `lac/s1b2`, base `lac/s1b1`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
 
@@ -219,22 +219,22 @@ Tasks: 1b.7, 1b.8, 1b.9, 1b.10, 1b.13b.
 
 ---
 
-## Handoff — start here next session
+## Handoff â€” start here next session
 
 Chain state: `lac/s1b2` is the tip (PR 6, #448). Next branch: `git switch -c lac/s1b3` from `lac/s1b2`.
 
-**PR 7 — S1b.3 (emitters stop sending `fields`)**
+**PR 7 â€” S1b.3 (emitters stop sending `fields`)**
 
 Known locations from the survey done at the end of this session:
 
-- `skills/nn-sources/scripts/lib/convergence-delta.js` → `buildApplyPlan` (around
+- `skills/nn-sources/scripts/lib/convergence-delta.js` â†’ `buildApplyPlan` (around
   line 280): emits `add_element` with `fields` + `evidence`. Change it to emit
   `add_element` (op/target/concept/name only) followed by one `update_field`
   (`target: model@slug&field`, `to`, `evidence`, **no `from`**) per field, and
   `add_matrix` with `seed: {columns, rows}` instead of `fields.columns/rows`.
   Its tests are `scripts/lib/convergence-delta.test.js` and
   `scripts/lib/convergence-cli.test.js` (both assert the exact plan today).
-- Console emitters: the draft → changeset mapping lives in
+- Console emitters: the draft â†’ changeset mapping lives in
   `iNNfo/specs/bluepriNNts/console/review.js` (drafts carry `kind: 'new'` with
   `proposed` holding the initial fields, set in `openNew` around line 1027) and
   the display half in `ui-kit.js` (`cardDiff`, line ~2040, reads `e.fields`).
@@ -247,7 +247,7 @@ Known locations from the survey done at the end of this session:
 
 **Then:** PR 8 (S1b.4) adds `update_element_text` to `CHANGE_OPS`, implements
 `updateElementText` in `core/mutate.ts` (`ElementNode.description`, `from`
-precondition, `USE_UPDATE_ELEMENT_TEXT` on `update_field …&description`), stops
+precondition, `USE_UPDATE_ELEMENT_TEXT` on `update_field â€¦&description`), stops
 `add_element` copying `notes` into the prose, and rejects `fields` at proposal and
 apply. After that the fold engine (S2a.1) starts, which is where the change
 becomes real.
@@ -257,7 +257,7 @@ and payload mirror must be regenerated whenever `console/` changes.
 
 ---
 
-## PR 7 — S1b.3 (branch `lac/s1b3`, base `lac/s1b2`)
+## PR 7 â€” S1b.3 (branch `lac/s1b3`, base `lac/s1b2`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR #449 opened.
 
@@ -319,7 +319,7 @@ Tasks: 1b.11, 1b.12, 1b.13c.
 
 ---
 
-## PR 8 — S1b.4 (branch `lac/s1b4`, base `lac/s1b3`)
+## PR 8 â€” S1b.4 (branch `lac/s1b4`, base `lac/s1b3`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR #450 opened.
 
@@ -337,11 +337,11 @@ Tasks: 1b.5, 1b.6, 1b.13d.
   an element added earlier in the same batch is synthesised with an empty prose body.
 - `mcp/tools/propose-changeset.ts`: `fields` is rejected on any operation with
   `INVALID_OPERATION` pointing at `update_field`; `update_element_text` shape
-  (bare element target, `to` required) is validated; `update_field …&description` is
+  (bare element target, `to` required) is validated; `update_field â€¦&description` is
   rejected with `USE_UPDATE_ELEMENT_TEXT`. `normalizeOperations` no longer accepts
   `fields`.
 - `mcp/tools/apply-change.ts`: pre-flight `rejected` for any change carrying `fields`
-  (`INVALID_OPERATION`) and for `update_field …&description`
+  (`INVALID_OPERATION`) and for `update_field â€¦&description`
   (`USE_UPDATE_ELEMENT_TEXT`); `update_element_text` mutation args; `add_element` no
   longer passes `notes` as the prose; `resolved_target` for prose is
   `model@slug&#body`; the direct `add_matrix` synthesis emits `seed` (comma lists
@@ -396,12 +396,12 @@ Tasks: 1b.5, 1b.6, 1b.13d.
 
 ---
 
-## Handoff — start here next session (after PR 8)
+## Handoff â€” start here next session (after PR 8)
 
 Chain state: `lac/s1b4` is the tip (PR 8, #450). Next branch:
 `git switch lac/s1b4 && git switch -c lac/s2a1`.
 
-**PR 9 — S2a.1 (fold engine: fold and units)** — tasks 2a.1 [RED], 2a.2 [GREEN], 2a.9a.
+**PR 9 â€” S2a.1 (fold engine: fold and units)** â€” tasks 2a.1 [RED], 2a.2 [GREEN], 2a.9a.
 
 - Create `core/changelog/fold.ts` and `core/changelog/units.ts`; `buildChangeLog`
   folds APPLIED changes into `Map<UnitKey, UnitState>` in O(C+U), with the epoch cut
@@ -429,7 +429,7 @@ worktree.
 
 ---
 
-## PR 9 — S2a.1 (branch `lac/s2a1`, base `lac/s1b4`)
+## PR 9 â€” S2a.1 (branch `lac/s2a1`, base `lac/s1b4`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
 
@@ -494,12 +494,12 @@ Tasks: 2a.1, 2a.2, 2a.9a.
 
 ---
 
-## Handoff — start here next session (after PR 9)
+## Handoff â€” start here next session (after PR 9)
 
 Chain state: `lac/s2a1` is the tip (PR 9). Next branch:
 `git switch lac/s2a1 && git switch -c lac/s2a2`.
 
-**PR 10 — S2a.2 (drift check)** — tasks 2a.3 [RED], 2a.4 [GREEN], 2a.9b.
+**PR 10 â€” S2a.2 (drift check)** â€” tasks 2a.3 [RED], 2a.4 [GREEN], 2a.9b.
 
 - Create `core/changelog/drift.ts` with `checkProvenance(log, models): ProvenanceReport`
   in fold mode. Diagnostics: `EDITED_WITHOUT_RECORD` (mismatch, or an expected value
@@ -509,7 +509,7 @@ Chain state: `lac/s2a1` is the tip (PR 9). Next branch:
   default, errors in strict mode. `slug::` and `knowledge_version` are not units; only
   documents inside a domaiNN; no changeset context yields no diagnostics.
 - The log still needs `evidenceItems` / `evidenceSha256` filled by
-  `changelog/load.ts` (`ChangeLike.evidence_sha256` is not carried yet) — add them in
+  `changelog/load.ts` (`ChangeLike.evidence_sha256` is not carried yet) â€” add them in
   this PR, with the tests that need them.
 - Compare through `canonicalValue` (fold) and the file's typed field values; typed
   numbers/booleans/lists, `''` clearing, hand edits, and whitespace-only edits (NOT
@@ -522,7 +522,7 @@ Chain state: `lac/s2a1` is the tip (PR 9). Next branch:
 
 ---
 
-## PR 10 — S2a.2 (branch `lac/s2a2`, base `lac/s2a1`)
+## PR 10 â€” S2a.2 (branch `lac/s2a2`, base `lac/s2a1`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
 
@@ -531,14 +531,14 @@ Tasks: 2a.3, 2a.4, 2a.9b.
 - `core/changelog/drift.ts`: `checkProvenance(log, models, options)` in fold mode.
   It builds the file's unit map (element fields, prose bodies, concept text and
   fields, matrix cells) and compares it with `log.units(model)`:
-  - mismatch, or a live value missing from the file → `EDITED_WITHOUT_RECORD`
+  - mismatch, or a live value missing from the file â†’ `EDITED_WITHOUT_RECORD`
     (expected/actual named);
-  - a file unit with no live entry → `UNIT_WITHOUT_RECORD`;
-  - a unit the log cleared (`to:: ''`) that reappears in the file →
+  - a file unit with no live entry â†’ `UNIT_WITHOUT_RECORD`;
+  - a unit the log cleared (`to:: ''`) that reappears in the file â†’
     `EDITED_WITHOUT_RECORD` (expected absent); the absent case is no drift;
-  - an element without an explicit frozen slug (`slugExplicit !== true`) →
+  - an element without an explicit frozen slug (`slugExplicit !== true`) â†’
     `UNIT_WITHOUT_RECORD`; an element the log created and the file lost (or the
-    log removed and the file still has) → `EDITED_WITHOUT_RECORD`.
+    log removed and the file still has) â†’ `EDITED_WITHOUT_RECORD`.
   Values compare through `canonicalValue`, so typed numbers/booleans/lists and
   whitespace-only edits behave as specified. Severity is `warning` in fold mode and
   `error` with `strict: true`; `ok` is false only when an error exists.
@@ -582,12 +582,12 @@ Tasks: 2a.3, 2a.4, 2a.9b.
 
 ---
 
-## Handoff — start here next session (after PR 10)
+## Handoff â€” start here next session (after PR 10)
 
 Chain state: `lac/s2a2` is the tip (PR 10). Next branch:
 `git switch lac/s2a2 && git switch -c lac/s2a3`.
 
-**PR 11 — S2a.3 (evidence index, performance guard, legacy matching deleted)**
+**PR 11 â€” S2a.3 (evidence index, performance guard, legacy matching deleted)**
 tasks 2a.5 [RED], 2a.6 [GREEN], 2a.7 [RED], 2a.8 [GREEN/REFACTOR], 2a.9c.
 - Add `evidence(scope: 'live' | 'all-time'): ReadonlyMap<string, EvidenceSite[]>` to
   `ChangeLog`: `'live'` uses the last applied change per unit after the epoch cut,
@@ -608,7 +608,7 @@ tasks 2a.5 [RED], 2a.6 [GREEN], 2a.7 [RED], 2a.8 [GREEN/REFACTOR], 2a.9c.
 
 ---
 
-## PR 11 — S2a.3 (branch `lac/s2a3`, base `lac/s2a2`)
+## PR 11 â€” S2a.3 (branch `lac/s2a3`, base `lac/s2a2`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
 
@@ -634,7 +634,7 @@ Tasks: 2a.5, 2a.6, 2a.7, 2a.8, 2a.9c.
   element lifecycle (`add_element` / `remove_element`), then applies the same version
   gate as before (`base_version >= base` or `result_version > base`). The local
   reverse scan and `matchesElement` are gone. `normalizeAddressKey` was already
-  absent (removed in S0a) — nothing left to delete.
+  absent (removed in S0a) â€” nothing left to delete.
 - New tests: `core-tests/changelog/evidence.test.ts` (8: supersession, removed unit,
   list evidence + sha list, live element creation evidence, epoch reuse, non-applied
   ignored, artifact unit) and `core-tests/changelog/performance.test.ts` (2: a
@@ -680,12 +680,12 @@ Tasks: 2a.5, 2a.6, 2a.7, 2a.8, 2a.9c.
 
 ---
 
-## Handoff — start here next session (after PR 11)
+## Handoff â€” start here next session (after PR 11)
 
 Chain state: `lac/s2a3` is the tip (PR 11). Next branch:
 `git switch lac/s2a3 && git switch -c lac/s2b1`.
 
-**PR 12 — S2b.1 (strict replay)** — tasks 2b.1 [RED], 2b.2 [GREEN], 2b.3 [RED],
+**PR 12 â€” S2b.1 (strict replay)** â€” tasks 2b.1 [RED], 2b.2 [GREEN], 2b.3 [RED],
 2b.4 [GREEN], 2b.5 [RED/P], 2b.12a.
 
 - `core/mutate.ts`: add `replayMutations(model, ops, schema)`. Clone ONCE and run
@@ -715,7 +715,7 @@ worktree.
 
 ---
 
-## PR 12 — S2b.1 (branch `lac/s2b1`, base `lac/s2a3`)
+## PR 12 â€” S2b.1 (branch `lac/s2b1`, base `lac/s2a3`)
 
 Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
 
@@ -728,7 +728,7 @@ Tasks: 2b.1, 2b.2, 2b.3, 2b.4, 2b.5, 2b.12a.
   `core/index.ts`.
 - `mcp/tools/change-args.ts` (new): `parseTargetAddress`, `findElementInModel` and
   `mutationArgsForChange` moved out of `apply-change.ts`. The apply engine and the
-  strict replay now share ONE change → mutation-arguments mapping, so they cannot
+  strict replay now share ONE change â†’ mutation-arguments mapping, so they cannot
   drift (the A3 concern). `apply-change.ts` imports the three and lost ~150 local
   lines.
 - `mcp/tools/provenance-strict.ts` (new): `checkDomainProvenance(rootDir, {strict})`.
@@ -756,7 +756,7 @@ Tasks: 2b.1, 2b.2, 2b.3, 2b.4, 2b.5, 2b.12a.
   seeded op sequences over three seeds agreeing and both flagging a hand edit).
 - Regenerated: `console/console-payload.generated.cjs` and the two
   `nn-core.generated.cjs` mirrors (generated, excluded from the budget).
-- Size: ~940 hand-authored changed lines (≈640 added source, ≈330 added tests, ≈150
+- Size: ~940 hand-authored changed lines (â‰ˆ640 added source, â‰ˆ330 added tests, â‰ˆ150
   removed from apply-change by the extraction). Declared over the 400-line budget
   (~3.8x the ~250 forecast); not re-sliced.
 - Verification: nn-core `vitest run` 203 files / 2,126 tests green; nn-mcp `vitest run`
@@ -770,7 +770,7 @@ Tasks: 2b.1, 2b.2, 2b.3, 2b.4, 2b.5, 2b.12a.
     strict-only drift" scenario could never fire. Consequence: a model written by an
     older serializer can report strict drift until it is rewritten. That is the
     meaning of strict, and fold mode remains the default.
-36. The change → mutation-arguments mapping was extracted to `change-args.ts` instead
+36. The change â†’ mutation-arguments mapping was extracted to `change-args.ts` instead
     of being duplicated in the strict engine. Same code path in apply and replay; the
     extraction is why `apply-change.ts` shrank.
 37. `add_model` keeps the caller's id in `target` while the created file carries the
@@ -786,19 +786,19 @@ Tasks: 2b.1, 2b.2, 2b.3, 2b.4, 2b.5, 2b.12a.
 
 ---
 
-## Handoff — start here next session (after PR 12)
+## Handoff â€” start here next session (after PR 12)
 
 Chain state: `lac/s2b1` is the tip (PR 12). Next branch:
 `git switch lac/s2b1 && git switch -c lac/s2b2`.
 
-**PR 13 — S2b.2 (`check_domain.provenance` and `validate_knowledge` drift)** — tasks
+**PR 13 â€” S2b.2 (`check_domain.provenance` and `validate_knowledge` drift)** â€” tasks
 2b.6 [RED], 2b.7 [GREEN], 2b.12b.
 
 - `check_domain` already returns `provenance` from PR 12: task 2b.6's contract test must
   assert it (and that `lineage` is still present until S4b). Task 2b.7 becomes: drop the
   flat `evidence` list from the report (the report's `provenance.diagnostics` carries
   the same `EVIDENCE_UNKNOWN` entries), and wire drift into `validate_knowledge` when a
-  workspace root is available (no root → no drift, no error).
+  workspace root is available (no root â†’ no drift, no error).
 - Build the LC_programas-like fixture (130 applied changes with `unknown` evidence while
   units cite sidecars) and assert 130 `EVIDENCE_UNKNOWN` plus drift.
 - Verification: `vitest run check-workspace validate` (nn-mcp) + `npm run verify:fast`.
@@ -812,6 +812,80 @@ typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
 `--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
 worktree. Core dist must be rebuilt (`tsc -p` in `nn-core`) before typechecking
 nn-mcp whenever a core type or export changes.
+
+---
+
+## PR 13 â€” S2b.2 (branch `lac/s2b2`, base `lac/s2b1`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 2b.6, 2b.7, 2b.12b.
+
+- `mcp/tools/provenance-models.ts` (new): `collectProvenanceModels` moved out of
+  `provenance-strict.ts`, so `validate.ts` can build the fold report without importing
+  the strict engine (and its blueprint resolver). `provenance-strict.ts` re-exports it.
+- `mcp/tools/validate.ts`: `collectDriftDiagnostics(rootDir)` builds the fold report
+  (`buildChangeLog(readLineageSnapshot(root))` + `checkProvenance`) and files each
+  diagnostic against the model path its unit belongs to. `runWorkspaceValidation`
+  appends the drift filtered for the model, so `validate_knowledge` (workspace mode)
+  reports `EDITED_WITHOUT_RECORD` / `UNIT_WITHOUT_RECORD` / evidence drift and a
+  document validated without a workspace root reports none.
+- `mcp/tools/check-workspace.ts`: the flat `evidence` list is gone from the report;
+  `provenance.diagnostics` carries the same `EVIDENCE_UNKNOWN` entries (S0c's
+  transitional list is retired, as task 0.9 announced). The `lineage` field stays
+  until S4b.
+- New tests: `mcp/test/provenance-contracts.test.ts` (5: report carries `provenance`
+  and no flat `evidence`, keeps `lineage`; drift after a hand edit; **130** applied
+  changes with `unknown` evidence yield exactly 130 `EVIDENCE_UNKNOWN`; workspace
+  validate reports drift; isolated validate does not).
+- Size: ~150 added lines of source + ~230 lines of tests (one new fixture, one moved
+  module). Inside the 400-line budget (~380 hand-authored).
+- Verification: nn-mcp `vitest run` 56 files / 643 tests green; `tsc --noEmit` clean;
+  nn-core unchanged (203 files / 2,126 tests green on the base); `npm run verify:fast`
+  fully green (202 steps).
+
+### Deviations
+
+39. Workspace-mode `validate_knowledge` decorates diagnostics as `{path, message,
+    severity, filePath}` and DROPS `code` (pre-existing). Passing `code` through made two
+    pre-existing `KU_DANGLING_FILE` errors in `validate-workspace-sources.test.ts`
+    visible (the assertions only ever matched by code, so they were passing vacuously).
+    Fixing that is a separate change: this PR leaves the decoration as it was and the
+    drift test matches the bracketed code in the message. Filed here so it is not
+    silently lost: **workspace diagnostics should carry their code**.
+40. The LC_programas-like fixture is built in the test (130 applied `update_field`
+    changes with `evidence:: unknown` over one model) rather than shipped as a corpus
+    directory: the scenario is the count and the visibility, and the corpus rebuild is
+    S5b.4's job.
+
+---
+
+## Handoff â€” start here next session (after PR 13)
+
+Chain state: `lac/s2b2` is the tip (PR 13). Next branch:
+`git switch lac/s2b2 && git switch -c lac/s2b3`.
+
+**PR 14 â€” S2b.3 (`resolve_sources` and graph edges from live evidence)** â€” tasks
+2b.8 [RED], 2b.9 [GREEN], 2b.10 [RED], 2b.11 [GREEN], 2b.12c.
+
+- `resolve_sources`: optional `target` address (cells, bodies); returns
+  `ResolvedCitation[]` of the ORIGIN change's evidence items, each with `changeId`;
+  follows the last change (`log.origin(target)`), so superseded evidence never wins.
+- `core/console/payload-builder.ts`: cell origin (each non-empty matrix cell carries
+  `history` and `origin`).
+- Graph: `origin: "source"` edges and `node.sources` built from `log.evidence('live')`
+  in `core/recursiveParser/normalize.ts` (G13); superseded evidence has no edge.
+- Verification: `vitest run resolve-sources` (nn-mcp), `vitest run recursiveParser
+  console` (nn-core), `npm run verify:fast`; rebuild core dist before typechecking
+  nn-mcp; regenerate the console payload mirror.
+
+**Then:** PR 15 (S3a.1) is `isRegenerableView` + the `projectLineage` projection.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
 
 ---
 

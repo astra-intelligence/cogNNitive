@@ -202,9 +202,9 @@ Goal: tool contracts report provenance.
 Depends on: PR 12.
 Rollback: revert; the flat list from S0 remains.
 
-- [ ] 2b.6 [RED] [P] Contract tests: `check_domain` returns `provenance: ProvenanceReport` and no `lineage` field in the new shape; `validate_knowledge` with a workspace root reports drift and omits it without one; an LC_programas-like fixture (130 applied changes with `unknown` evidence while units cite sidecars) yields 130 `EVIDENCE_UNKNOWN` plus drift. (cp: `check_domain` reports provenance) Note: the old `lineage` field is still emitted until S4b (replacement before deletion), the assertion is that `provenance` is present and correct.
-- [ ] 2b.7 [GREEN] [S] Edit `mcp/tools/check-workspace.ts` (+`provenance`, keep the old `lineage` for now, removed in S4b), `mcp/tools/validate.ts`.
-- [ ] 2b.12b [S] (was 2b.12) Mirrors, standard PR gate. Open PR 13.
+- [x] 2b.6 [RED] [P] Contract tests: `check_domain` returns `provenance: ProvenanceReport` and no `lineage` field in the new shape; `validate_knowledge` with a workspace root reports drift and omits it without one; an LC_programas-like fixture (130 applied changes with `unknown` evidence while units cite sidecars) yields 130 `EVIDENCE_UNKNOWN` plus drift. (cp: `check_domain` reports provenance) Note: the old `lineage` field is still emitted until S4b (replacement before deletion), the assertion is that `provenance` is present and correct.
+- [x] 2b.7 [GREEN] [S] Edit `mcp/tools/check-workspace.ts` (+`provenance`, keep the old `lineage` for now, removed in S4b), `mcp/tools/validate.ts`.
+- [x] 2b.12b [S] (was 2b.12) Mirrors, standard PR gate. Open PR 13.
 
 Files: `mcp/tools/{check-workspace,validate}.ts`, LC_programas-like fixture, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-mcp test -- check-workspace validate`, `npm run verify:fast`.
