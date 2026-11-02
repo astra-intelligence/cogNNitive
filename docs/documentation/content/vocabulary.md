@@ -25,6 +25,7 @@ this page is the human-readable rendering of it.
 | Ecosystem / Role | **write-once** | *(none)* | Producer rule: each output is a new family member named with a UTC suffix _YYYYMMDDTHHmmssZ (with -2, -3... same-second tie-breaks) placed before the extension; existing bytes are never overwritten, and latest-of-family is resolved by name. GC only proposes deletions and deletes only with explicit user consent. |
 | Ecosystem / Role | **assistant** | `coach`, `architecture coach` | Interactive architecture mentor and modeling guide persona in iNNfo |
 | Ecosystem / Role | **console** | *(none)* | User-facing UI that shows and reviews a domaiNN: the domain console (`domaiNN_console.html`, one per domaiNN) whose specialized surfaces are views shown as tabs. Replaces the retired Vue "editor" and the retired hosted web app. |
+| Ecosystem / Role | **lineage** | *(none)* | The computed view of a domaiNN: the inventory of sources, models, artifacts and changes, with edges derived from the applied changes (live evidence by default, all-time on request). Nothing is persisted, so there is nothing to drift. |
 
 ## Level Terms Detail
 
@@ -110,6 +111,11 @@ this page is the human-readable rendering of it.
 
 - **Sense**: User-facing UI that shows and reviews a domaiNN: the domain console (`domaiNN_console.html`, one per domaiNN) whose specialized surfaces are views shown as tabs. Replaces the retired Vue "editor" and the retired hosted web app.
 - **Excluded Senses** (not renamed): `terminal-console`, `browser-dev-console`, `game-console`
+
+### **lineage**
+
+- **Sense**: The computed view of a domaiNN: the inventory of sources, models, artifacts and changes, with edges derived from the applied changes (live evidence by default, all-time on request). Nothing is persisted, so there is nothing to drift.
+- **Excluded Senses** (not renamed): `lineage-cache`
 
 ## Retired Identifiers (Documentation Only)
 
