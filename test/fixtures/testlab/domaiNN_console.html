@@ -10,7 +10,7 @@ procedure bluepriNNt bluepriNNt:procedures/assets/console-view-procedure.js sha2
          appends the hashes to script-src when it inlines the bundle and views. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/gh/cogNNitive/ 'sha256-GuDXBamO36MOzmeBoWS6W05qoSRkYpFFnI00+hFI67s=' 'sha256-zC9fVwLc2q24v4oZn4Fteg3v+oeo5flE7QnTeXYGe/0=' 'sha256-4BakFr9B7k7vTNs7WaAC3TizluFw/OU+mWJ5aKCYGuo=' 'sha256-soSXjK2mmrYGjTKfxADrnupPRdn7nsM/OFZxV6is0ww=' 'sha256-Hj8x4UZZtTBIUqCxW5g1SWxJ1zXOXHp9unwI4MX2zc8=' 'sha256-ARDX3RKWShyoDagjlGvT8l0KMybANvtfFkhXWWniMy0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://raw.githubusercontent.com/cogNNitive/ https://cdn.jsdelivr.net/gh/cogNNitive/; font-src 'self' data:; frame-src 'self' blob: data: about:; connect-src 'self'; object-src 'none'; base-uri 'none'"
+      content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/gh/cogNNitive/ 'sha256-GuDXBamO36MOzmeBoWS6W05qoSRkYpFFnI00+hFI67s=' 'sha256-zC9fVwLc2q24v4oZn4Fteg3v+oeo5flE7QnTeXYGe/0=' 'sha256-4BakFr9B7k7vTNs7WaAC3TizluFw/OU+mWJ5aKCYGuo=' 'sha256-soSXjK2mmrYGjTKfxADrnupPRdn7nsM/OFZxV6is0ww=' 'sha256-+GGq5Z+mgGXr2HVqwCGZRv3GgyeqGDO3vNR+vSQkqOk=' 'sha256-ARDX3RKWShyoDagjlGvT8l0KMybANvtfFkhXWWniMy0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://raw.githubusercontent.com/cogNNitive/ https://cdn.jsdelivr.net/gh/cogNNitive/; font-src 'self' data:; frame-src 'self' blob: data: about:; connect-src 'self'; object-src 'none'; base-uri 'none'"
     />
     <title>iNNfo Console</title>
     <!--
@@ -10160,7 +10160,7 @@ input[type="text"], input[type="search"], textarea, select {
     "model": "testlab",
     "modelId": "testlab",
     "domainId": "testlab-44bb9fcb",
-    "generated": "2026-11-02T19:56:21.547Z",
+    "generated": "2026-11-02T21:50:04.938Z",
     "changesBlueprintVersion": "V_0-6-0",
     "models": [
       {
@@ -10171,7 +10171,7 @@ input[type="text"], input[type="search"], textarea, select {
         "family": "testlab",
         "version": "V_0-1-1",
         "sha256": "fbbbdc83b527a54a479ea8a5588c52a0e56af785d94ea10a0d956f3fa7ba0a31",
-        "citationsResolvedAt": "2026-11-02T19:56:20.860Z",
+        "citationsResolvedAt": "2026-11-02T21:50:04.763Z",
         "sources": [
           "kNNowledge/TestLab_coverage_TestLab_NN.md"
         ],
@@ -13666,7 +13666,6 @@ var nnAddress = (() => {
     };
   }
   var CORE_BLUEPRINT_ROLE = {
-    cognnitive: "lineage-record",
     sidecar: "sidecar",
     changes: "changeset",
     workspace: "catalog",
@@ -13828,6 +13827,43 @@ var nnAddress = (() => {
     }
     const [unitRaw, ...subunits] = decoded;
     if (!/\.(md|csv|json)$/i.test(resolved.filePath)) {
+      if (unitRaw.startsWith("concept:")) {
+        const slug = unitRaw.slice("concept:".length);
+        if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
+        const unit3 = {
+          kind: "header",
+          level: 1,
+          text: slug,
+          slug
+        };
+        return {
+          filePath: resolved.filePath,
+          fileName: basename(resolved.filePath),
+          slug,
+          kind: "model",
+          unit: unit3,
+          subunits,
+          raw: clean
+        };
+      }
+      if (unitRaw.startsWith("matrix:")) {
+        const slug = unitRaw.slice("matrix:".length);
+        if (!new RegExp(`^${SLUG}$`).test(slug)) return null;
+        const unit3 = {
+          kind: "matrix",
+          matrixSlug: slug,
+          ...subunits.length === 2 ? { rowSlug: subunits[0], colSlug: subunits[1] } : {}
+        };
+        return {
+          filePath: resolved.filePath,
+          fileName: basename(resolved.filePath),
+          slug,
+          kind: "model",
+          unit: unit3,
+          subunits,
+          raw: clean
+        };
+      }
       if (!new RegExp(`^${SLUG}$`).test(unitRaw)) return null;
       if (subunits.length === 2) {
         const unit3 = {
@@ -13835,21 +13871,6 @@ var nnAddress = (() => {
           matrixSlug: unitRaw,
           rowSlug: subunits[0],
           colSlug: subunits[1]
-        };
-        return {
-          filePath: resolved.filePath,
-          fileName: basename(resolved.filePath),
-          slug: unitRaw,
-          kind: "model",
-          unit: unit3,
-          subunits,
-          raw: clean
-        };
-      }
-      if (subunits.length === 0 && /(?:^matrix-|-matrix$)/i.test(unitRaw)) {
-        const unit3 = {
-          kind: "matrix",
-          matrixSlug: unitRaw
         };
         return {
           filePath: resolved.filePath,
