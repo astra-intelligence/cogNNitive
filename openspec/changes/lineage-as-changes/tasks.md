@@ -142,9 +142,9 @@ Goal: `buildChangeLog` folds applied changes into unit state with epoch cut.
 Depends on: PR 8.
 Rollback: revert; fold is additive and not consumed yet.
 
-- [ ] 2a.1 [RED] [S] Fold rule table tests in `core-tests/changelog/fold.test.ts`, one case per row of design A4: `add_element` (alive, no units), `update_field` (to; `''` removes), prose/concept/cell updates (empty equals absent), `rename_element` relink (plain wikilinks, bodies, schema reference fields via `updateReferenceString`; cell keys unaffected; cell values not relinked; origin unchanged), `rename_concept` rekey and relink, `remove_element` tombstones (fields, body, cells by row or col slug), `remove_matrix`, epoch reuse (new element with same slug starts empty), non-applied ignored, `produce_artifact` is an artifact unit not a model unit. (cp: Epoch cut, Origin and history, Matrix cells)
-- [ ] 2a.2 [GREEN] [S] Create `core/changelog/{fold,units}.ts`: `Map<UnitKey, UnitState>` in O(C+U), lazy relink events, serialized-form comparison `formatPropertyValue(parsePropertyValue(x))`.
-- [ ] 2a.9a [S] (was 2a.9) Regenerate mirrors, standard PR gate. Open PR 9.
+- [x] 2a.1 [RED] [S] Fold rule table tests in `core-tests/changelog/fold.test.ts`, one case per row of design A4: `add_element` (alive, no units), `update_field` (to; `''` removes), prose/concept/cell updates (empty equals absent), `rename_element` relink (plain wikilinks, bodies, schema reference fields via `updateReferenceString`; cell keys unaffected; cell values not relinked; origin unchanged), `rename_concept` rekey and relink, `remove_element` tombstones (fields, body, cells by row or col slug), `remove_matrix`, epoch reuse (new element with same slug starts empty), non-applied ignored, `produce_artifact` is an artifact unit not a model unit. (cp: Epoch cut, Origin and history, Matrix cells)
+- [x] 2a.2 [GREEN] [S] Create `core/changelog/{fold,units}.ts`: `Map<UnitKey, UnitState>` in O(C+U), lazy relink events, serialized-form comparison `formatPropertyValue(parsePropertyValue(x))`.
+- [x] 2a.9a [S] (was 2a.9) Regenerate mirrors, standard PR gate. Open PR 9.
 
 Files: `core/changelog/{fold,units,index}.ts`, `core-tests/changelog/fold.test.ts`.
 Verification: `npm --workspace=@cognnitive/nn-core test -- changelog`, `npm run verify:fast`.

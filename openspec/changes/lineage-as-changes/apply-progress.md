@@ -429,3 +429,96 @@ worktree.
 
 ---
 
+## PR 9 — S2a.1 (branch `lac/s2a1`, base `lac/s1b4`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 2a.1, 2a.2, 2a.9a.
+
+- `core/changelog/fold.ts`: `foldChanges(changes)` folds the APPLIED changes, in
+  canonical order, into `Map<UnitKey, FoldedUnit>` with `{key, kind, value, origin,
+  setOrder}`. Rules are the A4 table: `add_element` (element alive + epoch cut, no
+  units), `update_field` (field unit; `''` deletes), `update_element_text` (body),
+  `update_concept_text` / `update_concept_field` (concept), `update_matrix_cell`
+  (cell), `rename_element` (relink event), `rename_concept` (rekey + relink),
+  `remove_element` (tombstones every unit under the element and every cell on its row
+  or column), `remove_matrix` (tombstones its cells), `produce_artifact` (artifact
+  unit), everything else no unit. No model file is read: O(C+U).
+- `canonicalValue(raw)` is the serialized comparison form (parse through the shared
+  property grammar, then re-serialize: typed numbers/booleans and `[a, b]` lists
+  compare textually). An empty canonical value is absent.
+- `core/changelog/units.ts`: `UnitState` (`{key, kind, value, origin, relinks}`) and
+  `unitsFromFold(fold, model?)`; `applyRelinks` applies only the rename events
+  recorded AFTER a unit's origin. Fields use `updateReferenceString` (bare and
+  wikilink references), bodies/concepts use `updateWikiLinks`, cells and artifacts are
+  never relinked.
+- `core/changelog/index.ts`: the log now owns the fold. `tombstones` returns the
+  removal changes, `units(model?)` the live state, `elementOrigin(key)` the change
+  that created or removed an element. `history(unit)` and `origin(unit)` are cut at
+  the latest `add_element` for the element (epoch), and `origin` is `undefined` when
+  the unit is not live (a cleared field has no origin).
+- `core/references.ts` (new): `updateReferenceString` / `updateWikiLinks` moved out of
+  `mutate.ts` as pure string helpers (dependency: `slugify` only), so the
+  browser-safe changelog can relink without pulling the mutation engine into the
+  console payload. `mutate.ts` imports and re-exports them, so its public surface is
+  unchanged.
+- New tests: `core-tests/changelog/fold.test.ts` (15 cases, one per A4 row plus the
+  epoch cut, artifacts and non-applied changes).
+- Regenerated: `console/console-payload.generated.cjs` (+239 lines: the fold is part
+  of the mirrored changelog; generated, excluded from the budget).
+- Size: ~670 hand-authored changed lines (536+/134-), of which 202 are the new test
+  file; generated +239. Declared over the 400-line budget (~2.7x the ~250 forecast).
+- Verification: `vitest run` in nn-core, 200 files / 2,108 tests green; `vitest run`
+  in nn-mcp, 53 files / 628 tests green; `tsc -p` (core build) clean;
+  `build-core-mirrors` + its test green; `npm run verify:fast` fully green (202 steps).
+
+### Deviations
+
+22. `updateReferenceString` / `updateWikiLinks` moved from `mutate.ts` to a new
+    `core/references.ts` (re-exported by `mutate.ts`). Keeping them in `mutate.ts`
+    pulled the whole mutation engine into the mirrored console payload (+239 vs +~65
+    generated lines) and made the changelog depend on it.
+23. The design names `formatPropertyValue(parsePropertyValue(x))`; `formatPropertyValue`
+    is private to the changeset serializer, so the fold owns `canonicalValue` with the
+    same intent (parse then re-serialize). A single shared helper would need a
+    serializer refactor that is not worth a slice on its own.
+24. `origin(unit)` now returns `undefined` for a unit that is not live (cleared field,
+    body or cell). S0 returned the last applying change regardless; that would claim
+    an origin for a value that does not exist. No consumer relied on the old result.
+25. Relink broadness: without a blueprint schema (the fold has none) a FIELD value
+    whose whole text slugifies to the old element name is treated as a reference and
+    rewritten, which is what `updateReferenceString` does by design. The mutation
+    engine narrows this with `type:: reference`; the fold cannot. Drift (PR 10) sees
+    the relinked value, so the only risk is a plain label equal to the renamed
+    element's name.
+
+---
+
+## Handoff — start here next session (after PR 9)
+
+Chain state: `lac/s2a1` is the tip (PR 9). Next branch:
+`git switch lac/s2a1 && git switch -c lac/s2a2`.
+
+**PR 10 — S2a.2 (drift check)** — tasks 2a.3 [RED], 2a.4 [GREEN], 2a.9b.
+
+- Create `core/changelog/drift.ts` with `checkProvenance(log, models): ProvenanceReport`
+  in fold mode. Diagnostics: `EDITED_WITHOUT_RECORD` (mismatch, or an expected value
+  missing from the file), `UNIT_WITHOUT_RECORD` (unit in the file with no live entry;
+  element with no frozen slug), `EVIDENCE_UNKNOWN`, `EVIDENCE_SOURCE_CHANGED` (sha
+  mismatch skips anchor checks; anchor error only when the sha matches). Warnings by
+  default, errors in strict mode. `slug::` and `knowledge_version` are not units; only
+  documents inside a domaiNN; no changeset context yields no diagnostics.
+- The log still needs `evidenceItems` / `evidenceSha256` filled by
+  `changelog/load.ts` (`ChangeLike.evidence_sha256` is not carried yet) — add them in
+  this PR, with the tests that need them.
+- Compare through `canonicalValue` (fold) and the file's typed field values; typed
+  numbers/booleans/lists, `''` clearing, hand edits, and whitespace-only edits (NOT
+  fold drift) are in the task's test list.
+- `log.units(model)` and `log.elementOrigin(key)` are the fold inputs; `units()` already
+  applies renames recorded after each unit's origin.
+- Tests in `core-tests/changelog/drift.test.ts`. Verification:
+  `vitest run changelog` (core) + `npm run verify:fast`; regenerate the console
+  payload mirror if the changelog exports change.
+
+---
+
