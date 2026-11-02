@@ -340,20 +340,25 @@ export function checkSchemaConformance(
  * - `conflicts::` is a pointer (`type:: address`); a plain unit pointer is fine
  *   and only a `sources::`-shaped value is reported (as the sources ban above).
  *
- * L2 templates are exempt: they DEFINE the `citation` type. The ban is opt-in by
- * L1 version (V_0-6-0, published in S5b.1): the corpora are rebuilt in S5b.4 and
- * every earlier document keeps validating until then.
+ * L2 templates are exempt: they DEFINE the `citation` type. The ban is scoped by
+ * L1 version: it fires only for a document whose bluepriNNt (or whose own
+ * `parent_spec`) pins V_0-6-0, the L1 that reserves `sources::` and scopes
+ * `citation` to `changes.evidence`. A document pinned to an older L1 stays valid
+ * under that L1 — the bluepriNNts that adopt V_0-6-0 are the ones this change
+ * repins (`changes`, `sidecar`, `visual-catalog`, A14).
  */
 export function checkProvenanceBan(
   model: ParsedKnowledge,
   schema: BlueprintSchema | undefined,
   d: Diagnostics,
+  l1Version?: string,
 ): void {
   if (model.frontmatter?.level !== 3) return
   const parent = (model.frontmatter?.parent_spec ?? {}) as { name?: string; url?: string }
   const parentName = String(parent.name ?? '')
   const parentUrl = String(parent.url ?? '')
-  if (!/V_0-6-0/i.test(`${parentName} ${parentUrl}`)) return
+  const scope = `${l1Version ?? ''} ${parentName} ${parentUrl}`
+  if (!/V_0-6-0/i.test(scope)) return
   const isChangesDocument = parentName.trim().toLowerCase().startsWith('changes')
 
   for (const [concept, elements] of model.elements.entries()) {

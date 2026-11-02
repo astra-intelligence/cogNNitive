@@ -46,7 +46,7 @@ function run(modelMarkdown: string): { codes: string[]; messages: string[] } {
   const model = parseKnowledge(modelMarkdown)
   const schema = resolveBlueprintSchema(BLUEPRINT, () => null).schema
   const d = new Diagnostics()
-  checkProvenanceBan(model, schema, d)
+  checkProvenanceBan(model, schema, d, String(model.frontmatter?.parent_spec?.url ?? ''))
   const result = d.result()
   return {
     codes: result.errors.map((e) => e.code ?? ''),
