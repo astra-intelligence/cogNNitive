@@ -21,24 +21,18 @@ import { parseKnowledgeDocument } from './knowledge-model.mjs';
  * The only keys a Preset element may carry: the Fields whose `concept::`
  * lists `Preset`. A drift test compares this set against `spec_NN.md`.
  */
-export const PRESET_PARAMETERS = new Set([
-  'avatar',
-  'avatar_model',
-  'background_audio',
-  'background_audio_volume',
-  'components',
-  'fit',
-  'frame',
-  'image_model',
-  'image_size',
-  'intro',
-  'sounds',
-  'transition',
-  'voice',
-  'voice_emotion',
-  'voice_model',
-  'voice_speed',
-]);
+/**
+ * The only keys a Preset element may carry: every Field whose `concept::` lists `Preset`,
+ * read from the generated field registry instead of a hand-copied list (design A11).
+ */
+const FIELD_REGISTRY = JSON.parse(
+  fs.readFileSync(new URL('./field-registry.generated.json', import.meta.url), 'utf8'),
+);
+export const PRESET_PARAMETERS = new Set(
+  Object.entries(FIELD_REGISTRY.fields)
+    .filter(([, field]) => (field.concepts || []).includes('Preset'))
+    .map(([name]) => name),
+);
 
 /** Reserved iNNfo identity keys: never preset parameters, never a preset-field error. */
 export const RESERVED_PRESET_KEYS = new Set(['slug']);

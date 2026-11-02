@@ -105,11 +105,11 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 2b: Field registry
 
-- [ ] 2b.1 RED: tests for `build-field-registry.mjs` generation, `--check` freshness, unknown and retired key rejection, field-to-consumer contract (`lib/field-consumers.mjs`).
-- [ ] 2b.2 GREEN: create `S/scripts/build-field-registry.mjs`, `lib/field-registry.generated.json`, `lib/field-consumers.mjs`.
-- [ ] 2b.3 Delete `conditional-fields-drift`, `preset-parameters-drift` tests; remove `PRESET_PARAMETERS`, `DEFAULT_CONDITIONAL_FIELDS`.
-- [ ] 2b.4 Add `--check` step to `scripts/verify.js`.
-- [ ] Verify: registry `--check`, `node --test S/test`, `node scripts/verify.js`.
+- [x] 2b.1 RED: tests for `build-field-registry.mjs` generation, `--check` freshness, unknown and retired key rejection, field-to-consumer contract (`lib/field-consumers.mjs`).
+- [x] 2b.2 GREEN: create `S/scripts/build-field-registry.mjs`, `lib/field-registry.generated.json`, `lib/field-consumers.mjs`.
+- [x] 2b.3 Delete `conditional-fields-drift`, `preset-parameters-drift` tests; remove `PRESET_PARAMETERS`, `DEFAULT_CONDITIONAL_FIELDS`.
+- [x] 2b.4 Add `--check` step to `scripts/verify.js`.
+- [x] Verify: registry `--check`, `node --test S/test`, `node scripts/verify.js`.
 
 ## Slice 3a: Model catalog and adapters
 

@@ -85,23 +85,19 @@ export const TYPE_RENDERERS = {
 };
 
 /**
- * Default `type::` → required Fields contract for the four behaviour types. This is the
- * effective contract the pre-compile guard enforces and MUST stay in sync with the
- * `coNNtent` blueprint's `validation.conditional_fields` frontmatter. The engine does
- * not read the blueprint map at compile time; Slice 2b replaces both with the generated
- * field registry.
+ * The `type::` → required Fields contract, read from the generated field registry (which is
+ * generated from the blueprint) instead of a hand-copied table (design A11). The engine never
+ * reads the blueprint at runtime: it reads the artifact the blueprint generates.
  */
-export const DEFAULT_CONDITIONAL_FIELDS = {
-  avatar: ['asset', 'prompt'],
-  media: ['asset', 'prompt'],
-  text: ['text', 'source'],
-  animation: ['asset'],
-};
+const FIELD_REGISTRY = JSON.parse(
+  fs.readFileSync(new URL('./lib/field-registry.generated.json', import.meta.url), 'utf8'),
+);
+export const CONDITIONAL_FIELDS = FIELD_REGISTRY.conditional_fields;
 
 /**
  * Transitional: the visual `type::` names of the V_0-14-x line. Documents written before
  * V_0-15-0 still compile during the chain; Slice 5 retires them with the lowering rewrite.
- * Never exported to the drift guard and never added to the blueprint.
+ * Never part of the registry and never added to the blueprint.
  */
 const LEGACY_LAYER_FIELDS = {
   presenter: ['asset', 'prompt', 'avatar'],
@@ -325,7 +321,7 @@ export class SceneCompiler {
         }
       }
     }
-    const conditional = options.conditionalFields || { ...LEGACY_LAYER_FIELDS, ...DEFAULT_CONDITIONAL_FIELDS };
+    const conditional = options.conditionalFields || { ...LEGACY_LAYER_FIELDS, ...CONDITIONAL_FIELDS };
     const guardBags = options.bags || null;
     const videoFields = (elements.Video || [])[0]?.fields || {};
     const sceneFieldsBySlug = new Map();

@@ -132,3 +132,17 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
   - Every artifact in the change folder was swept from the planned `V_1-0-0` to `V_0-15-0`.
 - Verification: skill suite 420 tests, 420 pass; `node scripts/verify.js` green (230 steps); `check-openspec-deltas` green; `prettier` clean.
 - Open issues: the editor's shipped-template registry lives in `cogNNitive-web`; carry it into Slice 10.
+
+## Slice 2b — Field registry
+
+- Branch: `feature/conntent-v1-2b` (base `feature/conntent-v1-2a`)
+- PR: pending
+- TDD: RED first (`test/field-registry.test.mjs`), then GREEN.
+- Changes:
+  - `scripts/build-field-registry.mjs`: generates `lib/field-registry.generated.json` from the blueprint through the core mirror's `parseKnowledge` (71 fields + the conditional-fields table), with `--check`, `--spec` and `--out` seams.
+  - `scripts/lib/field-consumers.mjs`: three explicit buckets — real module consumers, `PLANNED_CONSUMERS` (field → the slice that will read it), and `IGNORED_BY_DESIGN` (`tags`) — plus `auditConsumers()` for the dead/phantom test.
+  - `scene-compiler.mjs` and `lib/presets.mjs` now read the registry: `CONDITIONAL_FIELDS` and `PRESET_PARAMETERS` are derived, not hand-copied. The legacy visual types stay in a private `LEGACY_LAYER_FIELDS` map until Slice 5.
+  - Deleted `conditional-fields-drift.test.mjs` and `preset-parameters-drift.test.mjs`; the contract test switches to `CONDITIONAL_FIELDS`.
+  - `scripts/verify.js` gains the `field-registry --check` step.
+- Verification: skill suite 424 tests, 424 pass; `node scripts/verify.js` green.
+- Deviations: `PLANNED_CONSUMERS` keeps the dead-field gate honest while the engine is rewritten; each later slice deletes its entries. Open issues: none.

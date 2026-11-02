@@ -19,7 +19,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   SceneCompiler,
-  DEFAULT_CONDITIONAL_FIELDS,
+  CONDITIONAL_FIELDS,
 } from '../iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent/scripts/scene-compiler.mjs';
 import { buildTtsVoiceOptions, resolveRegisteredVoice } from '../iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent/scripts/lib/tts-options.mjs';
 import { loadPresetIndex } from '../iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent/scripts/lib/presets.mjs';
@@ -67,7 +67,7 @@ async function runTests() {
   // 1. watermark: a legacy visual type that now compiles as `text` + `style:: watermark`.
   //    The legacy `type::` names stay compilable until Slice 5 rewrites the lowering.
   {
-    assert.deepStrictEqual(Object.keys(DEFAULT_CONDITIONAL_FIELDS).sort(), ['animation', 'avatar', 'media', 'text']);
+    assert.deepStrictEqual(Object.keys(CONDITIONAL_FIELDS).sort(), ['animation', 'avatar', 'media', 'text']);
 
     const ok = compiler.compile(model({
       scenes: [scene('s1')],
@@ -206,7 +206,7 @@ async function runTests() {
     assert.match(fieldDefinition('placement'), /^options:: \[full, inset\]$/m);
     assert.match(fieldDefinition('timing'), /^options:: \[scene, slot\]$/m);
 
-    assert.deepStrictEqual(DEFAULT_CONDITIONAL_FIELDS, {
+    assert.deepStrictEqual(CONDITIONAL_FIELDS, {
       avatar: ['asset', 'prompt'],
       media: ['asset', 'prompt'],
       text: ['text', 'source'],
