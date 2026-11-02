@@ -150,3 +150,43 @@ Tasks: 1a.1, 1a.2, 1a.3, 1a.4, 1a.5, 1a.6, 1a.7.
    rejecting it outright is task 1b.5 (PR 8), and removing it from the model now
    would break every emitter before S1b.3 (PR 7) stops sending it.
 
+---
+
+## PR 5 — S1b.1 (branch `lac/s1b1`, base `lac/s1a`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 1b.1, 1b.2, 1b.3, 1b.4, 1b.13a.
+
+- `core/changeset/resolved-target.ts`: `resolvedTarget.{field,body,cell,concept,element,artifact}`,
+  `canonicalUnitModelId` (drops a trailing `_V_x-y-z`), `axisSlug` (frozen slug of the
+  element named by the label, else `slugify`). Named `canonicalUnitModelId` because
+  `canonicalModelId` already exists in `naming/`.
+- `mcp/tools/apply-change.ts`: after the mutations run, every APPLIED change is
+  stamped with `resolved_target` read from the post-mutation model (frozen slug,
+  not the address label) and with `evidence_sha256` (one sha per evidence entry, in
+  order, `undefined` for `decision`/`unknown` or an unreadable file). Non-applied
+  changes have both facts deleted, so a proposal that pre-carried them cannot leak
+  into the log. `applied_at` is clamped to `max(now, latest + 1 ms)` and shared by
+  the batch.
+- `mcp/tools/propose-changeset.ts` + `mcp/tools/apply-change.ts`: evidence is
+  resolved **per entry** (`splitEvidence`), so a bracketed list resolves at intake
+  and at apply, and a keyword in a list is rejected with
+  `EVIDENCE_KEYWORD_IN_LIST`.
+- Size: ~540 (198 of them tests). Declared over 400; forecast was ~200.
+- Verification: `vitest run src/tools/apply-change-facts` 6 passed; the whole
+  nn-mcp suite 51 files / 614 tests green; `vitest run tests/changeset` green;
+  both packages typecheck; `npm run verify:fast` green.
+
+### Deviations
+
+10. The address builder lives in its own module (`resolved-target.ts`) instead of
+    next to `unitAddress` in `console/`: the console barrel is mirrored into the
+    payload bundle, and the changeset module is where the apply-time grammar
+    belongs. `unitAddress` is not reused because it has no body (`&#body`) or
+    version-token form.
+11. Evidence list resolution was not in S1a's task list but is required for the
+    list grammar to work end to end; it landed here because this PR is where the
+    apply engine reads evidence.
+
+

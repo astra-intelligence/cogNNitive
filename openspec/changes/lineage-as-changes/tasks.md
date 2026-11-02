@@ -76,17 +76,17 @@ Verification: `npm --workspace=@cognnitive/nn-core test -- changeset`, `npm run 
 
 ## S1b - Apply engine (was S1b, ~550 LOC, split into four PRs, order changed so emitters stop sending `fields` before the engine rejects it)
 
-### S1b.1 - Stamping and clamp (PR 5, `lac/s1b1`, ~200 LOC)
+### S1b.1 - Stamping and clamp (PR 5, `lac/s1b1`, ~540 LOC: declared over 400)
 
 Goal: `apply_change` stamps `resolved_target` and `evidence_sha256` and clamps `applied_at`.
 Depends on: PR 4.
 Rollback: revert; blueprint bump from S1a stays inert.
 
-- [ ] 1b.1 [RED] [S] `core-tests/changeset/resolved-target.test.ts` (unit address builder): field `model@slug&field`, body `model@slug&#body`, cell `model@matrix-slug&row-slug&col-slug` (axis = frozen slug of the element named by the label else `slugify(label)`; matrix = `slugify(name)`), concept `model@concept:<Name>[&field]`, artifact = POSIX path; model id has no version token; rename-stable (history survives `Alpha` renamed to `Beta`); `a-b` vs `ab` do not collide; two models do not collide. (cp: Frozen-slug target identity)
-- [ ] 1b.2 [GREEN] [S] Implement the address builder next to `core/changeset/` (reuse `unitAddress`) and stamp it in `mcp/tools/apply-change.ts`.
-- [ ] 1b.3 [RED] [S] `mcp-tests/apply-change-facts.test.ts`: stamping on applied changes only (conflict/rejected carry neither fact); `evidence_sha256` is the sha256 of the cited file, one per item in order, omitted for `decision`/`unknown`; `verifyProposalSha` still true after write-back; a proposal pre-carrying `resolved_target:: other@x&y` is overwritten; `applied_at` clamped to `max(now, latest+1ms)` under the lock; applied changes in one batch share `applied_at`. (cae: Execution facts; cp: pinned by `evidence_sha256`, comparator clamp)
-- [ ] 1b.4 [GREEN] [S] Implement stamping, clamp and `EXECUTION_FACT_KEYS` use in `mcp/tools/apply-change.ts`; keep the lock semantics.
-- [ ] 1b.13a [S] (was 1b.13) Regenerate mirrors, standard PR gate. Open PR 5.
+- [x] 1b.1 [RED] [S] `core-tests/changeset/resolved-target.test.ts` (unit address builder): field `model@slug&field`, body `model@slug&#body`, cell `model@matrix-slug&row-slug&col-slug` (axis = frozen slug of the element named by the label else `slugify(label)`; matrix = `slugify(name)`), concept `model@concept:<Name>[&field]`, artifact = POSIX path; model id has no version token; rename-stable (history survives `Alpha` renamed to `Beta`); `a-b` vs `ab` do not collide; two models do not collide. (cp: Frozen-slug target identity)
+- [x] 1b.2 [GREEN] [S] Implement the address builder next to `core/changeset/` (reuse `unitAddress`) and stamp it in `mcp/tools/apply-change.ts`.
+- [x] 1b.3 [RED] [S] `mcp-tests/apply-change-facts.test.ts`: stamping on applied changes only (conflict/rejected carry neither fact); `evidence_sha256` is the sha256 of the cited file, one per item in order, omitted for `decision`/`unknown`; `verifyProposalSha` still true after write-back; a proposal pre-carrying `resolved_target:: other@x&y` is overwritten; `applied_at` clamped to `max(now, latest+1ms)` under the lock; applied changes in one batch share `applied_at`. (cae: Execution facts; cp: pinned by `evidence_sha256`, comparator clamp)
+- [x] 1b.4 [GREEN] [S] Implement stamping, clamp and `EXECUTION_FACT_KEYS` use in `mcp/tools/apply-change.ts`; keep the lock semantics.
+- [x] 1b.13a [S] (was 1b.13) Regenerate mirrors, standard PR gate. Open PR 5 (shares the budget with the address builder and the apply tests).
 
 Files: `core/changeset/resolved-target*.ts`, `mcp/tools/apply-change.ts`, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-mcp test -- apply-change`, `npm --workspace=@cognnitive/nn-core test -- changeset`, `npm run verify:fast`.
