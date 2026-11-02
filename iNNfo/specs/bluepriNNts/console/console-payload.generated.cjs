@@ -9995,6 +9995,7 @@ var CHANGE_OPS = [
   "add_model",
   "freeze_slugs",
   "bump_version",
+  "update_element_text",
   "produce_artifact"
 ];
 function isChangeStatus(val) {

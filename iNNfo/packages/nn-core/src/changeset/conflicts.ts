@@ -120,7 +120,13 @@ export async function partitionChangeset(
     const elementIdent = (rawElementIdent || change.slug || change.name || '').trim()
 
     // 3. Staleness check
-    if (changesDir && (change.op === 'update_field' || change.op === 'remove_element' || change.op === 'rename_element')) {
+    if (
+      changesDir &&
+      (change.op === 'update_field' ||
+        change.op === 'update_element_text' ||
+        change.op === 'remove_element' ||
+        change.op === 'rename_element')
+    ) {
       const baseVer =
         modelBaseVersions?.get(targetModelSlug) ||
         model.frontmatter.knowledge_version ||
@@ -139,7 +145,12 @@ export async function partitionChangeset(
     }
 
     // 4. Element existence check
-    if (change.op === 'update_field' || change.op === 'remove_element' || change.op === 'rename_element') {
+    if (
+      change.op === 'update_field' ||
+      change.op === 'update_element_text' ||
+      change.op === 'remove_element' ||
+      change.op === 'rename_element'
+    ) {
       let foundElement: { name: string; slug?: string; fields: Record<string, unknown>; description?: string } | null = null
       // Set only for an element that exists in the model (not one an earlier add creates).
       let foundConcept = ''
@@ -221,6 +232,8 @@ export async function partitionChangeset(
             name: earlierAdd.name || earlierAdd.slug || '',
             slug: earlierAdd.resolved_slug || earlierAdd.slug,
             fields: earlierAdd.fields || {},
+            // A new element is created with an empty prose body.
+            description: '',
           }
         }
       }
@@ -263,6 +276,19 @@ export async function partitionChangeset(
               ? ' Hint: name is the element identity, not a field — to rename an element use rename_element on the bare unit target, not update_field on &name.'
               : ''
           const msg = `PRECONDITION_FAILED: Precondition failed: current value "${currentVal ?? ''}" does not match from "${change.from}".${hint}`
+          conflictDiagnostics.set(change.id, { code: 'PRECONDITION_FAILED', message: msg })
+          change.status = 'conflict'
+          change.resolution = msg
+          conflictedSubset.push(change)
+          continue
+        }
+      }
+
+      // 5b. from precondition check for update_element_text (the prose body)
+      if (change.op === 'update_element_text' && change.from !== undefined) {
+        const currentProse = foundElement.description ?? ''
+        if (currentProse !== change.from) {
+          const msg = `PRECONDITION_FAILED: Precondition failed: current prose "${currentProse}" does not match from "${change.from}"`
           conflictDiagnostics.set(change.id, { code: 'PRECONDITION_FAILED', message: msg })
           change.status = 'conflict'
           change.resolution = msg

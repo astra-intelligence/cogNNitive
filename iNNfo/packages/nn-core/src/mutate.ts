@@ -166,6 +166,7 @@ const MUTATION_HANDLERS: Record<string, MutationHandler> = {
   rename_concept: (model, args) => renameConcept(model, args),
   rename_element: (model, args, schema) => renameElement(model, args, schema),
   update_matrix_cell: (model, args) => updateMatrixCell(model, args),
+  update_element_text: (model, args) => updateElementText(model, args),
   update_concept_text: (model, args, schema) => updateConceptText(model, args, schema),
   update_concept_field: (model, args, schema) => updateConceptField(model, args, schema),
   remove_matrix: (model, args) => removeMatrix(model, args),
@@ -505,7 +506,22 @@ function addElement(
     }
   }
 
-  // Support both nested args.fields and root-level fields passed in args
+  // A change carries no inline fields (`changeset-document-model`): each field is
+  // its own `update_field`. Reject the key loudly instead of silently dropping it.
+  if (args.fields !== undefined && args.fields !== null) {
+    return {
+      success: false,
+      errors: [
+        {
+          path: 'fields',
+          message:
+            'INVALID_OPERATION: add_element must not carry inline fields; emit one update_field change per field (target model@element&field)',
+        },
+      ],
+    }
+  }
+
+  // Support root-level field args on the direct mutation API
   const reservedArgsKeys = new Set([
     'conceptName',
     'elementName',
@@ -528,9 +544,6 @@ function addElement(
     if (!reservedArgsKeys.has(k) && v !== undefined) {
       fields[k] = v
     }
-  }
-  if (args.fields && typeof args.fields === 'object') {
-    Object.assign(fields, args.fields)
   }
 
   if (existingElements.length > 0) {
@@ -647,6 +660,21 @@ function updateField(
     return {
       success: false,
       errors: [{ path: '', message: `${missing.join(', ')} ${missing.length === 1 ? 'is' : 'are'} required` }],
+    }
+  }
+
+  // The prose body is a knowledge unit, not a field (`changeset-document-model`):
+  // writing `description` through update_field would duplicate or shadow it.
+  if (fieldName.trim().toLowerCase() === 'description') {
+    return {
+      success: false,
+      errors: [
+        {
+          path: 'fieldName',
+          message:
+            'USE_UPDATE_ELEMENT_TEXT: the element prose is not a field; use update_element_text on the bare element target (model@element)',
+        },
+      ],
     }
   }
 
@@ -895,6 +923,81 @@ function removeElement(model: ParsedKnowledge, args: Record<string, unknown>): M
   }
 
   return { success: true, cascadedMatrixCells: cascadedCells }
+}
+
+/**
+ * Replaces an element's prose body (`ElementNode.description`). The prose is a
+ * knowledge unit, not a field: `update_field …&description` is refused with
+ * `USE_UPDATE_ELEMENT_TEXT` and this op never emits a `description::` line.
+ */
+function updateElementText(
+  model: ParsedKnowledge,
+  args: Record<string, unknown>,
+): MutationResult {
+  let elementName =
+    (args.elementName as string) ||
+    (args.elementSlug as string) ||
+    (args.slug as string) ||
+    ''
+  const conceptName = (args.conceptName as string) || ''
+  const text =
+    typeof args.text === 'string'
+      ? args.text
+      : typeof args.content === 'string'
+        ? args.content
+        : typeof args.value === 'string'
+          ? args.value
+          : typeof args.to === 'string'
+            ? args.to
+            : undefined
+
+  if (args.target && typeof args.target === 'string') {
+    let clean = args.target.trim()
+    if (clean.includes('@')) clean = clean.slice(clean.indexOf('@') + 1)
+    // The prose address may carry the canonical `&#body` suffix.
+    const bodyIdx = clean.indexOf('&')
+    if (bodyIdx !== -1) clean = clean.slice(0, bodyIdx)
+    if (!elementName) elementName = clean.trim()
+  }
+
+  if (!elementName) {
+    return { success: false, errors: [{ path: '', message: 'elementName is required' }] }
+  }
+  if (text === undefined) {
+    return { success: false, errors: [{ path: '', message: 'to (or text) is required' }] }
+  }
+
+  let foundElement: ElementNode | undefined
+  if (conceptName) {
+    const existingElements = model.elements.get(conceptName)
+    if (!existingElements) {
+      return { success: false, errors: [{ path: '', message: `Concept "${conceptName}" not found` }] }
+    }
+    foundElement = existingElements.find((e) => matchesElement(e, elementName))
+  } else {
+    for (const [, elements] of model.elements.entries()) {
+      const el = elements.find((e) => matchesElement(e, elementName))
+      if (el) {
+        foundElement = el
+        break
+      }
+    }
+  }
+
+  if (!foundElement) {
+    return {
+      success: false,
+      errors: [
+        {
+          path: '',
+          message: `Element "${elementName}" not found${conceptName ? ` in concept "${conceptName}"` : ''}`,
+        },
+      ],
+    }
+  }
+
+  foundElement.description = text
+  return { success: true }
 }
 
 function updateConceptText(

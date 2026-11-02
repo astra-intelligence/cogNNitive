@@ -385,6 +385,11 @@ function resolvedTargetForChange(
       const el = elementByLabel(model, elIdent ?? '')
       return el?.slug ? resolvedTarget.field(modelId, el.slug, field) : undefined
     }
+    case 'update_element_text': {
+      const el = elementByLabel(model, parts[0] ?? '')
+      const slug = change.resolved_slug || el?.slug || change.slug || slugifyHeading(parts[0] ?? '')
+      return slug ? resolvedTarget.body(modelId, slug) : undefined
+    }
     case 'add_element':
     case 'remove_element':
     case 'rename_element': {
@@ -876,6 +881,32 @@ export async function executeChangesetApply(
       }
     }
 
+    // `fields` is not a key of the Change concept: a change carries no inline field
+    // values. Reject a proposal that still carries one, defensively.
+    for (const change of csDoc.changes) {
+      if (change.fields !== undefined) {
+        return rejectProposal(
+          'INVALID_OPERATION',
+          change.target,
+          `change "${change.id}": a change must not carry inline fields; emit one update_field change per field`,
+          change.id,
+        )
+      }
+    }
+    // The prose body is a knowledge unit, not a field.
+    for (const change of csDoc.changes) {
+      if (change.op !== 'update_field') continue
+      const field = change.target.split('&')[1] ?? ''
+      if (field.trim().toLowerCase() === 'description') {
+        return rejectProposal(
+          'USE_UPDATE_ELEMENT_TEXT',
+          change.target,
+          `change "${change.id}": the element prose is not a field; use update_element_text on the bare element target`,
+          change.id,
+        )
+      }
+    }
+
     // produce_artifact pre-checks: the target is a safe, existing workspace path that is
     // not a model, changeset or sidecar. A second applied record for the same path is a
     // conflict, not a second record.
@@ -1290,6 +1321,10 @@ export async function executeChangesetApply(
           to: change.to,
           target: change.target,
         }
+      } else if (change.op === 'update_element_text') {
+        // The prose body is a unit: `to` is the new text, `from` was checked in
+        // partitionChangeset.
+        mutationArgs = { target: change.target, text: change.to }
       } else if (change.op === 'add_element') {
         const conceptName = change.concept || (remainder && !remainder.includes('&') ? remainder : '')
         const elementName = change.name || change.slug || ''
@@ -1297,10 +1332,6 @@ export async function executeChangesetApply(
           conceptName,
           elementName,
           slug: change.resolved_slug || change.slug,
-          description: change.notes || '',
-        }
-        if (change.fields) {
-          Object.assign(mutationArgs, change.fields)
         }
         // Use the declared spelling of the concept (matching is case-insensitive).
         const declaredConcept = renameSchema?.concepts.find(
@@ -1382,8 +1413,8 @@ export async function executeChangesetApply(
           matrixName,
           source: change.concept,
           targetConcept: change.to,
-          columns: change.seed?.columns ?? change.fields?.['columns'],
-          rows: change.seed?.rows ?? change.fields?.['rows'],
+          columns: change.seed?.columns,
+          rows: change.seed?.rows,
           target: change.target,
         }
       } else {
@@ -1722,6 +1753,9 @@ async function synthesizeAndExecuteChangeset(
     const c = (opArgs.conceptName as string) || ''
     const field = (opArgs.fieldName as string) || ''
     target = `${id}@concept:${c}&${field}`
+  } else if (op === 'update_element_text') {
+    const el = (opArgs.elementName as string) || (opArgs.slug as string) || ''
+    target = `${id}@${el}`
   } else if (op === 'remove_matrix') {
     const m = (opArgs.matrixName as string) || ''
     target = `${id}@matrix:${m}`
@@ -1735,16 +1769,35 @@ async function synthesizeAndExecuteChangeset(
   }
 
   const isAddMatrix = op === 'add_matrix'
-  const matrixSeedFields: Record<string, string> | undefined = isAddMatrix
+  // add_matrix seeds its headers through the sealed `seed`, never `fields`.
+  const asSeedList = (value: unknown): string[] =>
+    Array.isArray(value)
+      ? value.map((v) => String(v).trim()).filter(Boolean)
+      : String(value)
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean)
+  const matrixSeed: { columns?: string[]; rows?: string[] } | undefined = isAddMatrix
     ? {
-        ...(opArgs.columns !== undefined
-          ? { columns: Array.isArray(opArgs.columns) ? opArgs.columns.join(', ') : String(opArgs.columns) }
-          : {}),
-        ...(opArgs.rows !== undefined
-          ? { rows: Array.isArray(opArgs.rows) ? opArgs.rows.join(', ') : String(opArgs.rows) }
-          : {}),
+        ...(opArgs.columns !== undefined ? { columns: asSeedList(opArgs.columns) } : {}),
+        ...(opArgs.rows !== undefined ? { rows: asSeedList(opArgs.rows) } : {}),
       }
     : undefined
+
+  // A change carries no inline fields: the direct add_element op cannot express them.
+  if (!isAddMatrix && op === 'add_element' && opArgs.fields !== undefined) {
+    return {
+      success: false,
+      errors: [
+        {
+          path: 'fields',
+          code: 'INVALID_OPERATION',
+          message:
+            'INVALID_OPERATION: add_element must not carry inline fields; call update_field once per field (or propose a changeset)',
+        },
+      ],
+    }
+  }
 
   const changeItem: ChangeItem = {
     id: 'c-01',
@@ -1759,17 +1812,15 @@ async function synthesizeAndExecuteChangeset(
           ? String(opArgs.value)
           : opArgs.to !== undefined
             ? String(opArgs.to)
-            : (opArgs.newName as string | undefined),
+            : opArgs.text !== undefined
+              ? String(opArgs.text)
+              : (opArgs.newName as string | undefined),
     concept: isAddMatrix ? (opArgs.source as string) || undefined : (opArgs.conceptName as string) || undefined,
     name: isAddMatrix
       ? (opArgs.matrixName as string) || (opArgs.name as string) || undefined
       : (opArgs.newName as string) || (opArgs.elementName as string) || undefined,
     slug: (opArgs.slug as string) || undefined,
-    fields: isAddMatrix
-      ? matrixSeedFields && Object.keys(matrixSeedFields).length > 0
-        ? matrixSeedFields
-        : undefined
-      : (opArgs.fields as Record<string, string>) || undefined,
+    seed: matrixSeed && Object.keys(matrixSeed).length > 0 ? matrixSeed : undefined,
     author: (opArgs.author as string) || 'agent',
     notes: (opArgs.rationale as string) || undefined,
   }

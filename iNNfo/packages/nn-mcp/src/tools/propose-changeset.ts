@@ -175,6 +175,14 @@ function requiredKeyProblems(change: ChangeItem, label: string): string[] {
       need('concept')
       need('name')
       break
+    case 'update_element_text':
+      if (!hasElement || target.includes('&')) {
+        problems.push(`${label}: update_element_text target must be model@element (the prose body, not a field)`)
+      }
+      if (change.to === undefined || change.to === null) {
+        problems.push(`${label}: update_element_text requires "to"`)
+      }
+      break
     case 'remove_element':
       if (!hasElement) problems.push(`${label}: remove_element target must be model@element`)
       break
@@ -283,6 +291,18 @@ export async function validateProposal(rootDir: string, operations: ChangeItem[]
     ]
     for (const message of shape) errors.push({ path: label, code: 'INVALID_OPERATION', message })
     if (shape.length > 0 || !change.target) continue
+
+    if (change.op === 'update_field') {
+      const field = change.target.split('&')[1] ?? ''
+      if (field.trim().toLowerCase() === 'description') {
+        errors.push({
+          path: label,
+          code: 'USE_UPDATE_ELEMENT_TEXT',
+          message: `${label}: the element prose is not a field; use update_element_text on the bare element target`,
+        })
+        continue
+      }
+    }
 
     const modelId = canonicalModelOf(change.target)
     const key = modelId.toLowerCase()
@@ -467,11 +487,15 @@ export function normalizeOperations(raw: unknown): { operations: ChangeItem[]; e
     }
     const fields = source['fields']
     if (fields !== undefined && fields !== null) {
-      if (typeof fields !== 'object' || Array.isArray(fields)) {
-        errors.push({ path: `operations[${index}]`, code: 'INVALID_OPERATION', message: `operations[${index}].fields must be an object` })
-      } else {
-        item['fields'] = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, String(v)]))
-      }
+      // A change carries no inline field values: each field is its own update_field.
+      errors.push({
+        path: `operations[${index}]`,
+        code: 'INVALID_OPERATION',
+        message:
+          `operations[${index}].fields is not a change key: a change carries no inline fields. ` +
+          `Emit one "update_field" change per field (target model@element&field), with its own evidence`,
+      })
+      return
     }
     const seed = source['seed']
     if (seed !== undefined && seed !== null) {

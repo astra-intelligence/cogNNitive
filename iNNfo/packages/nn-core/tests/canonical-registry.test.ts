@@ -242,7 +242,6 @@ describe('Canonical Template Registry & Offline Fallback', () => {
         'concept',
         'name',
         'slug',
-        'fields',
         'author',
         'notes',
         'status',

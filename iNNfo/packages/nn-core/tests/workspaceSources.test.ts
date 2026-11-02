@@ -270,7 +270,7 @@ describe('validateWorkspaceSources knowledge-unit pointers', () => {
 // Citation diagnostics only exist in workspace scope, so this MUST go through
 // `validateWorkspaceSources` (the engine `collectWorkspaceDiagnostics` calls),
 // never a per-file `validateKnowledge`.
-describe('add_element sources round-trip through workspace validation (H2/H3 integration)', () => {
+describe('add_element no longer writes sources (removed from the change model)', () => {
   const LEVEL3_MODEL = `---
 spec_version: "V_0-2-1"
 level: 3
@@ -294,7 +294,7 @@ note:: keep
     return { nodes, rootIds: Object.keys(nodes), issues: [] }
   }
 
-  it('a citation written via add_element resolves cleanly through workspace validation', () => {
+  it('drops a sources argument: the element serializes without a sources field', () => {
     const model = parseKnowledge(LEVEL3_MODEL)
     const mutation = applyMutation(model, 'add_element', {
       conceptName: 'Phase',
@@ -304,52 +304,13 @@ note:: keep
     expect(mutation.success).toBe(true)
 
     const serialized = serializeKnowledge(model)
+    expect(serialized).not.toContain('sources::')
     const parseResult = workspaceResultFor(serialized)
-
     const diags = validateWorkspaceSources(
       parseResult,
       contentResolver({ 'present.md': '# Intro\n' }),
     )
     expect(diags.filter((d) => d.severity === 'error')).toEqual([])
-  })
-
-  it('a citation to a nonexistent file yields an explicit diagnostic naming the unresolved target, reached only through workspace scope', () => {
-    const model = parseKnowledge(LEVEL3_MODEL)
-    const mutation = applyMutation(model, 'add_element', {
-      conceptName: 'Phase',
-      elementName: 'Second',
-      sources: ['missing.md#intro'],
-    })
-    expect(mutation.success).toBe(true)
-
-    const serialized = serializeKnowledge(model)
-    const parseResult = workspaceResultFor(serialized)
-
-    const diags = validateWorkspaceSources(parseResult, resolver({}))
-    const errors = diags.filter((d) => d.severity === 'error')
-    expect(errors).toHaveLength(1)
-    expect(errors[0]).toMatchObject({ code: 'KU_DANGLING_FILE' })
-    expect(errors[0].message).toContain('missing.md')
-  })
-
-  it('a line-range anchor citation is rejected with KU_MALFORMED, not silently accepted', () => {
-    const model = parseKnowledge(LEVEL3_MODEL)
-    const mutation = applyMutation(model, 'add_element', {
-      conceptName: 'Phase',
-      elementName: 'Second',
-      sources: ['report.md#L10-L20'],
-    })
-    expect(mutation.success).toBe(true)
-
-    const serialized = serializeKnowledge(model)
-    const parseResult = workspaceResultFor(serialized)
-
-    const diags = validateWorkspaceSources(
-      parseResult,
-      resolver({ 'report.md': true }),
-    )
-    expect(diags).toHaveLength(1)
-    expect(diags[0]).toMatchObject({ severity: 'error', code: 'KU_MALFORMED' })
   })
 })
 
