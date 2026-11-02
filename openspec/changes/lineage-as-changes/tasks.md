@@ -393,9 +393,9 @@ Goal: new L1 and bumped `changes`/`sidecar`/`visual-catalog`.
 Depends on: PR 24.
 Rollback: before the tracker merge, revert this PR and delete any unmerged tag.
 
-- [ ] 5b.1 [RED] [S] Spec-integrity tests: `iNNfo/specs/iNNfo/iNNfo_V_0-6-0_NN.md` exists, defines `citation` only as change `evidence` and the reserved `sources::` as banned; `iNNfo_V_0-5-0` is byte-identical (write-once); only `changes`, `sidecar`, `visual-catalog` pin V_0-6-0; `visual-catalog` `source` fields are not `citation`; `check:spec-urls` passes (write `cogNNitive/iNNfo` slug as split code spans in `openspec/specs/`).
-- [ ] 5b.2 [GREEN] [S] Create `iNNfo_V_0-6-0_NN.md`; bump `sidecar` (no `sources`) and `visual-catalog`, repin them; register new `template_version` values in `SHIPPED_TEMPLATE_VERSIONS`; set `spec_version` vs `template_version` per the two-axes rule; `npm run sync:versions`.
-- [ ] 5b.8a [S] (was 5b.8) Standard PR gate, `node scripts/verify.js`. Open PR 25.
+- [x] 5b.1 [RED] [S] Spec-integrity tests: `iNNfo/specs/iNNfo/iNNfo_V_0-6-0_NN.md` exists, defines `citation` only as change `evidence` and the reserved `sources::` as banned; `iNNfo_V_0-5-0` is byte-identical (write-once); only `changes`, `sidecar`, `visual-catalog` pin V_0-6-0; `visual-catalog` `source` fields are not `citation`; `check:spec-urls` passes (write `cogNNitive/iNNfo` slug as split code spans in `openspec/specs/`).
+- [x] 5b.2 [GREEN] [S] Create `iNNfo_V_0-6-0_NN.md`; bump `sidecar` (no `sources`) and `visual-catalog`, repin them; register new `template_version` values in `SHIPPED_TEMPLATE_VERSIONS`; set `spec_version` vs `template_version` per the two-axes rule; `npm run sync:versions`.
+- [x] 5b.8a [S] (was 5b.8) Standard PR gate, `node scripts/verify.js`. Open PR 25.
 
 Files: `iNNfo/specs/iNNfo/iNNfo_V_0-6-0_NN.md`, `iNNfo/specs/bluepriNNts/{changes,sidecar,visual-catalog}/spec_NN.md`, `manifest/source.yaml`, `SHIPPED_TEMPLATE_VERSIONS`.
 Verification: `node scripts/verify.js`, `npm run check:spec-urls`, `npm run sync:versions` leaves a clean diff.

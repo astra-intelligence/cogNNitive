@@ -1709,3 +1709,67 @@ worktree.
 
 ---
 
+## PR 25 — S5b.1 (branch `lac/s5b1`, base `lac/s5a3`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 5b.1, 5b.2, 5b.8a.
+
+- Published `iNNfo/specs/iNNfo_V_0-6-0_NN.md`: the L1 adds the reserved-`sources::`
+  rule (banned on L3) and scopes `type:: citation` to `changes.evidence`; the rest is
+  V_0-5-0 byte-for-byte (V_0-5-0 itself is untouched, write-once).
+- `changes` repinned to the new L1 (`blueprint_version` was already `V_0-6-0`).
+- `sidecar`: the `sources` Field is deleted, `blueprint_version` `V_0-1-2` → `V_0-1-3`,
+  repinned to V_0-6-0.
+- `visual-catalog`: `Entry.source` and `Evidence.source` are `type:: address` (not
+  `citation`), `blueprint_version` `V_0-3-2` → `V_0-3-3`, repinned to V_0-6-0.
+- New `scripts/spec-integrity.test.mjs` (5: the L1 exists and bans `sources::`, citation
+  is only changes evidence, V_0-5-0 is unchanged, only the three bluepriNNts pin
+  V_0-6-0, the visual-catalog `source` fields are not citations).
+- Regenerated: `catalog.json` (19 bluepriNNts), `canonical-registry.ts` (4 mirrors),
+  preflight primitives, console payload/bundle and the testlab fixture;
+  `npm run sync:versions` leaves a clean diff after its own run.
+- Size: ~120 hand-authored lines (the L1 paragraph, the test) plus the two blueprint
+  field edits; the L1 copy is a mechanical 25 KB document derived from V_0-5-0.
+- Verification: FULL `node scripts/verify.js` green; nn-core 2.110 tests green;
+  `npm run check:spec-urls` green ("all hardcoded GitHub raw URLs point to existing
+  files"); `npm run verify:fast` green.
+
+### Deviations
+
+74. The task names `iNNfo/specs/iNNfo/iNNfo_V_0-6-0_NN.md`; every published L1 lives
+    flat at `iNNfo/specs/iNNfo_V_0-6-0_NN.md`, so the file follows the existing layout
+    and the spec-integrity test encodes that path.
+75. `visual-catalog`'s `source` fields became `type:: address` (not `reference`): the
+    values are workspace addresses, and `address` is the base of the citation grammar.
+76. No tag was cut (`templates-v*` is S5b.5's release event).
+
+---
+
+## Handoff — start here next session (after PR 25)
+
+Chain state: `lac/s5b1` is the tip (PR 25). Next branch:
+`git switch lac/s5b1 && git switch -c lac/s5b2`.
+
+**PR 26 — S5b.2 (workspace spec without `# NN Executions`)** — tasks 5b.3 [GREEN],
+5b.8b.
+
+- New workspace spec version without the Executions concept and its execution-trace
+  fields; the published workspace spec is NOT edited; rebuild the
+  `simulacro-refactorizacion` fixture that used it.
+- The guarding test is 5b.1's spec-integrity test extended with a workspace-spec case
+  (authored first as RED in the same commit).
+- Verification: `node scripts/verify.js` + `npm run verify:fast`, preflight fixtures
+  with an empty `HOME`/`USERPROFILE`.
+
+**Then:** S5b.3 (sample versions), S5b.4 (corpora + drop the V_0-6-0 ban carve-out),
+S5b.5 (release event: ASK before tagging).
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
