@@ -125,9 +125,9 @@ Goal: prose lives behind `update_element_text`; `add_element` rejects `fields`.
 Depends on: PR 7 (no emitter sends `fields` any more).
 Rollback: revert; emitters stay compatible with both states.
 
-- [ ] 1b.5 [RED] [P] `core-tests/changeset/update-element-text.test.ts` and mutate tests: `update_element_text` writes `ElementNode.description` with a `from` precondition (`PRECONDITION_FAILED` on mismatch); no `description::` line written; `update_field` on `description` rejected with `USE_UPDATE_ELEMENT_TEXT`; `add_element` no longer copies `notes` into the prose; `add_element` with `fields` rejected with `INVALID_OPERATION` pointing to `update_field` at proposal and defensively at apply (changeset persisted `rejected`). (cdm; cp: Prose body)
-- [ ] 1b.6 [GREEN] [S] `core/mutate.ts`: `updateElementText`, `addElement` without fields, `USE_UPDATE_ELEMENT_TEXT`; `changeset/conflicts.ts`: precondition for prose; `propose-changeset.ts` and `server.ts`: new op, reject `fields`.
-- [ ] 1b.13d [S] (was 1b.13) Regenerate mirrors, standard PR gate. Open PR 8.
+- [x] 1b.5 [RED] [P] `core-tests/changeset/update-element-text.test.ts` and mutate tests: `update_element_text` writes `ElementNode.description` with a `from` precondition (`PRECONDITION_FAILED` on mismatch); no `description::` line written; `update_field` on `description` rejected with `USE_UPDATE_ELEMENT_TEXT`; `add_element` no longer copies `notes` into the prose; `add_element` with `fields` rejected with `INVALID_OPERATION` pointing to `update_field` at proposal and defensively at apply (changeset persisted `rejected`). (cdm; cp: Prose body)
+- [x] 1b.6 [GREEN] [S] `core/mutate.ts`: `updateElementText`, `addElement` without fields, `USE_UPDATE_ELEMENT_TEXT`; `changeset/conflicts.ts`: precondition for prose; `propose-changeset.ts` and `server.ts`: new op, reject `fields`.
+- [x] 1b.13d [S] (was 1b.13) Regenerate mirrors, standard PR gate. Open PR 8.
 
 Files: `core/mutate.ts`, `core/changeset/conflicts.ts`, `mcp/tools/propose-changeset.ts`, `mcp/server.ts`, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-core test -- changeset mutate`, `npm --workspace=@cognnitive/nn-mcp test`, `node --test scripts/build-core-mirrors.test.mjs`, `npm run verify:fast`.

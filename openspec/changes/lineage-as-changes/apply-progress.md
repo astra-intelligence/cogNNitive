@@ -255,15 +255,11 @@ becomes real.
 Note on `tasks.md`: task 1b.13's mirror/gate steps are per PR; the console bundle
 and payload mirror must be regenerated whenever `console/` changes.
 
-
-
-
-
 ---
 
-## PR 7 � S1b.3 (branch `lac/s1b3`, base `lac/s1b2`)
+## PR 7 — S1b.3 (branch `lac/s1b3`, base `lac/s1b2`)
 
-Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+Applied: 2026-11-02. Status: implemented, green, pushed; PR #449 opened.
 
 Tasks: 1b.11, 1b.12, 1b.13c.
 
@@ -320,3 +316,83 @@ Tasks: 1b.11, 1b.12, 1b.13c.
     so ordinary names agree with core's `slugifyHeading`. A name whose console slug
     is empty would fall back to `feedback`; that is a pre-existing console slug
     limitation, unchanged here.
+
+---
+
+## PR 8 — S1b.4 (branch `lac/s1b4`, base `lac/s1b3`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 1b.5, 1b.6, 1b.13d.
+
+- `core/changeset/types.ts`: `update_element_text` joins `CHANGE_OPS` together with its
+  mutation (the closed-set test requires the op to be a mutation or apply-only).
+- `core/mutate.ts`: `updateElementText` writes `ElementNode.description` (target
+  `model@element`, `&#body` accepted), never a `description::` field.
+  `updateField` refuses the field name `description` with `USE_UPDATE_ELEMENT_TEXT`.
+  `addElement` rejects `args.fields` loudly (pointing at `update_field`) and no longer
+  merges inline fields; root-level args still set fields on the direct mutation API.
+- `core/changeset/conflicts.ts`: `update_element_text` joins the staleness and
+  existence checks and gets its own `from` precondition against the current prose;
+  an element added earlier in the same batch is synthesised with an empty prose body.
+- `mcp/tools/propose-changeset.ts`: `fields` is rejected on any operation with
+  `INVALID_OPERATION` pointing at `update_field`; `update_element_text` shape
+  (bare element target, `to` required) is validated; `update_field …&description` is
+  rejected with `USE_UPDATE_ELEMENT_TEXT`. `normalizeOperations` no longer accepts
+  `fields`.
+- `mcp/tools/apply-change.ts`: pre-flight `rejected` for any change carrying `fields`
+  (`INVALID_OPERATION`) and for `update_field …&description`
+  (`USE_UPDATE_ELEMENT_TEXT`); `update_element_text` mutation args; `add_element` no
+  longer passes `notes` as the prose; `resolved_target` for prose is
+  `model@slug&#body`; the direct `add_matrix` synthesis emits `seed` (comma lists
+  become arrays) instead of `fields`, and a direct `add_element` with `fields` is
+  refused.
+- `mcp/server.ts`: `update_element_text` in the direct-op enum; propose_changeset
+  descriptions updated (no `fields`, prose op documented).
+- New tests: `core-tests/changeset/update-element-text.test.ts` (7) and
+  `mcp/src/tools/update-element-text.spec.ts` (8: propose/apply rejection, notes,
+  field-less add + update_field, prose round trip, prose precondition).
+- Stale tests corrected (they asserted behaviour removed by S0b/PR 4 and were red on
+  the base):
+  - `core/src/mutate.spec.ts`: the H3a "addElement sources propagation" cases become
+    "no inline fields / never persists sources / root args still work".
+  - `core/tests/workspaceSources.test.ts`: the `add_element sources` round-trip cases
+    collapse into one assertion that a `sources` argument is dropped.
+  - `core/tests/canonical-registry.test.ts`: `fields` removed from the expected
+    `Change` fields (PR 4 removed it from the blueprint).
+  - `core/tests/roundtrip-fidelity.test.ts`: a field literally named `description` is
+    skipped when choosing the clear target (the prose op owns that name).
+  - `mcp/test/apply-change-models.test.ts`, `mcp/test/console-export-roundtrip.test.ts`:
+    follow the field-less shape (add_element + update_field; 5 applied changes).
+- Regenerated: `console/console-payload.generated.cjs` (one line: the op in
+  `CHANGE_OPS`; generated, excluded from the budget).
+- Size: ~718 hand-authored changed lines (624+/95-, of which 347 are the two new test
+  files) plus 1 generated line. Declared over the 400-line budget (~3.6x the ~200
+  forecast); not re-sliced.
+- Verification: `vitest run` in nn-core, 199 files / 2,097 tests green; `vitest run`
+  in nn-mcp, 53 files / 628 tests green; `tsc -p` (core build, refreshes dist types)
+  and `tsc --noEmit` (nn-mcp) clean; `node scripts/build-core-mirrors.mjs` +
+  `node --test scripts/build-core-mirrors.test.mjs` green; `npm run verify:fast`
+  fully green (202 steps).
+
+### Deviations
+
+18. The task forecast ~200 lines; the real slice is ~718 hand-authored lines, mostly
+    tests (347) and the propose/apply guards. Declared, not re-sliced (size policy).
+19. Four core tests and two mcp tests were stale RED on the base branch because S0b
+    and PR 4 changed behavior without running the full package suites (`mutate.spec.ts`
+    sources propagation, `workspaceSources` sources round trip, the canonical registry
+    `fields` expectation, and the `description` clear in roundtrip fidelity). They were
+    corrected here, in the PR that makes the new contract complete.
+20. `update_field` on a field literally named `description` is now refused for ANY
+    model, including a sample whose blueprint declares such a field
+    (`executive_remediation_report_business_NN.md`). The corpus rebuild in S5b.4
+    removes those fields; the roundtrip test skips them until then.
+21. `fields` stays on the `ChangeItem` TypeScript type (and in the parser/serializer)
+    even though no change may carry it: proposal and apply both reject it loudly, and
+    keeping it parseable lets the apply engine produce a specific `INVALID_OPERATION`
+    /`rejected` record instead of silently dropping the key. `PROPOSAL_KEYS` already
+    excludes it (PR 4). Removing the type field can follow once the corpora are rebuilt.
+
+---
+
