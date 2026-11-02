@@ -361,9 +361,9 @@ Goal: no producer writes `sources`.
 Depends on: PR 22.
 Rollback: revert.
 
-- [ ] 5a.5 [RED] [P] Sidecar and cognitivize tests: the sidecar has no `sources` key; cognitivize output carries no `sources::`; `core-tests/cognitivize/*.test.ts`, `sources/test/*.test.js`. (ban: source-sidecar, cognitivize-in-place)
-- [ ] 5a.6 [GREEN] [S] Cognitivize `core/sidecar.ts` and `core/cognitivize.ts` (no `sources` key); update the nn-sources writers.
-- [ ] 5a.7b [S] (was 5a.7) Mirrors, standard PR gate, `npm --prefix skills/nn-sources test`. Open PR 23.
+- [x] 5a.5 [RED] [P] Sidecar and cognitivize tests: the sidecar has no `sources` key; cognitivize output carries no `sources::`; `core-tests/cognitivize/*.test.ts`, `sources/test/*.test.js`. (ban: source-sidecar, cognitivize-in-place)
+- [x] 5a.6 [GREEN] [S] Cognitivize `core/sidecar.ts` and `core/cognitivize.ts` (no `sources` key); update the nn-sources writers.
+- [x] 5a.7b [S] (was 5a.7) Mirrors, standard PR gate, `npm --prefix skills/nn-sources test`. Open PR 23.
 
 Files: `core/sidecar.ts`, `core/cognitivize.ts`, nn-sources writers, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-core test -- cognitivize`, `npm --prefix skills/nn-sources test`, `npm run verify:fast`.

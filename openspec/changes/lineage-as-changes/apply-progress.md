@@ -1581,3 +1581,65 @@ worktree.
 
 ---
 
+## PR 23 — S5a.2 (branch `lac/s5a2`, base `lac/s5a1`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 5a.5, 5a.6, 5a.7b.
+
+- `core/cognitivize/sidecar.ts`: `sources` is no longer an owned key, a carried-over
+  key or an input; the sidecar records the subject's bytes and metadata only.
+- `core/cognitivize/cognitivize.ts`: the `sources` option and the "declared upstream
+  changed" refresh branch are gone; a sidecar with the right sha256 is `unchanged` no
+  matter what.
+- `skills/nn-sources/scripts/lib/curate-csv.js`: cognitivizes the curated CSV without
+  an upstream; `scripts/index.js` prints "cite a row as evidence: …" instead of
+  `sources::`.
+- Tests: the two `declared upstream` cognitivize cases became "no declared upstream"
+  (no `sources` key; unchanged re-run); the projection keeps reporting legacy
+  `sources::` (transitional, S5b.4).
+- Regenerated: mirrors, the two `nn-core.generated.cjs` copies, console payload/bundle
+  and the testlab fixture.
+- Size: ~40 hand-authored lines changed, ~20 test lines rewritten. Inside the budget.
+- Verification: nn-core 2.105 tests green; nn-mcp 648 tests green; both typecheck;
+  `npm --prefix skills/nn-sources test` 564 green; `npm run verify:fast` green.
+
+### Deviations
+
+70. The sidecar blueprint (`sidecar` V_0-1-2) still declares a `sources` field; nothing
+    writes it now. The blueprint bump that removes the field is S5b.1/S5b.2's job
+    (`sidecar` is repinned there), so the schema and the writer disagree for one PR.
+71. `curate-csv` keeps printing the row citation example ([artifact@key]) but calls it
+    "evidence": the value is what a change records, not a `sources::` field.
+
+---
+
+## Handoff — start here next session (after PR 23)
+
+Chain state: `lac/s5a2` is the tip (PR 23). Next branch:
+`git switch lac/s5a2 && git switch -c lac/s5a3`.
+
+**PR 24 — S5a.3 (validator ban and `conflicts::` address)** — tasks 5a.1 [RED],
+5a.2 [GREEN], 5a.7c.
+
+- `core-tests/validator/knowledge-checks.test.ts`: `SOURCES_FIELD_BANNED` and
+  `CITATION_FIELD_BANNED` are errors on L3 for any L1 version; the single allowed
+  `citation` is `changes.evidence`, identified by the parent blueprint (no exemption
+  list); `conflicts::` is `type:: address`; `type:: address` pointers accepted.
+- Implement the ban in `core/validator/knowledge-checks.ts`.
+- Contingency (from the task): if `verify:fast` is red because shipped samples or
+  fixtures still carry `sources::`, keep the ban behind the validator's existing
+  version gate for this PR and drop the carve-out in S5b.4. Record the choice.
+- Verification: `vitest run validator` (nn-core) + `npm run verify:fast`.
+
+**Then:** PR 25 (S5b.1) publishes `iNNfo_V_0-6-0` and repins `changes`/`sidecar`/
+`visual-catalog`. Do NOT cut any `templates-v*` tag before S5b.5.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
