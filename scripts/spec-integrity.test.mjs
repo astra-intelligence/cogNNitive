@@ -95,6 +95,41 @@ test('the workspace spec declares no Executions concept', () => {
   assert.doesNotMatch(content, /\[\[Executions\]\]/)
 })
 
+test('the three superseded samples are replaced by versions without sources::', () => {
+  const dir = (bp) => path.join(SPECS, 'bluepriNNts', bp, 'samples')
+  const superseded = [
+    path.join(dir('business-model'), 'Ghostbusters_V_0-4-1_business-model_NN.md'),
+    path.join(dir('metrics'), 'Ghostbusters_V_0-5-0_metrics_NN.md'),
+    path.join(dir('organization'), 'Ghostbusters_V_0-4-0_organization_NN.md'),
+  ]
+  for (const p of superseded) {
+    assert.equal(fs.existsSync(p), false, `superseded sample still present: ${p}`)
+  }
+
+  const replacements = [
+    [dir('business-model'), 'Ghostbusters_V_0-4-2_business-model_NN.md'],
+    [dir('metrics'), 'Ghostbusters_V_0-5-1_metrics_NN.md'],
+    [dir('organization'), 'Ghostbusters_V_0-4-1_organization_NN.md'],
+  ]
+  for (const [d, name] of replacements) {
+    const p = path.join(d, name)
+    assert.equal(fs.existsSync(p), true, `missing replacement sample: ${name}`)
+    const content = read(p)
+    assert.doesNotMatch(content, /^\s*sources::/m, `${name} still writes sources::`)
+    assert.doesNotMatch(content, /type:: citation/, `${name} still declares a citation field`)
+  }
+})
+
+test('the sample sources of truth carry no sources::', () => {
+  const ssot = path.join(ROOT, 'test', '_samples_nn', 'kNNowledge')
+  for (const name of [
+    'Ghostbusters_business-model_NN.md',
+    'Ghostbusters_metrics_NN.md',
+    'Ghostbusters_organization_NN.md',
+  ]) {
+    assert.doesNotMatch(read(path.join(ssot, name)), /^\s*sources::/m, `${name} still writes sources::`)
+  }
+})
 test('the simulacro fixture uses a workspace spec without Executions', () => {
   const fixture = path.join(
     ROOT,

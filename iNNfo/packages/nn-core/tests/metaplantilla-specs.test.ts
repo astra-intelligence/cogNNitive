@@ -225,7 +225,7 @@ Reviews the pull request.
   it('migrated samples use the unified syntax with no legacy markers', () => {
     for (const p of [
       'bluepriNNts/business/samples/Ghostbusters_V_0-1-0_business_NN.md',
-      'bluepriNNts/organization/samples/Ghostbusters_V_0-4-0_organization_NN.md',
+      'bluepriNNts/organization/samples/Ghostbusters_V_0-4-1_organization_NN.md',
       'bluepriNNts/procedures/samples/Ghostbusters_V_0-5-0_procedures_NN.md',
       'bluepriNNts/projects/samples/Ghostbusters_V_0-4-0_projects_NN.md',
     ]) {
@@ -262,7 +262,7 @@ Reviews the pull request.
   })
 
   it('parses the migrated Ghostbusters organization sample with scope properties', () => {
-    const content = readSpec('bluepriNNts/organization/samples/Ghostbusters_V_0-4-0_organization_NN.md')
+    const content = readSpec('bluepriNNts/organization/samples/Ghostbusters_V_0-4-1_organization_NN.md')
     const parsed = parseKnowledge(content)
     const roles = parsed.elements.get('Roles')!
     expect(roles).toHaveLength(5)
