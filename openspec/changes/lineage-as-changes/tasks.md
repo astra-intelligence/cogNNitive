@@ -186,12 +186,12 @@ Goal: `check_domain {strict: true}` replays changes and compares the serialized 
 Depends on: PR 11.
 Rollback: revert; strict is opt-in.
 
-- [ ] 2b.1 [RED] [S] `core-tests/changeset/replay-mutations.test.ts`: `replayMutations(model, ops, schema)` clones once and runs all ops on one draft; result equals sequential `applyMutation` output; no quadratic cloning (spy on the clone count equals 1).
-- [ ] 2b.2 [GREEN] [S] Add `replayMutations` to `core/mutate.ts`.
-- [ ] 2b.3 [RED] [S] `mcp-tests/provenance-strict.test.ts`: `check_domain {strict: true}` rebuilds the `add_model` skeleton via blueprint resolution, replays through `replayMutations`, compares the `serializeModel` body only (frontmatter excluded); no drift for a change-only model; one-byte edit flagged; whitespace-only edit flagged in strict and not in fold; severity error in strict. (cp: Strict mode)
-- [ ] 2b.4 [GREEN] [S] Create `mcp/tools/provenance-strict.ts`; accept `strict` in `check-workspace.ts` and `server.ts`.
-- [ ] 2b.5 [RED] [P] Differential test (seeded random op sequences, vitest): fold and strict replay agree when there is no drift, and both flag a mutated file. This is the guard against A3 divergence. File: `mcp-tests/provenance-differential.test.ts`. (Test-only guard; it passes immediately because both engines already exist in this PR and S2a, so it is the RED/GREEN pair with 2b.1-2b.4.)
-- [ ] 2b.12a [S] (was 2b.12) Mirrors, standard PR gate. Open PR 12.
+- [x] 2b.1 [RED] [S] `core-tests/changeset/replay-mutations.test.ts`: `replayMutations(model, ops, schema)` clones once and runs all ops on one draft; result equals sequential `applyMutation` output; no quadratic cloning (spy on the clone count equals 1).
+- [x] 2b.2 [GREEN] [S] Add `replayMutations` to `core/mutate.ts`.
+- [x] 2b.3 [RED] [S] `mcp-tests/provenance-strict.test.ts`: `check_domain {strict: true}` rebuilds the `add_model` skeleton via blueprint resolution, replays through `replayMutations`, compares the `serializeModel` body only (frontmatter excluded); no drift for a change-only model; one-byte edit flagged; whitespace-only edit flagged in strict and not in fold; severity error in strict. (cp: Strict mode)
+- [x] 2b.4 [GREEN] [S] Create `mcp/tools/provenance-strict.ts`; accept `strict` in `check-workspace.ts` and `server.ts`.
+- [x] 2b.5 [RED] [P] Differential test (seeded random op sequences, vitest): fold and strict replay agree when there is no drift, and both flag a mutated file. This is the guard against A3 divergence. File: `mcp-tests/provenance-differential.test.ts`. (Test-only guard; it passes immediately because both engines already exist in this PR and S2a, so it is the RED/GREEN pair with 2b.1-2b.4.)
+- [x] 2b.12a [S] (was 2b.12) Mirrors, standard PR gate. Open PR 12.
 
 Files: `core/mutate.ts`, `mcp/tools/{provenance-strict,check-workspace}.ts`, `mcp/server.ts`, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-mcp test -- provenance`, `npm --workspace=@cognnitive/nn-core test -- replay-mutations`, `npm run verify:fast`.

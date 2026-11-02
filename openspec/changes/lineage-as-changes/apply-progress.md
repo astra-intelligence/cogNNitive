@@ -715,3 +715,103 @@ worktree.
 
 ---
 
+## PR 12 — S2b.1 (branch `lac/s2b1`, base `lac/s2a3`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 2b.1, 2b.2, 2b.3, 2b.4, 2b.5, 2b.12a.
+
+- `core/mutate.ts`: `replayMutations(model, ops, schema)` clones ONCE and runs every
+  op through `runMutation` on the same draft; returns `{success, model, results}` and
+  never mutates the input. A failing op does not stop the replay (the results array
+  says which one diverged). `ReplayOperation` / `ReplayResult` exported from
+  `core/index.ts`.
+- `mcp/tools/change-args.ts` (new): `parseTargetAddress`, `findElementInModel` and
+  `mutationArgsForChange` moved out of `apply-change.ts`. The apply engine and the
+  strict replay now share ONE change → mutation-arguments mapping, so they cannot
+  drift (the A3 concern). `apply-change.ts` imports the three and lost ~150 local
+  lines.
+- `mcp/tools/provenance-strict.ts` (new): `checkDomainProvenance(rootDir, {strict})`.
+  Fold mode delegates to `checkProvenance`. Strict mode:
+  - finds the applied `add_model` of each level-3 model (bridging the caller's id to
+    the created canonical id through the changeset's `models` map),
+  - rebuilds the skeleton with `scaffoldKnowledgeDocument` after resolving the
+    blueprint (`resolveBlueprintWithCache` + `resolveBlueprintSchema`),
+  - replays every applied change of that model (minus `add_model`, `bump_version`,
+    `comment`, `produce_artifact`) through `replayMutations`,
+  - compares the **file's raw body** (frontmatter excluded) with the replay's
+    serialized body: a whitespace-only edit is strict drift and not fold drift.
+    Evidence diagnostics (`EVIDENCE_UNKNOWN`, `EVIDENCE_SOURCE_CHANGED`) are kept;
+    unit-level fold drift is replaced by the replay verdict. Severity is `error`.
+- `mcp/tools/check-workspace.ts`: `CheckWorkspaceOptions.strict` and a `provenance:
+  ProvenanceReport` field on the report. `mcp/server.ts`: `check_domain` accepts
+  `strict` (documented in the tool schema).
+- `core/changelog`: `LoggedChange.resolvedSlug` (the `resolved_slug` annotation), so the
+  replay addresses the frozen slug the apply stamped. `core/index.ts` also exports
+  `canonicalUnitModelId`.
+- New tests: `core-tests/changeset/replay-mutations.test.ts` (3: equality with
+  sequential apply, exactly one `structuredClone` call, input untouched + failing op
+  reported) and `mcp/test/provenance-{strict,differential}.test.ts` (4 + 6:
+  no drift, one-byte edit, whitespace-only strict-vs-fold, frontmatter excluded; and
+  seeded op sequences over three seeds agreeing and both flagging a hand edit).
+- Regenerated: `console/console-payload.generated.cjs` and the two
+  `nn-core.generated.cjs` mirrors (generated, excluded from the budget).
+- Size: ~940 hand-authored changed lines (≈640 added source, ≈330 added tests, ≈150
+  removed from apply-change by the extraction). Declared over the 400-line budget
+  (~3.8x the ~250 forecast); not re-sliced.
+- Verification: nn-core `vitest run` 203 files / 2,126 tests green; nn-mcp `vitest run`
+  55 files / 638 tests green; `tsc -p` (core) and `tsc --noEmit` (nn-mcp) clean;
+  mirrors + their test green; `npm run verify:fast` fully green (202 steps).
+
+### Deviations
+
+35. Strict compares the FILE's raw body, not `serializeKnowledge(file)`: comparing two
+    serializations normalizes formatting away, so the "whitespace-only edit is
+    strict-only drift" scenario could never fire. Consequence: a model written by an
+    older serializer can report strict drift until it is rewritten. That is the
+    meaning of strict, and fold mode remains the default.
+36. The change → mutation-arguments mapping was extracted to `change-args.ts` instead
+    of being duplicated in the strict engine. Same code path in apply and replay; the
+    extraction is why `apply-change.ts` shrank.
+37. `add_model` keeps the caller's id in `target` while the created file carries the
+    canonical id (`<id>_<blueprint>`), so strict bridges the two through the
+    changeset's `models` map. A model whose `add_model` is not in the log (or whose
+    blueprint no longer resolves) cannot be rebuilt: strict reports nothing for it
+    rather than inventing diagnostics. `collectProvenanceModels` strips the `_NN`
+    suffix `listKnowledge` keeps in ids.
+38. `check_domain` now always returns `provenance` (fold by default). The flat
+    `evidence` list is still emitted; `check_domain.provenance` replaces it in PR 13
+    (task 2b.7), which also adds the `validate_knowledge` drift path and the
+    LC_programas-like fixture.
+
+---
+
+## Handoff — start here next session (after PR 12)
+
+Chain state: `lac/s2b1` is the tip (PR 12). Next branch:
+`git switch lac/s2b1 && git switch -c lac/s2b2`.
+
+**PR 13 — S2b.2 (`check_domain.provenance` and `validate_knowledge` drift)** — tasks
+2b.6 [RED], 2b.7 [GREEN], 2b.12b.
+
+- `check_domain` already returns `provenance` from PR 12: task 2b.6's contract test must
+  assert it (and that `lineage` is still present until S4b). Task 2b.7 becomes: drop the
+  flat `evidence` list from the report (the report's `provenance.diagnostics` carries
+  the same `EVIDENCE_UNKNOWN` entries), and wire drift into `validate_knowledge` when a
+  workspace root is available (no root → no drift, no error).
+- Build the LC_programas-like fixture (130 applied changes with `unknown` evidence while
+  units cite sidecars) and assert 130 `EVIDENCE_UNKNOWN` plus drift.
+- Verification: `vitest run check-workspace validate` (nn-mcp) + `npm run verify:fast`.
+
+**Then:** PR 14 (S2b.3) is `resolve_sources` with an optional `target`, console cell
+origin and G13 graph edges; PR 15 (S3a.1) rewrites `projectLineage` as a projection.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree. Core dist must be rebuilt (`tsc -p` in `nn-core`) before typechecking
+nn-mcp whenever a core type or export changes.
+
+---
+
