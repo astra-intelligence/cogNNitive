@@ -14,19 +14,21 @@ export function layerPrompt(layer) {
 }
 
 /**
+ * Options for `resolveMedia` (which hashes prompt + options). The key follows the
+ * cascaded `image_model`, so changing the model re-bills and renaming a scene or a
+ * layer never does. No display title, path, output name or pixel size belongs here.
  * @param {{ name?: string }} sc Lowered scene
  * @param {{ name?: string }} layer Lowered layer
- * @param {{ image?: string }} [models] Explicitly chosen models (a chosen image model joins the key)
+ * @param {{ image?: string, modelOverride?: string }} [models] Chosen models
  * @returns {Record<string, unknown>}
  */
 export function buildImageOptions(sc, layer, models = {}) {
   const options = {
     provider: 'wavespeed',
-    model: 'wavespeed-v1-flux',
-    title: `${sc.name} — ${layer.name}`,
+    model: models.image || 'wavespeed-v1-flux',
     accentColor: '#ef4444',
   };
-  if (models.image) options.modelOverride = models.image;
+  if (models.modelOverride) options.modelOverride = models.modelOverride;
   return options;
 }
 

@@ -448,8 +448,8 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
     for (const layer of Array.isArray(sc.layers) ? sc.layers : []) {
       const prompt = layer.properties?.layer_prompt || layer.properties?.prompt;
       if (!prompt) continue;
-      const mediaOptions = buildImageOptions(sc, layer, models);
       const imageModel = normalizeModelId(resolve('image_model', bags).value);
+      const mediaOptions = buildImageOptions(sc, layer, { ...models, image: imageModel });
       const ref = `${sc.id}/${layer.name}`;
       onProgress({ phase: 'media-start', done: mediaDone, total: mediaTotal, scene: sc.id, model: imageModel });
       const mediaRes = await synthesizer.resolveMedia(prompt, mediaOptions, { ref, model: imageModel });
@@ -732,6 +732,7 @@ export async function renderVideo(options) {
   let newAssetsSynthesized = 0;
   let spentUsd = 0;
   let plannedTotalUsd = 0;
+  let avatarVideos;
 
   if (options.manifestPath && fs.existsSync(path.resolve(options.manifestPath))) {
     manifest = JSON.parse(fs.readFileSync(path.resolve(options.manifestPath), 'utf8'));
@@ -755,6 +756,18 @@ export async function renderVideo(options) {
     newAssetsSynthesized = compRes.newAssetsSynthesized;
     spentUsd = compRes.spentUsd || 0;
     plannedTotalUsd = compRes.plannedTotalUsd || 0;
+    avatarVideos = compRes.avatarVideos;
+
+    // Render Refuses Missing Avatar Clips: a still avatar Layer would silently render as
+    // a static frame, so the run stops here and names the synthesis command instead.
+    const missingAvatars = avatarVideos?.missingLayers || [];
+    if (missingAvatars.length > 0) {
+      const named = missingAvatars.map((m) => `${m.sceneId}/${m.layerName}`).join(', ');
+      throw new VideoRenderError(
+        `Cannot render: ${missingAvatars.length} avatar Layer(s) have no cached lip-sync clip (${named}). ` +
+          'Run synthesize-avatar.mjs first: there is no override flag.',
+      );
+    }
   } else {
     throw new Error('Either scriptPath or manifestPath must be provided for rendering');
   }
