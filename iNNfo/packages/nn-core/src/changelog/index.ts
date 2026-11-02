@@ -11,6 +11,7 @@
  * `node.ts`.
  */
 import type { ChangeItem, ChangeOp, ChangeStatus } from '../changeset/types.js'
+import { splitEvidence } from '../changeset/evidence.js'
 import { compareChanges } from './order.js'
 import { elementKeyOf, foldChanges, type FoldResult } from './fold.js'
 import { unitsFromFold, type UnitState } from './units.js'
@@ -54,6 +55,20 @@ export interface LoggedChange {
   readonly applied: boolean
 }
 
+/** The two views of the evidence index (change-provenance: Evidence index). */
+export type EvidenceScope = 'live' | 'all-time'
+
+/** One applied change that cites a source, with the unit it set. */
+export interface EvidenceSite {
+  readonly changeId: string
+  /** The unit address the change contributed to (an element key for `add_element`). */
+  readonly unit: string
+  /** Every evidence item the change carries, in evidence order. */
+  readonly evidence: readonly string[]
+  /** The stamped sha256 per evidence item, positional (`[]` when not stamped). */
+  readonly sha256: readonly string[]
+}
+
 /** The provenance view of one workspace, built once and queried by every consumer. */
 export interface ChangeLog {
   /** Every change, every status, in canonical order (the review UI lists this). */
@@ -62,6 +77,14 @@ export interface ChangeLog {
   history(unit: string): readonly LoggedChange[]
   /** The last applied change of `unit`, or `undefined` when it has no history. */
   origin(unit: string): LoggedChange | undefined
+  /**
+   * The evidence index keyed by citation (path and anchor, as the change carries
+   * it). `live` lists the last applied change of every live unit (plus the
+   * creation evidence of a live element); `all-time` lists every applied change.
+   * Garbage collection and the uncited-source audit read all-time; graph edges
+   * read live.
+   */
+  evidence(scope: EvidenceScope): ReadonlyMap<string, EvidenceSite[]>
   /** Live units after the epoch cut (optionally scoped to one model id). */
   units(model?: string): Iterable<UnitState>
   /** Unit keys whose last applied change cleared them (`to:: ''`). */
@@ -117,6 +140,48 @@ class ChangeLogImpl implements ChangeLog {
 
   units(model?: string): Iterable<UnitState> {
     return unitsFromFold(this.fold, model)
+  }
+
+  evidence(scope: EvidenceScope): ReadonlyMap<string, EvidenceSite[]> {
+    const index = new Map<string, EvidenceSite[]>()
+    const indexed = new Set<LoggedChange>()
+
+    const addSite = (change: LoggedChange, unit: string): void => {
+      if (indexed.has(change)) return
+      indexed.add(change)
+      const evidence = change.evidenceItems ?? splitEvidence(change.evidence)
+      if (evidence.length === 0) return
+      const site: EvidenceSite = {
+        changeId: change.id,
+        unit,
+        evidence: [...evidence],
+        sha256: [...(change.evidenceSha256 ?? [])],
+      }
+      for (const citation of evidence) {
+        const bucket = index.get(citation)
+        if (bucket) bucket.push(site)
+        else index.set(citation, [site])
+      }
+    }
+
+    if (scope === 'all-time') {
+      for (const change of this.all) {
+        if (change.applied) addSite(change, unitOf(change))
+      }
+      return index
+    }
+
+    for (const unit of this.fold.units.keys()) {
+      const origin = this.origin(unit)
+      // A live element keeps the evidence of the change that created it; a
+      // removed unit has no origin, so its last edge never stays live.
+      if (origin) addSite(origin, unit)
+    }
+    for (const [key, change] of this.fold.elements) {
+      if (change.op === 'remove_element') continue
+      addSite(change, key)
+    }
+    return index
   }
 
   get cleared(): ReadonlySet<string> {

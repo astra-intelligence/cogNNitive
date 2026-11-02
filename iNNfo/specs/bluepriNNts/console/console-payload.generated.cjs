@@ -7388,7 +7388,6 @@ __export(index_exports, {
   createFsSourceResolver: () => createFsSourceResolver,
   deriveFieldOrigin: () => deriveFieldOrigin,
   deriveValueHistory: () => deriveValueHistory,
-  detectUnrecordedEdits: () => detectUnrecordedEdits,
   displayStem: () => displayStem,
   extractExcerpt: () => extractExcerpt,
   findEnclosingChangeBlock: () => findEnclosingChangeBlock,
@@ -7414,7 +7413,6 @@ __export(index_exports, {
   resolveEvidenceCitation: () => resolveEvidenceCitation,
   roleOf: () => roleOf,
   serializeConsoleSlot: () => serializeConsoleSlot,
-  splitUnit: () => splitUnit,
   unitAddress: () => unitAddress,
   unitHome: () => unitHome,
   writeOnce: () => writeOnce
@@ -9976,6 +9974,29 @@ function updateWikiLinks(text, oldName, newName) {
   });
 }
 
+// iNNfo/packages/nn-core/src/changeset/evidence.ts
+var EVIDENCE_KEYWORDS = ["decision", "unknown"];
+function isKeyword(value) {
+  return EVIDENCE_KEYWORDS.includes(value.toLowerCase());
+}
+function evidenceKeywordInList(value) {
+  const items = splitSourceFieldValue(value);
+  if (items.length < 2) return null;
+  for (const item of items) {
+    if (isKeyword(item)) return item.toLowerCase();
+  }
+  return null;
+}
+function splitEvidence(value) {
+  const keyword = evidenceKeywordInList(value);
+  if (keyword) {
+    throw new Error(
+      `EVIDENCE_KEYWORD_IN_LIST: "${keyword}" is only valid alone in evidence; cite the document, or use the keyword by itself`
+    );
+  }
+  return splitSourceFieldValue(value).map((item) => isKeyword(item) ? item.toLowerCase() : item);
+}
+
 // iNNfo/packages/nn-core/src/changelog/order.ts
 function changeStamp(changeset) {
   return changesetStampOf(String(changeset ?? ""))?.stamp ?? "";
@@ -10161,29 +10182,6 @@ function unitsFromFold(fold, model) {
   return out;
 }
 
-// iNNfo/packages/nn-core/src/changeset/evidence.ts
-var EVIDENCE_KEYWORDS = ["decision", "unknown"];
-function isKeyword(value) {
-  return EVIDENCE_KEYWORDS.includes(value.toLowerCase());
-}
-function evidenceKeywordInList(value) {
-  const items = splitSourceFieldValue(value);
-  if (items.length < 2) return null;
-  for (const item of items) {
-    if (isKeyword(item)) return item.toLowerCase();
-  }
-  return null;
-}
-function splitEvidence(value) {
-  const keyword = evidenceKeywordInList(value);
-  if (keyword) {
-    throw new Error(
-      `EVIDENCE_KEYWORD_IN_LIST: "${keyword}" is only valid alone in evidence; cite the document, or use the keyword by itself`
-    );
-  }
-  return splitSourceFieldValue(value).map((item) => isKeyword(item) ? item.toLowerCase() : item);
-}
-
 // iNNfo/packages/nn-core/src/changelog/index.ts
 function unitOf(change) {
   return change.resolvedTarget ?? change.target;
@@ -10217,6 +10215,42 @@ var ChangeLogImpl = class {
   }
   units(model) {
     return unitsFromFold(this.fold, model);
+  }
+  evidence(scope) {
+    const index = /* @__PURE__ */ new Map();
+    const indexed = /* @__PURE__ */ new Set();
+    const addSite = (change, unit) => {
+      if (indexed.has(change)) return;
+      indexed.add(change);
+      const evidence = change.evidenceItems ?? splitEvidence(change.evidence);
+      if (evidence.length === 0) return;
+      const site = {
+        changeId: change.id,
+        unit,
+        evidence: [...evidence],
+        sha256: [...change.evidenceSha256 ?? []]
+      };
+      for (const citation of evidence) {
+        const bucket = index.get(citation);
+        if (bucket) bucket.push(site);
+        else index.set(citation, [site]);
+      }
+    };
+    if (scope === "all-time") {
+      for (const change of this.all) {
+        if (change.applied) addSite(change, unitOf(change));
+      }
+      return index;
+    }
+    for (const unit of this.fold.units.keys()) {
+      const origin = this.origin(unit);
+      if (origin) addSite(origin, unit);
+    }
+    for (const [key, change] of this.fold.elements) {
+      if (change.op === "remove_element") continue;
+      addSite(change, key);
+    }
+    return index;
   }
   get cleared() {
     return this.fold.cleared;
@@ -10981,8 +11015,6 @@ function citationFieldsFor(conceptName, fields, schema) {
 // iNNfo/packages/nn-core/src/console/element-history.ts
 var import_promises = require("node:fs/promises");
 var import_node_path = require("node:path");
-
-// iNNfo/packages/nn-core/src/console/provenance.ts
 function hopOf(change) {
   return {
     changeId: change.id,
@@ -11004,48 +11036,6 @@ function deriveFieldOrigin(log, unit) {
   const { changeId, batch, author, evidence, appliedAt, from, to } = hopOf(change);
   return { changeId, batch, author, evidence, appliedAt, from, to };
 }
-function splitUnit(unit) {
-  const at = String(unit ?? "").indexOf("@");
-  if (at === -1) return { modelPart: "", elementPart: "" };
-  const rest = String(unit).slice(at + 1);
-  const amp = rest.indexOf("&");
-  if (amp === -1) return { modelPart: String(unit).slice(0, at), elementPart: rest };
-  const elementPart = rest.slice(0, amp);
-  const field = rest.slice(amp + 1);
-  if (!elementPart || !field || field.includes("&") || field === "#body") {
-    return { modelPart: String(unit).slice(0, at), elementPart };
-  }
-  return { modelPart: String(unit).slice(0, at), elementPart, field };
-}
-function detectUnrecordedEdits(elements, log) {
-  const lastChange = /* @__PURE__ */ new Map();
-  for (const change of log.all) {
-    if (!change.applied) continue;
-    const unit = unitOf(change);
-    const { elementPart, field } = splitUnit(unit);
-    if (!elementPart || !field) continue;
-    lastChange.set(`${elementPart.toLowerCase()}\0${field.toLowerCase()}`, change);
-  }
-  const out = [];
-  for (const el of elements) {
-    if (!el.fields) continue;
-    const elementPart = el.slug ?? el.id;
-    for (const [field, current] of Object.entries(el.fields)) {
-      const origin = lastChange.get(`${elementPart.toLowerCase()}\0${field.toLowerCase()}`);
-      if (!origin || origin.to === void 0) continue;
-      if (String(current ?? "") === String(origin.to ?? "")) continue;
-      out.push({
-        code: "EDITED_WITHOUT_RECORD",
-        severity: "warning",
-        path: `${elementPart}&${field}`,
-        message: `field "${field}" of "${elementPart}" is "${String(current ?? "")}" but the last applied change sets it to "${origin.to}"; record the change or revert`
-      });
-    }
-  }
-  return out;
-}
-
-// iNNfo/packages/nn-core/src/console/element-history.ts
 function isChangesetFile(name) {
   if (!isNNName(name) || isSidecarName(name)) return false;
   const parsed = parseName(name);
@@ -11891,7 +11881,6 @@ function unitHome(address) {
   createFsSourceResolver,
   deriveFieldOrigin,
   deriveValueHistory,
-  detectUnrecordedEdits,
   displayStem,
   extractExcerpt,
   findEnclosingChangeBlock,
@@ -11917,7 +11906,6 @@ function unitHome(address) {
   resolveEvidenceCitation,
   roleOf,
   serializeConsoleSlot,
-  splitUnit,
   unitAddress,
   unitHome,
   writeOnce

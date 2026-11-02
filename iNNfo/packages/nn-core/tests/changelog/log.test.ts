@@ -132,8 +132,37 @@ describe('ChangeLog', () => {
     expect(log.history('m@goal-1&owner').map((c) => c.id)).toEqual(['earlier-stamp', 'later-stamp'])
   })
 
-  it('builds from a filesystem snapshot', () => {
-    const log = buildChangeLog([
+  it('exposes the element lifecycle: the last add or remove wins, a re-add resets it', () => {
+    const log = buildChangeLogFromChangesets([
+      changeset({
+        path: 'changes/dom_agent_20261010T120000Z_changes_NN.md',
+        changes: [change({ id: 'c-01', op: 'remove_element', target: 'm@goal-1' })],
+      }),
+      changeset({
+        path: 'changes/dom_agent_20261010T130000Z_changes_NN.md',
+        appliedAt: '2026-10-10T13:00:00.000Z',
+        changes: [change({ id: 'c-02', op: 'add_element', target: 'm@goal-1', name: 'Goal 1' })],
+      }),
+    ])
+    expect(log.elementOrigin('m@goal-1')?.id).toBe('c-02')
+    expect(log.tombstones.map((c) => c.id)).toEqual(['c-01'])
+  })
+
+  it('has no origin for a cleared unit (a value that does not exist has none)', () => {
+    const log = buildChangeLogFromChangesets([
+      changeset({
+        changes: [
+          change({ id: 'c-01', to: 'Ana' }),
+          change({ id: 'c-02', to: '' }),
+        ],
+      }),
+    ])
+    expect(log.origin('m@goal-1&owner')).toBeUndefined()
+    expect(log.cleared.has('m@goal-1&owner')).toBe(true)
+    expect(log.history('m@goal-1&owner').map((c) => c.id)).toEqual(['c-01', 'c-02'])
+  })
+
+  it('builds from a filesystem snapshot', () => {    const log = buildChangeLog([
       {
         path: 'changes/dom_agent_20261010T120000Z_changes_NN.md',
         content: `---
