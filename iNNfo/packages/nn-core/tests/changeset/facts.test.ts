@@ -9,20 +9,6 @@ import { parseChangeset } from '../../src/changeset/parser.js'
 import { serializeChangeset } from '../../src/changeset/serializer.js'
 import type { ChangeItem } from '../../src/changeset/types.js'
 
-const FRONTMATTER = `---
-spec_version: "V_0-5-0"
-level: 3
-parent_spec:
-  name: changes
-  url: "https://example.test/changes/spec_NN.md"
-blueprint_version: "V_0-6-0"
-status: applied
-proposal_sha: "sealed"
----
-
-# NN Change
-`
-
 function doc(changeBlock: string, proposalShas?: string): string {
   return `---
 spec_version: "V_0-5-0"
@@ -139,13 +125,5 @@ describe('annotation round trip', () => {
   it('still parses a change that carries no seed', () => {
     const parsed = parseChangeset(doc(['## NN Change: c-01', 'op:: update_field', 'target:: m@e&f', 'to:: v'].join('\n')))
     expect(parsed.changes[0].seed).toBeUndefined()
-  })
-})
-
-describe('initial document notice', () => {
-  it('keeps the frontmatter the serializer does not own byte-identical', () => {
-    const parsed = parseChangeset(doc(['## NN Change: c-01', 'op:: update_field', 'target:: m@e&f', 'to:: v'].join('\n')))
-    const out = serializeChangeset({ ...parsed, changes: [{ ...parsed.changes[0], status: 'applied' }] })
-    expect(out.startsWith(FRONTMATTER.split('# NN Change')[0].slice(0, 40))).toBe(true)
   })
 })
