@@ -7916,7 +7916,6 @@ function parseName(basename2) {
   };
 }
 var CORE_BLUEPRINT_ROLE = {
-  cognnitive: "lineage-record",
   sidecar: "sidecar",
   changes: "changeset",
   workspace: "catalog",

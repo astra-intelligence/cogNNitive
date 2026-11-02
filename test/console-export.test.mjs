@@ -300,7 +300,7 @@ level: 3
     }
   })
 
-  it('never lists a seeded sidecar, staging file, or lineage record as a model', async () => {
+  it('never lists a seeded sidecar or staging file as a model; a cogNNitive document is knowledge', async () => {
     const doc = (parent) => `---\ntitle: "X"\nlevel: 3\nparent_spec:\n  name: "${parent}"\n---\n\n# NN Item\n`
     await mkdir(join(tempDir, 'sources', 'import'), { recursive: true })
     await mkdir(join(tempDir, 'staging'), { recursive: true })
@@ -314,8 +314,9 @@ level: 3
     assert.match(res.stdout, /models\/business_V_1-0-0_NN\.md/)
     assert.doesNotMatch(res.stdout, /sidecar/)
     assert.doesNotMatch(res.stdout, /staging/)
-    assert.doesNotMatch(res.stdout, /cogNNitive/)
-    assert.match(res.stdout, /\(1 models\)/)
+    // The record role is retired (S4b): the document is an ordinary model.
+    assert.match(res.stdout, /Acme_cogNNitive_NN\.md/)
+    assert.match(res.stdout, /\(2 models\)/)
   })
 
   it('prints stderr WARNING when parent_spec is not found at Tier 1', async () => {

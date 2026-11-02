@@ -24,7 +24,6 @@ import {
   createFsSourceResolver,
   resolveCitation,
   scaffoldKnowledgeDocument,
-  RECORD_BLUEPRINT,
   roleOf,
   canonicalUnitModelId,
   resolvedTarget,
@@ -305,12 +304,6 @@ function maintenanceChangeProblem(
   }
   if (change.op === 'bump_version') {
     const parent = model.frontmatter.parent_spec as { name?: string } | undefined
-    if (parent?.name === RECORD_BLUEPRINT) {
-      return {
-        code: 'RECORD_UNVERSIONED',
-        message: 'The lineage record is unversioned by design and cannot be bumped',
-      }
-    }
     if (!isBumpLevel(change.to)) {
       return {
         code: 'INVALID_BUMP_LEVEL',
@@ -1055,17 +1048,6 @@ export async function executeChangesetApply(
         }
         const model = await loadKnowledge(modelFile)
         const parentName = (model.frontmatter.parent_spec as { name?: string } | undefined)?.name
-        if (
-          parentName === RECORD_BLUEPRINT ||
-          roleOf({ path: modelFile, parentSpecName: parentName }) === 'lineage-record' ||
-          (model.frontmatter as Record<string, unknown>).generated === true
-        ) {
-          return rejectPhase1(
-            'TOOL_OWNED_DOCUMENT',
-            change.target,
-            `"${modelSlug}" is a tool-owned lineage record and cannot be mutated by changesets; run nn-sources --lineage to regenerate it`,
-          )
-        }
         const baseVersion = String(
           model.frontmatter.knowledge_version ?? model.frontmatter.blueprint_version ?? 'V_0-1-0',
         )
@@ -1735,17 +1717,6 @@ export async function applyChange(
     const parent = model.frontmatter.parent_spec as { name?: string } | undefined
     if (model.frontmatter.level === 2) {
       return bumpBlueprintVersion(rootDir, filePath, model, opArgs)
-    }
-    if (parent?.name === RECORD_BLUEPRINT) {
-      return {
-        success: false,
-        errors: [
-          {
-            path: 'frontmatter',
-            message: `The lineage record is unversioned by design and cannot be bumped: ${id}`,
-          },
-        ],
-      }
     }
     if (opArgs.version !== undefined) {
       return {

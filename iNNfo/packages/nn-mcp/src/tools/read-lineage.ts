@@ -3,8 +3,8 @@
  * read-only.
  *
  * Inventory from the filesystem, edges and diagnostics from the change log. It
- * never writes: `sync_lineage` (the persisted record) is still registered until
- * S4b, but nothing here depends on it.
+ * never writes: the persisted lineage record no longer exists (S4), and nothing
+ * here depends on it.
  */
 import {
   buildChangeLog,

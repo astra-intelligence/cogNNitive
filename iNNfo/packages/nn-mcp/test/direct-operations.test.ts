@@ -160,22 +160,4 @@ describe('apply_change API gaps', () => {
     expect(res.errors![0].message).toMatch(/level-3|level 3/i)
     expect(await readFile(sourceFile, 'utf-8')).toBe(before)
   })
-
-  it('bump_version rejects the unversioned lineage record with a clear message', async () => {
-    const record = `---
-specification_version: "V_0-3-0"
-level: 3
-parent_spec:
-  name: "cogNNitive"
-  url: "specs/cogNNitive_NN.md"
-title: "Strategy lineage"
----
-`
-    await writeFile(join(knowledgeDir, 'strategy_cogNNitive_NN.md'), record, 'utf-8')
-    const res = await applyChange(root, 'strategy_cogNNitive', 'bump_version', { bump: 'patch' })
-    expect(res.success).toBe(false)
-    expect(res.errors![0].message).toMatch(/lineage record is unversioned/i)
-    expect(existsSync(changesDir)).toBe(false)
-    expect(await readFile(join(knowledgeDir, 'strategy_cogNNitive_NN.md'), 'utf-8')).toBe(record)
-  })
 })

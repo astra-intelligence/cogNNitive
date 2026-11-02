@@ -21,11 +21,8 @@ import {
   summarizeWorkspaceIntegrity,
   parseFrontmatter,
   SpecResolutionError,
-  checkLineageDrift,
   projectLineage,
-  readLineageRecord,
   readLineageSnapshot,
-  renderLineageSections,
   type TemplateCatalog,
   type WorkspaceIntegrityPorts,
   type WorkspaceModelRef,
@@ -66,13 +63,6 @@ export interface CheckWorkspaceOptions {
   offline?: boolean
   /** Strict provenance: replay the applied changes and compare serialized bodies. */
   strict?: boolean
-}
-
-/** Result of the lineage drift gate (site 3 of the gate; the record is not a model). */
-export interface LineageGateReport {
-  /** Workspace-relative path of the lineage record, or `null` when the domaiNN has none. */
-  record: string | null
-  diagnostics: IntegrityDiagnostic[]
 }
 
 interface CheckContext {
@@ -333,45 +323,6 @@ export function buildCheckWorkspacePorts(ctx: CheckContext): WorkspaceIntegrityP
 }
 
 /**
- * Lineage drift gate: compares the managed sections of the lineage record with
- * a fresh projection through the one core comparator. Read-only; a domaiNN
- * without a record passes with `record: null`.
- */
-export function checkLineageGate(rootDir: string): LineageGateReport {
-  try {
-    const record = readLineageRecord(rootDir)
-    if (!record) return { record: null, diagnostics: [] }
-    const rendered = renderLineageSections(projectLineage(readLineageSnapshot(rootDir)))
-    const result = checkLineageDrift(record.content, rendered)
-    if (result.ok) return { record: record.path, diagnostics: [] }
-    return {
-      record: record.path,
-      diagnostics: result.diffs.map((d) => ({
-        path: record.path,
-        message: `Lineage record drift in ${d.section}: ${d.firstDiff}. Run nn-sources --lineage to regenerate the record.`,
-        severity: 'error' as const,
-        code: 'LINEAGE_DRIFT',
-      })),
-    }
-  } catch (err) {
-    /* v8 ignore start */
-    // never fail the pass: an unreadable workspace degrades to a warning.
-    return {
-      record: null,
-      diagnostics: [
-        {
-          path: '.',
-          message: `Lineage drift check could not run: ${errorMessage(err)}`,
-          severity: 'warning',
-          code: 'LINEAGE_CHECK_FAILED',
-        },
-      ],
-    }
-    /* v8 ignore stop */
-  }
-}
-
-/**
  * Provenance plus the projection's own diagnostics: a non-regenerable artifact
  * with no `produce_artifact` change is `ARTIFACT_WITHOUT_RECORD` (a warning in
  * both modes; it is not a body drift).
@@ -406,7 +357,6 @@ export async function checkWorkspace(
   WorkspaceIntegrityReport & {
     truncated?: boolean
     collisionsTruncated?: boolean
-    lineage: LineageGateReport
     /**
      * Provenance report: fold mode by default, strict replay with
      * `{strict: true}` (the unit drift is then the replay comparison).
@@ -429,7 +379,6 @@ export async function checkWorkspace(
   const provenance = await provenanceWithArtifacts(rootDir, options.strict === true)
   const report = {
     ...base,
-    lineage: checkLineageGate(rootDir),
     provenance,
     collisions: modelIdCollisionDiagnostics(ctx.models.map((m) => m.path)),
   }

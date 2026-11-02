@@ -7377,9 +7377,6 @@ __export(trannsformPrimitives_exports, {
   CORE_BLUEPRINT_ROLE: () => CORE_BLUEPRINT_ROLE,
   ENTRYPOINT_FILENAME: () => ENTRYPOINT_FILENAME,
   IGNORED_DIRECTORIES: () => IGNORED_DIRECTORIES,
-  RECORD_BLUEPRINT: () => RECORD_BLUEPRINT,
-  RECORD_INNFO_URL: () => RECORD_INNFO_URL,
-  RECORD_TEMPLATE_URL: () => RECORD_TEMPLATE_URL,
   SIDECAR_BLUEPRINT: () => SIDECAR_BLUEPRINT,
   SIDECAR_SPEC_URL: () => SIDECAR_SPEC_URL,
   SPEC_FILENAME: () => SPEC_FILENAME,
@@ -7391,7 +7388,6 @@ __export(trannsformPrimitives_exports, {
   buildSidecar: () => buildSidecar,
   canonicalModelId: () => canonicalModelId,
   changesetStampOf: () => changesetStampOf,
-  checkLineageDrift: () => checkLineageDrift,
   checkNameInvariant: () => checkNameInvariant,
   checkPathBudget: () => checkPathBudget,
   cognitivize: () => cognitivize,
@@ -7406,7 +7402,6 @@ __export(trannsformPrimitives_exports, {
   extractFileCitations: () => extractFileCitations,
   extractHeadings: () => extractHeadings,
   familyOf: () => familyOf,
-  findLineageRecord: () => findLineageRecord,
   formatMemberName: () => formatMemberName,
   formatNNName: () => formatNNName,
   formatUtcStamp: () => formatUtcStamp,
@@ -7431,12 +7426,8 @@ __export(trannsformPrimitives_exports, {
   procedureIdOf: () => procedureIdOf,
   projectLineage: () => projectLineage,
   rawPathOfSidecar: () => rawPathOfSidecar,
-  readLineageRecord: () => readLineageRecord,
   readLineageSnapshot: () => readLineageSnapshot,
   readSidecarSha256: () => readSidecarSha256,
-  refreshExistingModel: () => refreshExistingModel,
-  renderLineageSections: () => renderLineageSections,
-  renderRecordFrontmatter: () => renderRecordFrontmatter,
   resolveJsonPointer: () => resolveJsonPointer,
   roleOf: () => roleOf,
   serializeKnowledgeUnitRef: () => serializeKnowledgeUnitRef,
@@ -7444,7 +7435,6 @@ __export(trannsformPrimitives_exports, {
   sidecarPathOf: () => sidecarPathOf,
   slugifyHeading: () => slugifyHeading,
   slugifyUnitHeading: () => slugifyUnitHeading,
-  splitTopLevelSections: () => splitTopLevelSections2,
   validateCitations: () => validateCitations,
   writeOnce: () => writeOnce
 });
@@ -7566,7 +7556,6 @@ function procedureIdOf(basename4) {
 }
 var IGNORED_DIRECTORIES = /* @__PURE__ */ new Set(["backups", "archive", "specs"]);
 var CORE_BLUEPRINT_ROLE = {
-  cognnitive: "lineage-record",
   sidecar: "sidecar",
   changes: "changeset",
   workspace: "catalog",
@@ -10576,196 +10565,9 @@ function listSectionFieldsFor(content, heading) {
   return fields ?? void 0;
 }
 
-// iNNfo/packages/nn-core/src/lineage/render.ts
-var SOURCES_GUIDANCE = "No sources ingested yet. Place files in sources/import and run a scan.";
-var MODELS_GUIDANCE = "Auto-synced from kNNowledge/ on every --scan/--import-url/--lineage. One ModelRecords element per Level 3 model.";
-var ARTIFACTS_GUIDANCE = "Auto-synced from artifacts/ on every --scan/--import-url/--lineage. One element per generated deliverable.";
-function renderSourcesSection(sources) {
-  let out = "# NN Sources\n";
-  if (sources.length === 0) {
-    out += `
-<!-- ${SOURCES_GUIDANCE} -->
-`;
-    return out;
-  }
-  for (const s of sources) {
-    out += `
-## NN Sources: ${s.name}
-`;
-    out += `raw_filename:: ${s.raw_filename}
-`;
-    if (s.raw_hash) out += `raw_hash:: ${s.raw_hash}
-`;
-    if (s.size) out += `size:: ${s.size}
-`;
-    if (s.source_format) out += `source_format:: ${s.source_format}
-`;
-    if (s.normalized_at) out += `normalized_at:: ${s.normalized_at}
-`;
-    if (s.normalized_by) out += `normalized_by:: ${s.normalized_by}
-`;
-    out += `normalized_content:: ${s.normalized_content}
-`;
-    if (s.version) out += `version:: ${s.version}
-`;
-    if (s.superseded_by) out += `superseded_by:: ${s.superseded_by}
-`;
-    if (s.derived_from && s.derived_from.length > 0) {
-      out += `derived_from:: [${s.derived_from.join(", ")}]
-`;
-    }
-  }
-  return out;
-}
-function renderModelsSection(models) {
-  if (models.length === 0) {
-    return `# NN ModelRecords
-
-<!-- ${MODELS_GUIDANCE} -->
-`;
-  }
-  let out = "# NN ModelRecords\n";
-  for (const m of models) {
-    out += `
-## NN ModelRecords: ${m.name}
-`;
-    out += `model_ref:: ${m.model_ref}
-`;
-    if (m.knowledge_version) out += `knowledge_version:: ${m.knowledge_version}
-`;
-    if (m.model_template) out += `model_template:: ${m.model_template}
-`;
-    const derived = Array.from(new Set(m.citations.map((c) => c.value)));
-    if (derived.length > 0) {
-      out += `derived_from:: [${derived.join(", ")}]
-`;
-    }
-  }
-  return out;
-}
-function renderArtifactsSection(artifacts) {
-  if (artifacts.length === 0) {
-    return `# NN Artifacts
-
-<!-- ${ARTIFACTS_GUIDANCE} -->
-`;
-  }
-  let out = "# NN Artifacts\n";
-  for (const a of artifacts) {
-    out += `
-## NN Artifacts: ${a.name}
-`;
-    out += `artifact_ref:: ${a.artifact_ref}
-`;
-    out += `artifact_format:: ${a.artifact_format}
-`;
-    const derived = Array.from(new Set(a.citations.map((c) => c.value)));
-    if (derived.length > 0) {
-      out += `derived_from:: [${derived.join(", ")}]
-`;
-    }
-  }
-  return out;
-}
-function renderLineageSections(p) {
-  return {
-    sources: renderSourcesSection(p.sources),
-    modelRecords: renderModelsSection(p.knowledge),
-    artifacts: renderArtifactsSection(p.artifacts)
-  };
-}
-
 // iNNfo/packages/nn-core/src/lineage/fs-snapshot.ts
 var fs = __toESM(require("node:fs"), 1);
 var path = __toESM(require("node:path"), 1);
-
-// iNNfo/packages/nn-core/src/lineage/record.ts
-var RECORD_BLUEPRINT = "cogNNitive";
-var RECORD_TEMPLATE_URL = "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/cogNNitive/spec_NN.md";
-var RECORD_INNFO_URL = "https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/iNNfo_V_0-5-0_NN.md";
-var FRONTMATTER_RE = /^(---\r?\n[\s\S]*?\r?\n---(?:\r?\n)?)/;
-function splitFrontmatter(text) {
-  const match = FRONTMATTER_RE.exec(text);
-  const frontmatter = match ? match[1] : "";
-  return { frontmatter, body: text.slice(frontmatter.length) };
-}
-function splitTopLevelSections2(body) {
-  const blocks = [];
-  const preamble = [];
-  let current = null;
-  for (const line of body.split("\n")) {
-    if (/^# (?!#)/.test(line)) {
-      if (current) blocks.push(current);
-      current = { heading: line, lines: [] };
-    } else if (current) {
-      current.lines.push(line);
-    } else {
-      preamble.push(line);
-    }
-  }
-  if (current) blocks.push(current);
-  return { preamble: preamble.join("\n"), blocks };
-}
-function managedSections(sections) {
-  return [
-    { name: "# NN Sources", re: /^# NN Sources\b/, render: () => sections.sources },
-    { name: "# NN ModelRecords", re: /^# NN ModelRecords\b/, render: () => sections.modelRecords },
-    { name: "# NN Artifacts", re: /^# NN Artifacts\b/, render: () => sections.artifacts }
-  ];
-}
-function blockText(heading, lines) {
-  return (heading + "\n" + lines.join("\n")).replace(/\n+$/, "") + "\n";
-}
-function renderRecordFrontmatter(title) {
-  return `---
-specification_version: "V_0-3-0"
-specification_url: "${RECORD_INNFO_URL}"
-level: 3
-parent_spec:
-  name: "${RECORD_BLUEPRINT}"
-  url: "${RECORD_TEMPLATE_URL}"
-title: "${title}"
----
-`;
-}
-function refreshExistingModel(existing, sections) {
-  const { body } = splitFrontmatter(existing);
-  const titleMatch = /^title:\s*"?(.*?)"?\s*$/m.exec(existing);
-  const { preamble, blocks } = splitTopLevelSections2(body);
-  const managed = managedSections(sections);
-  const rendered = managed.map((m) => m.render().replace(/\n+$/, "") + "\n");
-  const present = new Array(managed.length).fill(false);
-  const rebuilt = blocks.map((b) => {
-    const idx = managed.findIndex((m) => m.re.test(b.heading));
-    if (idx !== -1) {
-      present[idx] = true;
-      return rendered[idx];
-    }
-    return blockText(b.heading, b.lines);
-  });
-  const anchor = rebuilt.findIndex((s) => /^# NN index\b/.test(s));
-  let insertAt = anchor >= 0 ? anchor + 1 : 0;
-  for (let i = 0; i < managed.length; i++) {
-    if (present[i]) {
-      insertAt = rebuilt.findIndex((s) => managed[i].re.test(s)) + 1;
-      continue;
-    }
-    rebuilt.splice(insertAt, 0, rendered[i]);
-    insertAt++;
-  }
-  const notice = preamble.replace(/^\n+|\n+$/g, "");
-  return renderRecordFrontmatter(titleMatch ? titleMatch[1] : "Provenance") + "\n" + (notice ? notice + "\n\n" : "") + rebuilt.join("\n") + "\n";
-}
-function findLineageRecord(files) {
-  const candidates = files.filter((f) => isNNName(f.path) && !isExcludedPath(f.path)).sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
-  for (const file of candidates) {
-    const parentSpecName = parseKnowledge(file.content).frontmatter?.parent_spec?.name;
-    if (roleOf({ path: file.path, parentSpecName }) === "lineage-record") return file;
-  }
-  return null;
-}
-
-// iNNfo/packages/nn-core/src/lineage/fs-snapshot.ts
 var TEXT_EXTENSIONS = /* @__PURE__ */ new Set([".md", ".csv", ".json", ".html", ".htm"]);
 function walkDir(dir, baseDir, out) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -10799,93 +10601,6 @@ function readLineageSnapshot(root) {
   }
   snapshots.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
   return snapshots;
-}
-function readLineageRecord(root) {
-  const rootDir = path.resolve(root);
-  if (!fs.existsSync(rootDir)) return null;
-  const rels = [];
-  walkDir(rootDir, rootDir, rels);
-  const candidates = rels.filter((rel) => isNNName(rel)).map((rel) => ({ path: rel, content: fs.readFileSync(path.join(rootDir, rel), "utf8") }));
-  return findLineageRecord(candidates);
-}
-
-// iNNfo/packages/nn-core/src/lineage/drift.ts
-function formatSnippet(s) {
-  const snippet = s.slice(0, 100) + (s.length > 100 ? "\u2026" : "");
-  return `(${s.length} chars) ${JSON.stringify(snippet)}`;
-}
-function formatLineDiff(e, a) {
-  if (e === void 0) {
-    const found = a === void 0 ? "<end of section>" : a.length <= 120 ? JSON.stringify(a) : formatSnippet(a);
-    return `expected <end of section>, found ${found}`;
-  }
-  if (a === void 0) {
-    const want = e.length <= 120 ? JSON.stringify(e) : formatSnippet(e);
-    return `expected ${want}, found <end of section>`;
-  }
-  if (Math.max(e.length, a.length) <= 120) {
-    return `expected ${JSON.stringify(e)}, found ${JSON.stringify(a)}`;
-  }
-  let firstDivergence = 0;
-  const minLen = Math.min(e.length, a.length);
-  while (firstDivergence < minLen && e[firstDivergence] === a[firstDivergence]) {
-    firstDivergence++;
-  }
-  const windowStart = Math.max(0, firstDivergence - 30);
-  const expEnd = Math.min(e.length, firstDivergence + 90);
-  const actEnd = Math.min(a.length, firstDivergence + 90);
-  const expWindow = (windowStart > 0 ? "\u2026" : "") + e.slice(windowStart, expEnd) + (expEnd < e.length ? "\u2026" : "");
-  const actWindow = (windowStart > 0 ? "\u2026" : "") + a.slice(windowStart, actEnd) + (actEnd < a.length ? "\u2026" : "");
-  return `diverges at offset ${firstDivergence}: expected (${e.length} chars) ${JSON.stringify(expWindow)}, found (${a.length} chars) ${JSON.stringify(actWindow)}`;
-}
-function describeSectionDiff(expected, actual) {
-  const exp = expected.split("\n");
-  const act = actual.split("\n");
-  const max = Math.max(exp.length, act.length);
-  let currentElement = "";
-  const elementMismatches = /* @__PURE__ */ new Map();
-  for (let i = 0; i < max; i++) {
-    const e = exp[i];
-    const a = act[i];
-    if (e !== void 0 && e.startsWith("## ")) currentElement = e;
-    else if (!currentElement && a !== void 0 && a.startsWith("## ")) currentElement = a;
-    if (e === a) continue;
-    const key = currentElement || "<preamble>";
-    if (!elementMismatches.has(key)) {
-      elementMismatches.set(key, []);
-    }
-    elementMismatches.get(key).push(`line ${i + 1}: ${formatLineDiff(e, a)}`);
-  }
-  if (elementMismatches.size === 0) return "sections differ";
-  const parts = [];
-  for (const [elem, mismatches] of elementMismatches) {
-    const where = elem !== "<preamble>" ? `${elem}: ` : "";
-    if (mismatches.length === 1) {
-      parts.push(`${where}${mismatches[0]}`);
-    } else {
-      const list = mismatches.slice(0, 10).join("; ");
-      const more = mismatches.length > 10 ? `; ... and ${mismatches.length - 10} more` : "";
-      parts.push(`${where}(${mismatches.length} mismatches: ${list}${more})`);
-    }
-  }
-  return parts.slice(0, 10).join(" | ") + (parts.length > 10 ? ` | ... and ${parts.length - 10} more elements` : "");
-}
-function checkLineageDrift(record, rendered) {
-  const { blocks } = splitTopLevelSections2(splitFrontmatter(record).body);
-  const diffs = [];
-  for (const managed of managedSections(rendered)) {
-    const expected = managed.render().replace(/\n+$/, "") + "\n";
-    const block = blocks.find((b) => managed.re.test(b.heading));
-    if (!block) {
-      diffs.push({ section: managed.name, firstDiff: `missing section ${managed.name} in the record` });
-      continue;
-    }
-    const actual = blockText(block.heading, block.lines);
-    if (actual !== expected) {
-      diffs.push({ section: managed.name, firstDiff: describeSectionDiff(expected, actual) });
-    }
-  }
-  return diffs.length === 0 ? { ok: true } : { ok: false, diffs };
 }
 
 // iNNfo/packages/nn-core/src/writeOnce/plan.ts
@@ -10937,9 +10652,9 @@ var OWNED_KEYS = /* @__PURE__ */ new Set([
   // A sidecar's upstream edge is `sources`; the projection derives `derived_from` itself.
   "derived_from"
 ]);
-var FRONTMATTER_RE2 = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
+var FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
 function parseSidecarFrontmatter(text) {
-  const match = FRONTMATTER_RE2.exec(text);
+  const match = FRONTMATTER_RE.exec(text);
   if (!match) return null;
   try {
     const value = (0, import_yaml8.parse)(match[1]);
@@ -11208,9 +10923,6 @@ async function importRaw(root, externalAbs, o = {}) {
   CORE_BLUEPRINT_ROLE,
   ENTRYPOINT_FILENAME,
   IGNORED_DIRECTORIES,
-  RECORD_BLUEPRINT,
-  RECORD_INNFO_URL,
-  RECORD_TEMPLATE_URL,
   SIDECAR_BLUEPRINT,
   SIDECAR_SPEC_URL,
   SPEC_FILENAME,
@@ -11222,7 +10934,6 @@ async function importRaw(root, externalAbs, o = {}) {
   buildSidecar,
   canonicalModelId,
   changesetStampOf,
-  checkLineageDrift,
   checkNameInvariant,
   checkPathBudget,
   cognitivize,
@@ -11237,7 +10948,6 @@ async function importRaw(root, externalAbs, o = {}) {
   extractFileCitations,
   extractHeadings,
   familyOf,
-  findLineageRecord,
   formatMemberName,
   formatNNName,
   formatUtcStamp,
@@ -11262,12 +10972,8 @@ async function importRaw(root, externalAbs, o = {}) {
   procedureIdOf,
   projectLineage,
   rawPathOfSidecar,
-  readLineageRecord,
   readLineageSnapshot,
   readSidecarSha256,
-  refreshExistingModel,
-  renderLineageSections,
-  renderRecordFrontmatter,
   resolveJsonPointer,
   roleOf,
   serializeKnowledgeUnitRef,
@@ -11275,7 +10981,6 @@ async function importRaw(root, externalAbs, o = {}) {
   sidecarPathOf,
   slugifyHeading,
   slugifyUnitHeading,
-  splitTopLevelSections,
   validateCitations,
   writeOnce
 });

@@ -98,7 +98,6 @@ export type Role =
   | 'entrypoint'
   | 'spec'
   | 'sidecar'
-  | 'lineage-record'
   | 'catalog'
   | 'procedure'
   | 'knowledge'
@@ -122,7 +121,6 @@ export const IGNORED_DIRECTORIES: ReadonlySet<string> = new Set(['backups', 'arc
  * identity, so `roleOf` stays pure and browser-safe (no filesystem, no regex).
  */
 export const CORE_BLUEPRINT_ROLE: Readonly<Record<string, Role>> = {
-  cognnitive: 'lineage-record',
   sidecar: 'sidecar',
   changes: 'changeset',
   workspace: 'catalog',

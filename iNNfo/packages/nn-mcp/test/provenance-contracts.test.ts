@@ -120,7 +120,7 @@ afterEach(async () => {
 })
 
 describe('check_domain.provenance', () => {
-  it('reports a ProvenanceReport and keeps the transitional lineage field', async () => {
+  it('reports a ProvenanceReport and no lineage field', async () => {
     await applyBaseline()
     const report = await checkDomain(root, { offline: true })
 
@@ -128,8 +128,8 @@ describe('check_domain.provenance', () => {
     expect(report.provenance.mode).toBe('fold')
     expect(Array.isArray(report.provenance.diagnostics)).toBe(true)
     expect(report.provenance.ok).toBe(true)
-    // Replacement before deletion: `lineage` stays until S4b.
-    expect(report).toHaveProperty('lineage')
+    // S4b: the lineage record is gone; `provenance` is the replacement.
+    expect(report).not.toHaveProperty('lineage')
     // The flat `evidence` list is carried by `provenance.diagnostics` now.
     expect(report).not.toHaveProperty('evidence')
   })

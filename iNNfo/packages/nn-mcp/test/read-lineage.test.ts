@@ -70,10 +70,10 @@ afterEach(async () => {
 })
 
 describe('read_lineage', () => {
-  it('is registered and keeps sync_lineage until S4b', () => {
+  it('is registered and sync_lineage is retired', () => {
     const names = toolDefinitions.map((tool) => tool.name)
     expect(names).toContain('read_lineage')
-    expect(names).toContain('sync_lineage')
+    expect(names).not.toContain('sync_lineage')
   })
 
   it('returns the six sections and writes nothing', async () => {

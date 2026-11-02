@@ -130,7 +130,6 @@ function procedureIdOf(basename) {
 }
 var IGNORED_DIRECTORIES = /* @__PURE__ */ new Set(["backups", "archive", "specs"]);
 var CORE_BLUEPRINT_ROLE = {
-  cognnitive: "lineage-record",
   sidecar: "sidecar",
   changes: "changeset",
   workspace: "catalog",

@@ -127,11 +127,11 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
     expect(info?.version).toBe(pkgVersion)
   })
 
-  it('lists exactly the 25 canonical tools and no retired names', async () => {
+  it('lists exactly the 24 canonical tools and no retired names', async () => {
     const { tools } = await client.listTools()
     const names = tools.map((t) => t.name).sort()
     expect(names).toEqual(toolDefinitions.map((t) => t.name).sort())
-    expect(tools).toHaveLength(25)
+    expect(tools).toHaveLength(24)
 
     const canonicalNames = [
       'list_knowledge',
@@ -152,7 +152,6 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
       'check_domain',
       'query_units',
       'cognitivize',
-      'sync_lineage',
       'read_lineage',
       'resolve_sources',
       'list_blueprint_procedures',
@@ -162,7 +161,7 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
     ].sort()
     expect(names).toEqual(canonicalNames)
 
-    // Verify all 25 tools declare MCP tool annotations with readOnlyHint
+    // Verify all 24 tools declare MCP tool annotations with readOnlyHint
     for (const tool of tools) {
       expect(tool.annotations).toBeDefined()
       expect(typeof tool.annotations?.readOnlyHint).toBe('boolean')

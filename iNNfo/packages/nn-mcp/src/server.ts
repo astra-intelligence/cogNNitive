@@ -51,7 +51,6 @@ import { syncDomainManifest } from './tools/workspace-sync.js'
 import { applyWithConsole, regenerateConsole, buildNextSteps } from './tools/console-regeneration.js'
 import { proposeChangeset } from './tools/propose-changeset.js'
 import { initDomain } from './tools/init-domain.js'
-import { syncLineageTool } from './tools/sync-lineage.js'
 import { readLineageTool } from './tools/read-lineage.js'
 import { explainEffective, resolveEffective } from './tools/resolve-effective.js'
 import { envelope, envelopeList, findDomainRoot } from '@cognnitive/nn-core'
@@ -563,7 +562,7 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
       name: 'check_domain',
       annotations: { readOnlyHint: true },
       description:
-        'Run one consolidated domain integrity pass over every Level-3 knowledge document: validate each against its blueprint and traceability, self-heal missing blueprint packages/specs (write-once hydration), classify each pinned blueprint version against the published catalog, compare the managed sections of the lineage record with a fresh projection (error LINEAGE_DRIFT in the lineage field of the report; read-only), and return one report with a per-knowledge status and a domain aggregate. Non-blocking and informational — validation failures never fail the tool.',
+        'Run one consolidated domain integrity pass over every Level-3 knowledge document: validate each against its blueprint and traceability, self-heal missing blueprint packages/specs (write-once hydration), classify each pinned blueprint version against the published catalog, check provenance (evidence warnings, drift between the applied changes and the files, and ARTIFACT_WITHOUT_RECORD; read-only), and return one report with a per-knowledge status and a domain aggregate. Non-blocking and informational — validation failures never fail the tool.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -657,32 +656,6 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
       },
     },
     handler: handleCognitivize,
-  },
-  {
-    definition: {
-      name: 'sync_lineage',
-      annotations: { readOnlyHint: false, idempotentHint: true },
-      description:
-        'Recompute the lineage projection from the workspace filesystem and regenerate the canonical lineage record (`<project>_cogNNitive_NN.md`) without requiring the CLI. Re-synchronizes # NN Sources, # NN ModelRecords, and # NN Artifacts sections.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          domain: {
-            type: 'string',
-            description: 'Optional domain root directory override (default: server root)',
-          },
-          root: {
-            type: 'string',
-            description: 'Optional domain root directory override (alias for domain)',
-          },
-          projectName: {
-            type: 'string',
-            description: 'Optional project name override (default: basename of domain root)',
-          },
-        },
-      },
-    },
-    handler: handleSyncLineage,
   },
   {
     definition: {
@@ -1133,13 +1106,6 @@ async function handleCognitivize(args: Record<string, unknown>): Promise<CallToo
   const result = await cognitivizeTool(root, path)
   const text = JSON.stringify(envelope('innfo-cognitivize', result), null, 2)
   return result.status === 'rejected' ? errorResult(text) : textResult(text)
-}
-
-async function handleSyncLineage(args: Record<string, unknown>): Promise<CallToolResult> {
-  const root = (args.domain as string) || (args.root as string) || ROOT_DIR
-  const projectName = args.projectName as string | undefined
-  const result = await syncLineageTool(root, { projectName })
-  return textResult(JSON.stringify(envelope('innfo-sync-lineage', result), null, 2))
 }
 
 async function handleReadLineage(args: Record<string, unknown>): Promise<CallToolResult> {

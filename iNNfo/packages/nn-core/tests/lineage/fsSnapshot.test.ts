@@ -57,7 +57,7 @@ describe('readLineageSnapshot', () => {
     ])
   })
 
-  it('skips binaries (their sidecars represent them) and the lineage record', () => {
+  it('skips binaries (their sidecars represent them); a cogNNitive document is knowledge', () => {
     seed({
       'sources/import/report.pdf': Buffer.from([0x25, 0x50, 0x44, 0x46, 0x00, 0xff]),
       'sources/import/report.pdf_sidecar_NN.md': SIDECAR,
@@ -68,7 +68,7 @@ describe('readLineageSnapshot', () => {
 
     const paths = readLineageSnapshot(tempDir).map((s) => s.path)
 
-    expect(paths).toEqual(['sources/import/report.pdf_sidecar_NN.md'])
+    expect(paths).toEqual(['kNNowledge/Acme_cogNNitive_NN.md', 'sources/import/report.pdf_sidecar_NN.md'])
   })
 
   it('never snapshots a catalog document as knowledge', () => {

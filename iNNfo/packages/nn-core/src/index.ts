@@ -190,7 +190,7 @@ export * from './changelog/load.js'
 export { loadChangeLog } from './changelog/node.js'
 export { canonicalUnitModelId } from './changeset/resolved-target.js'
 export * from './lineage/index.js'
-export { readLineageSnapshot, readLineageRecord } from './lineage/fs-snapshot.js'
+export { readLineageSnapshot } from './lineage/fs-snapshot.js'
 
 export * from './naming/index.js'
 export * from './writeOnce/index.js'

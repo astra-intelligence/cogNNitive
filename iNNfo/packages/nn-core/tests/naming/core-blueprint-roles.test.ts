@@ -18,10 +18,10 @@ import { roleOf } from '../../src/naming/contract.js'
 describe('core blueprint role decisions (characterization pin)', () => {
   const cases: Array<{ label: string; path: string; parentSpecName: string; role: string }> = [
     {
-      label: 'cognnitive -> lineage-record',
+      label: 'cognnitive -> knowledge (record retired)',
       path: 'cognnitive_V_0-1-0_NN.md',
       parentSpecName: 'cognnitive_V_0-1-0',
-      role: 'lineage-record',
+      role: 'knowledge',
     },
     {
       label: 'sidecar -> sidecar',

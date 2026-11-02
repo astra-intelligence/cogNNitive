@@ -103,19 +103,6 @@ sources:: sources/import/interview.md@## Clients
 description:: Market positioning.
 `,
     },
-    // The record is never a model.
-    {
-      path: 'kNNowledge/Lineage_cogNNitive_NN.md',
-      content: `---
-title: "cogNNitive Lineage Record"
-level: 3
-parent_spec:
-  name: "cogNNitive"
-  url: "https://example.com/cogNNitive.md"
----
-# NN Sources
-`,
-    },
     // Artifacts that declare upstream.
     {
       path: 'artifacts/Report.md',
@@ -218,7 +205,7 @@ sources:
     expect(projection.sources.some((s) => s.raw_filename === 'sources/import/a.csv')).toBe(true)
   })
 
-  it('projects isModelCandidate documents as knowledge and skips the record', () => {
+  it('projects isModelCandidate documents as knowledge', () => {
     const { knowledge } = projectLineage(fixtureFiles)
 
     expect(knowledge).toHaveLength(1)
