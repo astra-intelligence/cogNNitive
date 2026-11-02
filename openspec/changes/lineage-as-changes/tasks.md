@@ -462,9 +462,9 @@ Goal: `nn-sources` and `nn` skills describe change-based provenance.
 Depends on: PR 29.
 Rollback: revert; no code behavior changes.
 
-- [ ] 6.1a [RED] [S] (was 6.1, nn-sources and nn skills) Skill tests: no mention of `sync_lineage`, `--lineage`, a persisted record, `sources::` as authoring syntax, `update_description`, `get_lineage`; the skills mention `read_lineage`, `update_element_text`, `produce_artifact`.
-- [ ] 6.2a [GREEN] [P] (was 6.2, part) Rewrite `skills/nn-sources/SKILL.md`, `skills/nn/SKILL.md`; regenerate generated mirrors with `node scripts/build-core-mirrors.mjs`.
-- [ ] 6.4a [S] (was 6.4) Standard PR gate. Open PR 30.
+- [x] 6.1a [RED] [S] (was 6.1, nn-sources and nn skills) Skill tests: no mention of `sync_lineage`, `--lineage`, a persisted record, `sources::` as authoring syntax, `update_description`, `get_lineage`; the skills mention `read_lineage`, `update_element_text`, `produce_artifact`.
+- [x] 6.2a [GREEN] [P] (was 6.2, part) Rewrite `skills/nn-sources/SKILL.md`, `skills/nn/SKILL.md`; regenerate generated mirrors with `node scripts/build-core-mirrors.mjs`.
+- [x] 6.4a [S] (was 6.4) Standard PR gate. Open PR 30.
 
 Files: `skills/nn-sources/SKILL.md`, `skills/nn/SKILL.md`, skill tests.
 Verification: `npm run verify:fast`, `rg "sync_lineage|get_lineage|update_description" skills/nn-sources skills/nn` returns 0.

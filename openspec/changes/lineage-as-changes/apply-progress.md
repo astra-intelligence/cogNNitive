@@ -2002,3 +2002,61 @@ worktree.
 
 ---
 
+## PR 30 — S6a (branch `lac/s6a`, base `lac/s5b5`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 6.1a, 6.2a, 6.4a.
+
+- New `scripts/skill-content.test.mjs` (4 assertions): neither skill mentions
+  `sync_lineage`, `--lineage`, `get_lineage`, `update_description`, `sources::`, the
+  "persisted lineage record" or the "lineage record", and both name `read_lineage`,
+  `update_element_text` and `produce_artifact`.
+- `skills/nn-sources/SKILL.md`: the pointer-grammar and "mandatory citations" sections
+  now teach `evidence::` on the applied change; the record sections became "computed
+  lineage (no persisted sync)" with the projection's `sources`/`models`/`artifacts`/
+  `edges`; the watch-roots declaration points at the domaiNN entrypoint; a new
+  "prose bodies are changes, not fields" section documents `update_element_text`.
+- `scripts/skill-shared-rules.md`: the shared citation paragraph is evidence-based (it
+  is injected into the skills by the generator, so it was re-injecting `sources::`).
+- `skills/nn/SKILL.md`: adds a "Provenance Capabilities" section naming `read_lineage`,
+  `resolve_sources`, `produce_artifact` and `update_element_text`; the watch-root
+  sentence points at the entrypoint.
+- Regenerated the skills-manager bundle and the shared-rules blocks.
+- Size: ~120 hand-authored lines (mostly rewording) plus the 40-line test.
+- Verification: `scripts/skill-content.test.mjs` green; `npm run verify:fast` green.
+
+### Deviations
+
+85. `nn-innfo/SKILL.md` still teaches `sources::` in depth — that is PR 31 (S6b), whose
+    task is exactly that rewrite; S6a's gate covers `nn-sources` and `nn` only.
+86. The shared-rules generator owns the citation paragraph, so the fix had to land in
+    `scripts/skill-shared-rules.md` (regenerating the skills); editing the skills alone
+    would have been reverted by the next generator run.
+
+---
+
+## Handoff — start here next session (after PR 30)
+
+Chain state: `lac/s6a` is the tip (PR 30). Next branch:
+`git switch lac/s6a && git switch -c lac/s6b`.
+
+**PR 31 — S6b (nn-innfo and shared rules)** — tasks 6.1b [RED], 6.2b [GREEN], 6.4b.
+
+- Rewrite `skills/nn-innfo/SKILL.md` §4 (source citation protocol) and §16-bis.4 (emit
+  `produce_artifact` instead of journal entries); update `scripts/skill-shared-rules.md`
+  and regenerate. Parity test green.
+- Verification: `npm run verify:fast`, skill-shared-rules parity test,
+  `rg "sync_lineage|get_lineage|update_description" skills` returns 0.
+
+**Then:** PR 32 (docs + vocabulary), S7 (full verify, empty-HOME preflight, the seven
+criteria), then the release step and the tracker merge (both need your go).
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
