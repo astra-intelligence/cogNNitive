@@ -1507,3 +1507,77 @@ worktree.
 
 ---
 
+## PR 22 — S5a.1 (branch `lac/s5a1`, base `lac/s4c`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 5a.3, 5a.4, 5a.7a.
+
+- Deleted `SOURCE_FIELD_NAMES` and `CONFLICT_FIELD_NAMES` (`sourceRef.ts`),
+  `dedupeCitationList` (`parser/serializer.ts`), the `LEGACY_DERIVATION_KEY` helper and
+  diagnostic (`validator/workspaceSources.ts`) and `attachSourceCitations`
+  (`recursiveParser/normalize.ts`): `sources::` no longer feeds the graph.
+- `console/citations.ts` `citationFieldsFor` keeps a schema-declared `type:: citation`
+  field plus — transitionally — a field literally named `sources`/`source`, so the
+  console UI keeps rendering legacy citations until the corpus rebuild.
+- `validator/workspaceSources.ts` `isCitationField` keeps resolving a legacy
+  `sources`/`source` field (S5a.3 reports it as banned) and `conflicts` is a plain name.
+- `lineage/project.ts`: a console export no longer declares upstream through
+  `meta.sources` (an HTML artifact with only that meta is not an artifact), while a
+  model's legacy `sources::` fields are still reported as citations for the audits and
+  gc.
+- `resolve-sources.ts`: the field-less path returns only schema-typed citation fields.
+- New gate `mcp/test/legacy-citation-symbols.test.ts` (3: no deleted exports, no
+  `SOURCE_FIELD_NAMES|attachSourceCitations|LEGACY_DERIVATION_KEY` in core/src, legacy
+  field still rendered by `citationFieldsFor`).
+- Tests updated/removed: 2 sourceRef suites, `attachSourceCitations`, the serializer
+  de-duplication case, `LEGACY_DERIVATION_KEY` cases, the console citation fixtures,
+  projection/validation artifacts, and the gc fixture (which now cites through an
+  applied change's evidence).
+- Regenerated: mirror, console payload, console bundle and the testlab fixture; `nn-mcp`
+  dist rebuilt for the docs-facts render and the tracked `bin/nn-mcp.bundle.js` restored
+  byte-exact from HEAD.
+- Size: ~140 hand-authored lines added, ~260 test lines deleted; regenerated artifacts
+  excluded.
+- Verification: nn-core 2.105 tests green; nn-mcp 645 tests green; both typecheck; all
+  40 console suites green; `npm --prefix skills/nn-sources test` 564 green;
+  `npm run verify:fast` green on the committed tree.
+
+### Deviations
+
+68. `sources::` stays readable in TWO transitional places until S5b.4 rebuilds the
+    corpora: the console's `citationFieldsFor` and the workspace validator's
+    `isCitationField`. The graph (`normalize`), the serializer and the projection's
+    citation-source reading are gone; S5a.3 makes the field itself an error, so the
+    transitional read only keeps audits and the console working on legacy domains.
+69. The `nn-mcp` dist is rebuilt locally so `generate-docs-facts` renders the 24-tool
+    table; the tracked bundle is restored from HEAD and is regenerated at release.
+
+---
+
+## Handoff — start here next session (after PR 22)
+
+Chain state: `lac/s5a1` is the tip (PR 22). Next branch:
+`git switch lac/s5a1 && git switch -c lac/s5a2`.
+
+**PR 23 — S5a.2 (sidecar and cognitivize stop writing `sources`)** — tasks 5a.5 [RED],
+5a.6 [GREEN], 5a.7b.
+
+- Sidecar and cognitivize tests: the sidecar has no `sources` key; cognitivize output
+  carries no `sources::`; `core-tests/cognitivize/*.test.ts`, `sources/test/*.test.js`.
+- Edit `core/sidecar.ts`, `core/cognitivize.ts` (no `sources` key) and the nn-sources
+  writers.
+- Verification: `vitest run cognitivize` (nn-core), `npm --prefix skills/nn-sources test`,
+  `npm run verify:fast`.
+
+**Then:** PR 24 (S5a.3) enforces `SOURCES_FIELD_BANNED` / `CITATION_FIELD_BANNED` and
+makes `conflicts::` an address; PR 25 (S5b.1) publishes `iNNfo_V_0-6-0`.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+

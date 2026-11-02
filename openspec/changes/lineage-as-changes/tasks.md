@@ -348,9 +348,9 @@ Goal: dead citation and source-field helpers are removed.
 Depends on: PR 21 (replacement `produce_artifact` and `ARTIFACT_WITHOUT_RECORD` already shipped in S1/S3).
 Rollback: revert; samples untouched.
 
-- [ ] 5a.3 [RED] [P] Cleanup tests: `SOURCE_FIELD_NAMES`, `CONFLICT_FIELD_NAMES`, `dedupeCitationList`, `citationFieldsFor`, `meta.sources` in the console payload, `LEGACY_DERIVATION_KEY` no longer exist; serializer/normalize do not read `sources::`; console payload carries no `meta.sources`. (fcp; ban)
-- [ ] 5a.4 [GREEN] [S] Delete those symbols and fix call sites in `core/` and the console.
-- [ ] 5a.7a [S] (was 5a.7) Mirrors, standard PR gate. Open PR 22.
+- [x] 5a.3 [RED] [P] Cleanup tests: `SOURCE_FIELD_NAMES`, `CONFLICT_FIELD_NAMES`, `dedupeCitationList`, `citationFieldsFor`, `meta.sources` in the console payload, `LEGACY_DERIVATION_KEY` no longer exist; serializer/normalize do not read `sources::`; console payload carries no `meta.sources`. (fcp; ban)
+- [x] 5a.4 [GREEN] [S] Delete those symbols and fix call sites in `core/` and the console.
+- [x] 5a.7a [S] (was 5a.7) Mirrors, standard PR gate. Open PR 22.
 
 Files: `core/` call sites, console payload, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-core test`, `npm run verify:fast`.
