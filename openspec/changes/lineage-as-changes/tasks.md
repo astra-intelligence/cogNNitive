@@ -234,11 +234,11 @@ Goal: `projectLineage(files, log)` is a projection; the persisted record is stil
 Depends on: PR 14.
 Rollback: revert; the record path is untouched.
 
-- [ ] 3a.1 [RED] [S] `core-tests/naming/contract.test.ts`: `isRegenerableView(path)` true for `artifacts/*_console/**` and `artifacts/Impact_Audit_report*.md`, false for timestamped family artifacts, sidecars and sources. (apc: ARTIFACT_WITHOUT_RECORD)
-- [ ] 3a.2 [GREEN] [S] Add `isRegenerableView` to `core/naming/contract.ts`.
-- [ ] 3a.3 [RED] [S] `core-tests/lineage/project.test.ts`: inventory from filesystem (sources with sidecar metadata, models, artifacts), computed `version`/`superseded_by` via `familyOf`/`compareMembers`, model upstream = live evidence, artifact upstream = `produce_artifact` evidence, frontmatter `sources` ignored, loose markdown is not a node, `staging/` invisible, `ARTIFACT_WITHOUT_RECORD` warning for unrecorded non-regenerable artifacts (and not for regenerable views), edges `evidence|target|produced` from live evidence by default and all-time with `scope`, changeset nodes with role `changeset`, nothing written. G5 (sidecar sha), G6 `SIDECAR_SUBJECT_MISMATCH`, G7 orphaned sidecar appear in diagnostics; no unlisted-family or dangling `superseded_by` check. (clv; apc)
-- [ ] 3a.4 [GREEN] [S] Rewrite `core/lineage/project.ts` as `projectLineage(files, log = buildChangeLog(files)): LineageView`.
-- [ ] 3a.7a [S] (was 3a.7) Mirrors, standard PR gate. Open PR 15.
+- [x] 3a.1 [RED] [S] `core-tests/naming/contract.test.ts`: `isRegenerableView(path)` true for `artifacts/*_console/**` and `artifacts/Impact_Audit_report*.md`, false for timestamped family artifacts, sidecars and sources. (apc: ARTIFACT_WITHOUT_RECORD)
+- [x] 3a.2 [GREEN] [S] Add `isRegenerableView` to `core/naming/contract.ts`.
+- [x] 3a.3 [RED] [S] `core-tests/lineage/project.test.ts`: inventory from filesystem (sources with sidecar metadata, models, artifacts), computed `version`/`superseded_by` via `familyOf`/`compareMembers`, model upstream = live evidence, artifact upstream = `produce_artifact` evidence, frontmatter `sources` ignored, loose markdown is not a node, `staging/` invisible, `ARTIFACT_WITHOUT_RECORD` warning for unrecorded non-regenerable artifacts (and not for regenerable views), edges `evidence|target|produced` from live evidence by default and all-time with `scope`, changeset nodes with role `changeset`, nothing written. G5 (sidecar sha), G6 `SIDECAR_SUBJECT_MISMATCH`, G7 orphaned sidecar appear in diagnostics; no unlisted-family or dangling `superseded_by` check. (clv; apc)
+- [x] 3a.4 [GREEN] [S] Rewrite `core/lineage/project.ts` as `projectLineage(files, log = buildChangeLog(files)): LineageView`.
+- [x] 3a.7a [S] (was 3a.7) Mirrors, standard PR gate. Open PR 15.
 
 Files: `core/naming/contract.ts`, `core/lineage/project.ts`, matching tests.
 Verification: `npm --workspace=@cognnitive/nn-core test -- lineage naming`, `npm run verify:fast`.

@@ -976,3 +976,90 @@ worktree.
 
 ---
 
+## PR 15 — S3a.1 (branch `lac/s3a1`, base `lac/s2b3`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 3a.1, 3a.2, 3a.3, 3a.4, 3a.7a.
+
+- `core/naming/contract.ts`: `isRegenerableView(path)` — `artifacts/<name>_console/**`
+  and `artifacts/Impact_Audit_report*.md`; a timestamped family artifact, a model, a
+  source or a sidecar is not regenerable. Shared predicate (gc uses it in S3b).
+- `core/lineage/project.ts`: `projectLineage(files, log = buildChangeLog(files),
+  { scope = 'live' })` now returns a `LineageView` = the existing inventory
+  (`sources`, `knowledge`, `artifacts`, `changesets`, `diagnostics`, unchanged
+  behaviour) plus **`edges`** derived from the log:
+  - `evidence`: cited file -> the model/artifact that owns the unit (§ live or
+    all-time),
+  - `target`: the unit address -> its owner,
+  - `produced`: artifact -> the changeset that recorded its `produce_artifact`.
+  A non-regenerable artifact with no `produce_artifact` record is an
+  `ARTIFACT_WITHOUT_RECORD` **warning**; a regenerable view never warns. The default
+  log makes the projection self-contained and still pure.
+- `skills/nn-sources/scripts/lib/lineage-check.js`: `ARTIFACT_WITHOUT_RECORD` is
+  pushed to `warnings`, every other projection diagnostic stays an error (the gate
+  used to treat every projection diagnostic as fatal).
+- New tests: `core-tests/lineage/project-projection.test.ts` (9: live vs all-time
+  evidence, produced edge, target owner, artifact warning and its two exemptions, loose
+  markdown/staging excluded, changeset node, default log) and 3
+  `isRegenerableView` cases in the naming suite.
+- Regenerated: `console-payload.generated.cjs`, the two `nn-core.generated.cjs`
+  mirrors and the two `nn-preflight`/`nn-upgrade` preflight mirrors (generated).
+- Size: ~330 hand-authored changed lines (~180 source incl. the projection, ~150
+  tests) plus generated mirrors. Inside the 400-line budget.
+- Verification: nn-core `vitest run` 206 files / 2,144 tests green; nn-mcp `vitest run`
+  57 files / 646 tests green; `tsc -p` (core) and `tsc --noEmit` (nn-mcp) clean;
+  `lineage naming` 18 files / 212 tests green; mirrors + their tests green;
+  `npm run verify:fast` fully green (202 steps, including the nn-sources suite).
+
+### Deviations
+
+45. The projection keeps the existing filesystem inventory and its legacy
+    `derived_from`/`citations` fields; the log-derived `edges` are ADDITIVE. Deleting
+    the legacy upstream readers is S4b's job (replacement before deletion), and the
+    record renderer (`render.ts`) still consumes those fields until then.
+46. Edge semantics chosen: `evidence` = citation -> owner, `target` = unit -> owner,
+    `produced` = artifact -> changeset. The spec names the three kinds without pinning
+    their endpoints; these keep every edge a (path, path) pair so the graph stays
+    navigable without inventing unit nodes.
+47. `ARTIFACT_WITHOUT_RECORD` is a warning, so `lineage-check.js` had to stop treating
+    every projection diagnostic as an error. One existing nn-sources assertion
+    ("a synced workspace has no warning") now filters that code, because its fixture
+    carries an artifact with no production record — the exact condition this slice
+    introduces.
+48. A file only enters the artifact inventory when it is a write-once family member or
+    declares upstream (existing predicate). A console export under
+    `artifacts/<name>_console/` is therefore usually NOT an artifact at all; the
+    regenerable predicate is what keeps it from ever warning when it is one.
+
+---
+
+## Handoff — start here next session (after PR 15)
+
+Chain state: `lac/s3a1` is the tip (PR 15). Next branch:
+`git switch lac/s3a1 && git switch -c lac/s3a2`.
+
+**PR 16 — S3a.2 (`read_lineage`)** — tasks 3a.5 [RED], 3a.6 [GREEN], 3a.7b.
+
+- New `mcp/tools/read-lineage.ts`: input `{focus?, scope?}`, output `{sources, models,
+  artifacts, changes, edges, diagnostics}` (map `knowledge`->`models`,
+  `changesets`->`changes`), writes nothing. Register in `server.ts` and
+  `trannsformPrimitives.ts`; `check_domain.provenance` carries
+  `ARTIFACT_WITHOUT_RECORD` too.
+- `core/validator/workspaceSources.ts` takes the evidence of applied changes as its
+  citation sites (the projection's `edges`/`citations` are the source).
+- Keep `sync_lineage` until S4b.
+- Verification: `vitest run read-lineage` (nn-mcp) + `vitest run validator` (nn-core) +
+  `npm run verify:fast`.
+
+**Then:** PR 17 (S3b.1) moves impact-checker/gc/duplicate-guards onto the evidence
+index; PR 18 (S3b.2) is the producer payloads; S4 starts deleting the record.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
