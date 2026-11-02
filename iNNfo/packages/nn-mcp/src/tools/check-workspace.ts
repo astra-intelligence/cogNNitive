@@ -385,11 +385,10 @@ export async function checkWorkspace(
     truncated?: boolean
     collisionsTruncated?: boolean
     lineage: LineageGateReport
-    /** `EVIDENCE_UNKNOWN` per applied change with absent or `unknown` evidence. */
-    evidence: IntegrityDiagnostic[]
     /**
      * Provenance report: fold mode by default, strict replay with
      * `{strict: true}` (the unit drift is then the replay comparison).
+     * Carries the `EVIDENCE_UNKNOWN` diagnostics the flat list used to hold.
      */
     provenance: ProvenanceReport
     /** Repeated model ids (filename stems): warnings that name the id and every path. */
@@ -409,12 +408,6 @@ export async function checkWorkspace(
   const report = {
     ...base,
     lineage: checkLineageGate(rootDir),
-    evidence: collectEvidenceDiagnostics(rootDir).map((d) => ({
-      path: d.path,
-      message: d.message,
-      severity: d.severity,
-      code: d.code,
-    })),
     provenance,
     collisions: modelIdCollisionDiagnostics(ctx.models.map((m) => m.path)),
   }

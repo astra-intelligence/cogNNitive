@@ -15,6 +15,7 @@ import {
   createFsSourceResolver,
   readLineageSnapshot,
   buildChangeLog,
+  checkProvenance,
   unitOf,
   slugify,
   isNNName,
@@ -48,6 +49,7 @@ import { resolveBlueprintWithCache, findKnowledgeFile, deriveNameFromUrl, getSpe
 import { buildIncludeContentMap } from './resolver-node.js'
 import type { FreshnessResult } from './resolver-node.js'
 import { loadKnowledge } from './knowledge-io.js'
+import { collectProvenanceModels } from './provenance-models.js'
 
 export const DEFAULT_WORKSPACE_IGNORE: Set<string> = new Set([
   'node_modules',
@@ -348,16 +350,52 @@ export function filterDiagnosticsForModel(
   )
 }
 
+/**
+ * `EDITED_WITHOUT_RECORD` / `UNIT_WITHOUT_RECORD` / evidence drift for the whole
+ * workspace, in fold mode (change-provenance: drift is reported by
+ * `validate_knowledge` when it can see the workspace root).
+ *
+ * Filed against the model file each diagnostic belongs to, so a per-model
+ * `validate_knowledge` pass carries only its own drift.
+ */
+export async function collectDriftDiagnostics(rootDir: string): Promise<ReferenceDiagnostic[]> {
+  const log = buildChangeLog(readLineageSnapshot(rootDir))
+  const models = await collectProvenanceModels(rootDir)
+  const pathByModel = new Map(
+    models
+      .filter((model) => typeof model.path === 'string')
+      .map((model) => [model.modelId, relative(rootDir, model.path as string).replace(/\\/g, '/')]),
+  )
+
+  const diagnostics: ReferenceDiagnostic[] = []
+  for (const diagnostic of checkProvenance(log, models).diagnostics) {
+    const unit = diagnostic.unit ?? ''
+    const at = unit.indexOf('@')
+    const modelId = at === -1 ? unit : unit.slice(0, at)
+    diagnostics.push({
+      path: pathByModel.get(modelId) ?? '',
+      code: diagnostic.code,
+      severity: diagnostic.severity,
+      message: `[${diagnostic.code}] ${diagnostic.message}`,
+    })
+  }
+  return diagnostics
+}
+
 async function runWorkspaceValidation(
   rootDir: string,
   resolvedModelPath: string,
   cache: SpecCache | null,
 ): Promise<ReferenceDiagnostic[]> {
-  return filterDiagnosticsForModel(
+  const diagnostics = filterDiagnosticsForModel(
     await collectWorkspaceDiagnostics(rootDir, cache),
     rootDir,
     resolvedModelPath,
   )
+  // Drift needs the workspace root: a document validated in isolation emits
+  // none, and a workspace pass reports only the diagnostics filed against it.
+  const drift = filterDiagnosticsForModel(await collectDriftDiagnostics(rootDir), rootDir, resolvedModelPath)
+  return [...diagnostics, ...drift]
 }
 
 /* ── validate_model ──────────────────────────────────────────── */

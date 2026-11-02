@@ -38,6 +38,7 @@ import {
 import { listKnowledge } from './list-read.js'
 import { resolveBlueprintWithCache } from './spec.js'
 import { mutationArgsForChange } from './change-args.js'
+import { collectProvenanceModels } from './provenance-models.js'
 
 export interface StrictProvenanceOptions {
   strict?: boolean
@@ -58,22 +59,7 @@ function modelOfChange(change: LoggedChange): string {
 }
 
 /** Every level-3 model of the workspace, as the drift check needs it. */
-export async function collectProvenanceModels(rootDir: string): Promise<ProvenanceModel[]> {
-  const models: ProvenanceModel[] = []
-  for (const info of await listKnowledge(rootDir)) {
-    let parsed: ParsedKnowledge
-    try {
-      parsed = parseKnowledge(await readFile(info.path, 'utf-8'))
-    } catch {
-      continue
-    }
-    if (parsed.frontmatter.level !== 3) continue
-    // `listKnowledge` ids keep the `_NN` suffix; unit addresses never do.
-    const modelId = canonicalUnitModelId(info.id.replace(/_NN$/i, ''))
-    models.push({ modelId, model: parsed, path: info.path })
-  }
-  return models
-}
+export { collectProvenanceModels } from './provenance-models.js'
 
 /** The serialized document body: everything after the closing frontmatter fence. */
 export function bodyOf(serialized: string): string {
