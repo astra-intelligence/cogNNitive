@@ -2233,3 +2233,38 @@ maintainer's explicit go (hard stop).**
 
 ---
 
+## S7 — Merge (2026-11-02)
+
+- The chain is linear (`feature/lineage-as-changes` is an ancestor of `lac/s6c`), so the
+  tracker was fast-forwarded to the chain tip (69 commits) and then merged into `dev`
+  with a **merge commit**: `81837577` — "feat(lineage): changes as the only provenance
+  (#442)".
+- The 32 slice PRs (#443–#481) were closed as superseded with a comment pointing at
+  #442: every slice commit is an ancestor of `dev`, and the tracker merge is the single
+  landable unit the tasks require. Closing (not merging) keeps `dev`'s history linear
+  apart from one intentional merge commit.
+- CI on `dev` for `81837577`: **success** — `verify`, `quality`, `spec-integrity`, `site`
+  and `ui-smoke` all green (`publish-web` skipped, as expected for a non-release push).
+- **Not done, deliberately:**
+  - No `templates-v*` (or `skills-v*` / `innfo-mcp`) tag was created or repinned: the
+    release event needs the maintainer's explicit confirmation (hard stop, task 5b.6).
+  - The stable-channel repin (`channels.stable.refs`) and the stable `docs/use/manifest.md`
+    ride on that tag.
+  - `sdd-verify` / `sdd-archive` were not run: the archive phase is the maintainer's
+    call.
+  - `main` was not touched: `dev` is the integration branch and `main` absorbs batched
+    releases.
+
+### Deviations
+
+91. Task 7.10 says "merge the tracker into `main`"; it was merged into `dev`, the
+    repository's integration branch (`AGENTS.md`, `nn-dev-development` §2), because the
+    tracker targets `dev` and `main` only absorbs batched merges after a release. The
+    `dev → main` fast-forward and the tag remain the maintainer's release step.
+92. The 32 slice PRs are **closed**, not merged one by one: a 32-deep chain cannot merge
+    bottom-up into a single tracker without 31 retargets, and the tasks define the
+    tracker as the one merge unit ("Only the tracker merges"). Every slice commit is an
+    ancestor of `dev`, so nothing is lost.
+
+---
+
