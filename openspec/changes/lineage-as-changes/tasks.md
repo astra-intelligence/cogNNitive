@@ -418,9 +418,9 @@ Goal: samples superseded by patch versions without `sources::`/`type:: citation`
 Depends on: PR 26.
 Rollback: revert; restores the three superseded sample files.
 
-- [ ] 5b.4 [RED] [S] Samples test: business-model V_0-4-1, metrics V_0-5-0, organization V_0-4-0 are superseded by new patch versions with no `sources::`/`type:: citation`, built through changes; the old 3 files are deleted (allowed by R-SV-02 because samples are not domaiNN members; guard passes deletions); no remaining reference to the deleted files.
-- [ ] 5b.5a [GREEN] [S] (was 5b.5, samples part) Create the three new sample versions, delete the three superseded files, update references and catalogs.
-- [ ] 5b.8c [S] (was 5b.8) Standard PR gate. Open PR 27.
+- [x] 5b.4 [RED] [S] Samples test: business-model V_0-4-1, metrics V_0-5-0, organization V_0-4-0 are superseded by new patch versions with no `sources::`/`type:: citation`, built through changes; the old 3 files are deleted (allowed by R-SV-02 because samples are not domaiNN members; guard passes deletions); no remaining reference to the deleted files.
+- [x] 5b.5a [GREEN] [S] (was 5b.5, samples part) Create the three new sample versions, delete the three superseded files, update references and catalogs.
+- [x] 5b.8c [S] (was 5b.8) Standard PR gate. Open PR 27.
 
 Files: sample specs (3 new, 3 deleted), catalogs and references.
 Verification: `node scripts/verify.js`, `npm run verify:fast`.

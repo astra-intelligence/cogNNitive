@@ -1828,3 +1828,62 @@ worktree.
 
 ---
 
+## PR 27 — S5b.3 (branch `lac/s5b3`, base `lac/s5b2`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 5b.4, 5b.5a, 5b.8c.
+
+- New spec-integrity cases (RED first): the three superseded samples are gone, their
+  replacements exist with no `sources::`/`type:: citation`, and the sample sources of
+  truth carry no `sources::`.
+- SSOT samples: dropped the `sources::` line and bumped `knowledge_version`
+  (business-model `V_0-4-1`→`V_0-4-2`, metrics `V_0-5-0`→`V_0-5-1`, organization
+  `V_0-4-0`→`V_0-4-1`); `SAMPLE_MAPPINGS` repointed; the three superseded published
+  files deleted; `sync-samples.mjs` regenerated the rest.
+- `metrics` blueprint: the canonical-sample path is prose inside the template, so
+  editing it is a template change — `blueprint_version` `V_0-5-0`→`V_0-5-1`, the sample
+  re-pinned to `metrics_V_0-5-1`; catalog + registry regenerated.
+- Repointed the `metaplantilla-specs` test and the metrics spec prose.
+- Verification: FULL `node scripts/verify.js` and `npm run verify:fast` green;
+  `node scripts/check-samples-version.mjs` green ("all template samples track a current
+  shipped blueprint version").
+
+### Deviations
+
+79. Bumping `metrics` to `V_0-5-1` is a side effect of the template-immutability guard:
+    the canonical-sample path lives in the blueprint prose, so pointing it at the new
+    sample requires a version bump. The sample tracks it (`metrics_V_0-5-1`).
+80. The old sample files are deleted outright, which R-SV-02 allows for samples (they
+    are not domaiNN members); the bytes stay reachable through the release tags.
+
+---
+
+## Handoff — start here next session (after PR 27)
+
+Chain state: `lac/s5b3` is the tip (PR 27). Next branch:
+`git switch lac/s5b3 && git switch -c lac/s5b4`.
+
+**PR 28 — S5b.4 (fixtures, docs corpora and emitter scripts)** — tasks 5b.5b [GREEN],
+5b.8d.
+
+- Rebuild fixtures and docs corpora (~123 files with `sources::`) through
+  `propose_changeset`/`apply_change` where behavior is checked, mechanically where it
+  is a plain corpus (count the mechanical lines separately in the PR body). Update
+  `scripts/migrate-domain.js` and `scripts/build-script-from-draft.mjs`.
+- **Drop the V_0-6-0 carve-out** in `checkProvenanceBan` (S5a.3 deviation 72): the ban
+  then fires for every L3 document. Expect `verify.js` to be the judge of the corpus.
+- Verification: `npm run verify:fast`, `node scripts/verify.js`, preflight fixtures with
+  an empty `HOME`/`USERPROFILE`, mirrors.
+
+**Then:** PR 29 (release event: **ASK before cutting/re-pinning any `templates-v*` tag**),
+PR 30-32 (skills/docs), S7.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
