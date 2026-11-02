@@ -112,9 +112,9 @@ Goal: every emitter produces `add_element` plus N `update_field` ops and `add_ma
 Depends on: PR 6 (needs `seed`).
 Rollback: revert; the engine still accepts `fields` at this point, so old emitters keep working.
 
-- [ ] 1b.11 [RED] [P] Emitter tests: `convergence-delta.js`, console review/ui-kit/export emit `add_element` followed by N `update_field` ops with no `from` (each with its own evidence), `add_matrix` emits `seed`; no emitter writes `fields`. Files: `sources/test/convergence-delta*.test.js`, console emitter tests.
-- [ ] 1b.12 [GREEN] [S] Update `review.js`, `ui-kit.js`, `scripts/export-console.mjs`, `sources/convergence-delta.js`.
-- [ ] 1b.13c [S] (was 1b.13) Regenerate mirrors and console exports if tracked (generated, excluded from budget); standard PR gate including `npm --prefix skills/nn-sources test`. Open PR 7.
+- [x] 1b.11 [RED] [P] Emitter tests: `convergence-delta.js`, console review/ui-kit/export emit `add_element` followed by N `update_field` ops with no `from` (each with its own evidence), `add_matrix` emits `seed`; no emitter writes `fields`. Files: `sources/test/convergence-delta*.test.js`, console emitter tests.
+- [x] 1b.12 [GREEN] [S] Update `review.js`, `ui-kit.js`, `scripts/export-console.mjs`, `sources/convergence-delta.js`.
+- [x] 1b.13c [S] (was 1b.13) Regenerate mirrors and console exports if tracked (generated, excluded from budget); standard PR gate including `npm --prefix skills/nn-sources test`. Open PR 7.
 
 Files: `review.js`, `ui-kit.js`, `scripts/export-console.mjs`, `sources/convergence-delta.js`, matching tests.
 Verification: `npm --prefix skills/nn-sources test`, `npm --workspace=@cognnitive/nn-core test -- console`, `npm run verify:fast`.

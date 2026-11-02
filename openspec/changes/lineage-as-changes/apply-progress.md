@@ -258,3 +258,65 @@ and payload mirror must be regenerated whenever `console/` changes.
 
 
 
+
+---
+
+## PR 7 — S1b.3 (branch `lac/s1b3`, base `lac/s1b2`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 1b.11, 1b.12, 1b.13c.
+
+- `skills/nn-sources/scripts/lib/convergence-delta.js` (`buildApplyPlan`): each added
+  key emits `add_element` (op/target/concept/name/evidence) and then one
+  `update_field` per field, alphabetically, with `to` and its own `evidence` and no
+  `from` (the field does not exist yet). Changed values keep their `from`
+  precondition and still go to `review` under `upsert`. Both tests updated
+  (`convergence-delta.test.js`, `convergence-cli.test.js`) and now assert the
+  field-less shape.
+- Console emitter `iNNfo/specs/bluepriNNts/console/nn-runtime.js`: `draftToChange`
+  became `draftToChanges`, returning the `add_element` block plus one
+  `update_field` block per filled field (target `<model>@<element slug>&<field>`,
+  `to`, the same evidence, distinct `## NN Change:` id). `serializeChangesetMarkdown`
+  flattens the per-draft block lists. The add_element branch no longer writes
+  `fields::`.
+- `ui-kit.js` `cardDiff`: an applied `add_element` shows the element name, not
+  inline fields; an unsent `kind: 'new'` draft still previews its `proposed` map.
+- `openspec/specs/console-review-mode/spec.md`: the "New element draft"
+  requirement and scenario now describe `add_element` + `update_field` and no
+  `fields`.
+- Regenerated: `console/nn-console.bundle.js` and
+  `test/fixtures/testlab/domaiNN_console.html` (generated, excluded from the budget).
+- Size: 125 changed lines total (102+/23-), all hand-authored; generated artifacts
+  excluded. Well inside the 400-line budget.
+- Verification: `node scripts/lib/convergence-delta.test.js` and
+  `convergence-cli.test.js` green; `node test/console-review.test.mjs` 24 passed;
+  all 40 `test/console-*.test.mjs` suites green; application-level
+  `vitest run console` in nn-core (43 files / 305 tests) green;
+  `npm --prefix skills/nn-sources test` 654 passed; `npm run verify:fast` fully
+  green (224 steps).
+
+### Deviations
+
+13. The console changeset emitter lives in `nn-runtime.js` (`draftToChanges`), not in
+    `review.js` or `scripts/export-console.mjs`: `review.js` only stores the draft
+    (`proposed`), and `export-console.mjs` builds the payload. The handoff file map
+    was approximate. `ui-kit.js` carries the display half, as expected.
+14. `add_matrix` with `seed`: no emitter in the repository emits `add_matrix` today
+    (`rg add_matrix` finds only the engine, the blueprint, tests and fixture data).
+    The seed path is already implemented and tested at the engine (PR 6); the script
+    emitters that will need it are `migrate-domain.js` / the script-from-draft path,
+    which is task 5b.5b (PR 28). No emitter writes `fields` any more, which is the
+    invariant this slice establishes.
+15. `openspec/specs/console-review-mode/spec.md` was updated in this PR because it
+    asserted the removed `fields::` export shape. The rest of the living-spec sync
+    stays in the archive phase (task 6.4c).
+16. The tracked testlab fixture was stale before this chain (console v0.31.0,
+    `changesBlueprintVersion: V_0-5-5`); regenerating it now also absorbs S0a's
+    console changes and PR 4's blueprint bump (+13 KB of generated diff).
+17. A `kind: 'new'` console draft has no `element_slug`, so the creation
+    `update_field` targets use the console's `slugify` (the generated nn-slug
+    mirror) for the element part. The engine resolves the element by name or slug,
+    so ordinary names agree with core's `slugifyHeading`. A name whose console slug
+    is empty would fall back to `feedback`; that is a pre-existing console slug
+    limitation, unchanged here.
