@@ -18,6 +18,7 @@ const watchDigestStore = require('./lib/watch-digest-store');
 const curateCsv = require('./lib/curate-csv');
 const gc = require('./lib/gc');
 const convergence = require('./lib/convergence-delta');
+const producerPayload = require('./lib/producer-payload');
 const { sidecarPathOf } = require('./lib/nn-core.generated.cjs');
 
 async function main() {
@@ -424,6 +425,14 @@ async function handleCliMode(argv) {
       console.log(JSON.stringify(proposal, null, 2));
     } else {
       printConvergenceProposal(proposal);
+      // The converged source is an artifact of this run: print the ready record.
+      producerPayload.printProduceArtifactPayload(
+        producerPayload.buildProduceArtifactPayload({
+          artifactPath: to.relPath,
+          evidence: from.relPath,
+          author: 'converge',
+        }),
+      );
     }
     process.exit(0);
   }
@@ -570,6 +579,14 @@ async function handleCliMode(argv) {
           (result.droppedEmptyKey ? ` · ${result.droppedEmptyKey} empty-key row(s) dropped` : ''),
       );
       console.log(`  cite a row as: sources:: [${result.citationExample}]`);
+      const relInput = path.relative(projectDir, path.resolve(target)).replace(/\\/g, '/');
+      producerPayload.printProduceArtifactPayload(
+        producerPayload.buildProduceArtifactPayload({
+          artifactPath: result.relOutput,
+          evidence: relInput && !relInput.startsWith('..') ? relInput : result.relOutput,
+          author: 'curate-csv',
+        }),
+      );
       provenance.appendProcedureRun(projectDir, {
         command: 'curate-csv',
         flags: `--curate-csv "${target}"${argv.key ? ` --key "${argv.key}"` : ''}${argv.dedup ? ' --dedup' : ''}`,

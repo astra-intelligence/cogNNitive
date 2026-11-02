@@ -95,6 +95,11 @@ async function main() {
     totalPassed += lineageSyncResult.passed;
     totalFailed += lineageSyncResult.failed;
 
+    const producerPayloadTest = require('./unit/test-producer-payloads');
+    const producerPayloadResult = await producerPayloadTest.run();
+    totalPassed += producerPayloadResult.passed;
+    totalFailed += producerPayloadResult.failed;
+
     const evidenceConsumersTest = require('./unit/test-evidence-index-consumers');
     const evidenceConsumersResult = await evidenceConsumersTest.run();
     totalPassed += evidenceConsumersResult.passed;
