@@ -217,5 +217,44 @@ Tasks: 1b.7, 1b.8, 1b.9, 1b.10, 1b.13b.
     every op to be either a mutation or apply-only, and its mutation lands in
     S1b.4 (PR 8). Adding it there keeps the partition invariant true at every PR.
 
+---
+
+## Handoff — start here next session
+
+Chain state: `lac/s1b2` is the tip (PR 6, #448). Next branch: `git switch -c lac/s1b3` from `lac/s1b2`.
+
+**PR 7 — S1b.3 (emitters stop sending `fields`)**
+
+Known locations from the survey done at the end of this session:
+
+- `skills/nn-sources/scripts/lib/convergence-delta.js` → `buildApplyPlan` (around
+  line 280): emits `add_element` with `fields` + `evidence`. Change it to emit
+  `add_element` (op/target/concept/name only) followed by one `update_field`
+  (`target: model@slug&field`, `to`, `evidence`, **no `from`**) per field, and
+  `add_matrix` with `seed: {columns, rows}` instead of `fields.columns/rows`.
+  Its tests are `scripts/lib/convergence-delta.test.js` and
+  `scripts/lib/convergence-cli.test.js` (both assert the exact plan today).
+- Console emitters: the draft → changeset mapping lives in
+  `iNNfo/specs/bluepriNNts/console/review.js` (drafts carry `kind: 'new'` with
+  `proposed` holding the initial fields, set in `openNew` around line 1027) and
+  the display half in `ui-kit.js` (`cardDiff`, line ~2040, reads `e.fields`).
+  `scripts/export-console.mjs` (~line 1215) carries the same shape. Find the
+  operation builder with `rg "add_element" iNNfo/specs/bluepriNNts/console/*.js`.
+  After editing: `node scripts/build-console-bundle.mjs` and the golden parity
+  suites (`test/console-*.test.mjs`).
+- Expected shape per task 1b.11: `add_element` then N `update_field` with no
+  `from`, each with its own `evidence`; `add_matrix` emits `seed`.
+
+**Then:** PR 8 (S1b.4) adds `update_element_text` to `CHANGE_OPS`, implements
+`updateElementText` in `core/mutate.ts` (`ElementNode.description`, `from`
+precondition, `USE_UPDATE_ELEMENT_TEXT` on `update_field …&description`), stops
+`add_element` copying `notes` into the prose, and rejects `fields` at proposal and
+apply. After that the fold engine (S2a.1) starts, which is where the change
+becomes real.
+
+Note on `tasks.md`: task 1b.13's mirror/gate steps are per PR; the console bundle
+and payload mirror must be regenerated whenever `console/` changes.
+
+
 
 
