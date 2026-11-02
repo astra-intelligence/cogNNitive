@@ -82,3 +82,26 @@ test('visual-catalog source fields are not citation', () => {
     assert.doesNotMatch(block, /type:: citation/, 'a `source` field must not be a citation')
   }
 })
+
+test('the workspace spec declares no Executions concept', () => {
+  const workspaceSpecs = fs
+    .readdirSync(SPECS)
+    .filter((name) => /^workspace_V_\d+-\d+-\d+_NN\.md$/.test(name))
+    .sort()
+  assert.ok(workspaceSpecs.length > 0, 'a published workspace spec exists')
+  const newest = workspaceSpecs[workspaceSpecs.length - 1]
+  const content = read(path.join(SPECS, newest))
+  assert.doesNotMatch(content, /NN Concept Definition: Executions/)
+  assert.doesNotMatch(content, /\[\[Executions\]\]/)
+})
+
+test('the simulacro fixture uses a workspace spec without Executions', () => {
+  const fixture = path.join(
+    ROOT,
+    'iNNfo/packages/nn-core/tests/fixtures/simulacro-refactorizacion/bluepriNNts/workspace_spec_NN.md',
+  )
+  assert.equal(fs.existsSync(fixture), true)
+  const content = read(fixture)
+  assert.doesNotMatch(content, /NN Concept Definition: Executions/)
+  assert.doesNotMatch(content, /\[\[Executions\]\]/)
+})
