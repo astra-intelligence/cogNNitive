@@ -1,4 +1,5 @@
 import { readFile, writeFile, rm, stat, rename, readdir, open } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
 import { basename, dirname, join, relative, isAbsolute } from 'node:path'
 import {
   parseKnowledge,
@@ -25,6 +26,12 @@ import {
   scaffoldKnowledgeDocument,
   RECORD_BLUEPRINT,
   roleOf,
+  canonicalUnitModelId,
+  resolvedTarget,
+  axisSlug,
+  splitEvidence,
+  parseCitation,
+  slugifyHeading,
 } from '@cognnitive/nn-core'
 import type {
   SpecDocument,
@@ -316,6 +323,119 @@ function hasUnfrozenElements(model: ParsedKnowledge): boolean {
     for (const el of elements) if (!el.slugExplicit) return true
   }
   return false
+}
+
+/* ── Execution facts (change-provenance) ─────────────────────── */
+
+/** The element an address label names, by frozen slug, display name or slugified name. */
+function elementByLabel(model: ParsedKnowledge, label: string): { slug?: string; name?: string } | undefined {
+  const wanted = String(label ?? '').trim().toLowerCase()
+  if (!wanted) return undefined
+  for (const [, elements] of model.elements) {
+    for (const el of elements) {
+      if ((el.slug ?? '').toLowerCase() === wanted) return el
+      if ((el.name ?? '').toLowerCase() === wanted) return el
+      if (slugifyHeading(el.name ?? '').toLowerCase() === wanted) return el
+    }
+  }
+  return undefined
+}
+
+/**
+ * The canonical unit address a change resolved to, read from the model AFTER the
+ * mutation ran (so the frozen slug, not the address label, is stamped).
+ */
+function resolvedTargetForChange(
+  change: ChangeItem,
+  model: ParsedKnowledge,
+  modelId: string,
+): string | undefined {
+  const { parts } = parseTargetAddress(change.target)
+  switch (change.op) {
+    case 'update_field': {
+      const [elIdent, field] = parts
+      if (!field) return undefined
+      const el = elementByLabel(model, elIdent ?? '')
+      return el?.slug ? resolvedTarget.field(modelId, el.slug, field) : undefined
+    }
+    case 'add_element':
+    case 'remove_element':
+    case 'rename_element': {
+      const el = elementByLabel(model, parts[0] ?? '')
+      const slug = change.resolved_slug || el?.slug || change.slug || slugifyHeading(change.name ?? parts[0] ?? '')
+      return slug ? resolvedTarget.element(modelId, slug) : undefined
+    }
+    case 'update_concept_text':
+    case 'update_concept_field': {
+      const concept = change.concept || parts[0]
+      if (!concept) return undefined
+      const field = change.op === 'update_concept_field' ? parts[1] : undefined
+      return resolvedTarget.concept(modelId, concept, field)
+    }
+    case 'update_matrix_cell': {
+      const [matIdent, rowLabel, colLabel] = parts
+      if (!matIdent || !rowLabel || !colLabel) return undefined
+      const wanted = matIdent.toLowerCase()
+      const matrix = model.matrices.find(
+        (m) =>
+          m.name.toLowerCase() === wanted ||
+          slugifyHeading(m.name).toLowerCase() === wanted,
+      )
+      if (!matrix) return undefined
+      const matrixSlug = slugifyHeading(matrix.name)
+      const rowSlug = axisSlug(rowLabel, elementByLabel(model, rowLabel)?.slug)
+      const colSlug = axisSlug(colLabel, elementByLabel(model, colLabel)?.slug)
+      return resolvedTarget.cell(modelId, matrixSlug, rowSlug, colSlug)
+    }
+    default:
+      return undefined
+  }
+}
+
+/** One sha256 per evidence entry, in order; none for `decision` / `unknown` or an unreadable file. */
+async function evidenceShas(rootDir: string, evidence: string | undefined): Promise<string[] | undefined> {
+  const items = splitEvidence(evidence)
+  if (items.length === 0) return undefined
+  const shas: string[] = []
+  for (const item of items) {
+    const lower = item.toLowerCase()
+    if (lower === 'decision' || lower === 'unknown') return undefined
+    const filePath = parseCitation(item)?.filePath ?? item.split('@')[0]
+    try {
+      const bytes = await readFile(join(rootDir, filePath))
+      shas.push(createHash('sha256').update(bytes).digest('hex'))
+    } catch {
+      return undefined
+    }
+  }
+  return shas.length === items.length ? shas : undefined
+}
+
+/** The latest `applied_at` of any recorded changeset, or `undefined`. */
+async function latestAppliedAt(changesDir: string): Promise<string | undefined> {
+  let names: string[]
+  try {
+    names = await readdir(changesDir)
+  } catch {
+    return undefined
+  }
+  let latest: string | undefined
+  for (const name of names) {
+    if (!isNNName(name)) continue
+    let doc: ChangesetDocument
+    try {
+      doc = parseChangeset(await readFile(join(changesDir, name), 'utf-8'))
+    } catch {
+      continue
+    }
+    const candidates = [doc.frontmatter.applied_at, ...doc.changes.map((c) => c.applied_at)]
+    for (const value of candidates) {
+      if (typeof value === 'string' && value.length > 0 && (latest === undefined || value > latest)) {
+        latest = value
+      }
+    }
+  }
+  return latest
 }
 
 function parseTargetAddress(target: string): {
@@ -614,27 +734,42 @@ export async function executeChangesetApply(
         )
       }
       if (change.evidence === 'decision' || change.evidence === 'unknown') continue
-      const resolved = resolveCitation(
-        change.evidence,
-        'evidence',
-        citationResolver,
-        resolvedChangesetPath,
-      )
-      if (!resolved.exists || resolved.error === 'UNKNOWN_ANCHOR' || resolved.error === 'MALFORMED') {
+      let evidenceItems: string[]
+      try {
+        evidenceItems = splitEvidence(change.evidence)
+      } catch (err) {
         return recordRejection(
           [
             {
               path: `changes.${change.id}.evidence`,
-              message:
-                `CITATION_UNRESOLVED: change "${change.id}" cites "${change.evidence}" ` +
-                `which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
-              code: 'CITATION_UNRESOLVED',
+              message: err instanceof Error ? err.message : String(err),
+              code: 'EVIDENCE_KEYWORD_IN_LIST',
             },
           ],
           change.id,
           undefined,
           false,
         )
+      }
+      for (const item of evidenceItems) {
+        if (item === 'decision' || item === 'unknown') continue
+        const resolved = resolveCitation(item, 'evidence', citationResolver, resolvedChangesetPath)
+        if (!resolved.exists || resolved.error === 'UNKNOWN_ANCHOR' || resolved.error === 'MALFORMED') {
+          return recordRejection(
+            [
+              {
+                path: `changes.${change.id}.evidence`,
+                message:
+                  `CITATION_UNRESOLVED: change "${change.id}" cites "${item}" ` +
+                  `which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
+                code: 'CITATION_UNRESOLVED',
+              },
+            ],
+            change.id,
+            undefined,
+            false,
+          )
+        }
       }
     }
 
@@ -1389,15 +1524,42 @@ export async function executeChangesetApply(
     const cleanAppliedCount = cleanSubset.filter((c) => c.op !== 'comment').length
     const overallStatus: ChangeStatus = cleanAppliedCount === totalActionable ? 'applied' : 'partially_applied'
 
-    const appliedAt = new Date().toISOString()
     const batchId = displayStem(basename(resolvedChangesetPath))
     csDoc.frontmatter.status = overallStatus
-    csDoc.frontmatter.applied_at = appliedAt
     csDoc.frontmatter.models = modelsTransitionMap
     // D5: denormalize the execution facts onto every change (excluded from the seal).
+    // A later apply never sorts before an earlier one: clamp under the lock.
+    const latest = await latestAppliedAt(changesDir)
+    const nowMs = Date.now()
+    const latestMs = latest ? Date.parse(latest) : Number.NaN
+    const appliedAt =
+      Number.isFinite(latestMs) && latestMs >= nowMs
+        ? new Date(latestMs + 1).toISOString()
+        : new Date(nowMs).toISOString()
+    csDoc.frontmatter.applied_at = appliedAt
     for (const change of csDoc.changes) {
       change.applied_at = appliedAt
       change.batch = batchId
+    }
+    // Execution facts: the canonical unit address and the evidence anchors, written
+    // only for changes this run applied. Apply always overwrites them, so a proposal
+    // that pre-carried them cannot influence the log.
+    for (const change of csDoc.changes) {
+      if (change.status !== 'applied') {
+        delete change.resolved_target
+        delete change.evidence_sha256
+        continue
+      }
+      const { modelSlug } = parseTargetAddress(change.target)
+      const entry = loadedModels.get(modelSlug.toLowerCase())
+      if (entry) {
+        const target = resolvedTargetForChange(change, entry.model, canonicalUnitModelId(entry.modelSlug || modelSlug))
+        if (target) change.resolved_target = target
+        else delete change.resolved_target
+      }
+      const shas = await evidenceShas(rootDir, change.evidence)
+      if (shas) change.evidence_sha256 = shas
+      else delete change.evidence_sha256
     }
 
     const serializedCs = serializeChangeset(csDoc)

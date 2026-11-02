@@ -18,6 +18,7 @@ import {
   formatUtcStamp,
   slugify,
   createFsSourceResolver,
+  splitEvidence,
   resolveCitation,
 } from '@cognnitive/nn-core'
 import type { ChangeItem, ChangesetDocument, SpecDocument } from '@cognnitive/nn-core'
@@ -312,15 +313,30 @@ export async function validateProposal(rootDir: string, operations: ChangeItem[]
   const futureChangesetPath = join(rootDir, 'changes', 'proposal_changes_NN.md')
   for (const [index, change] of operations.entries()) {
     if (!change.evidence) continue
-    // `decision` and `unknown` are not citations: accepted without resolution.
-    if (change.evidence === 'decision' || change.evidence === 'unknown') continue
-    const resolved = resolveCitation(change.evidence, 'evidence', citationResolver, futureChangesetPath)
-    if (!resolved.exists || resolved.error === 'UNKNOWN_ANCHOR' || resolved.error === 'MALFORMED') {
+    // `decision` and `unknown` are not citations: accepted without resolution, and
+    // valid only alone (`splitEvidence` rejects a keyword beside another entry).
+    let items: string[]
+    try {
+      items = splitEvidence(change.evidence)
+    } catch (err) {
       errors.push({
         path: `operations[${index}].evidence`,
-        code: 'CITATION_UNRESOLVED',
-        message: `CITATION_UNRESOLVED: operations[${index}] cites "${change.evidence}" which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
+        code: 'EVIDENCE_KEYWORD_IN_LIST',
+        message: err instanceof Error ? err.message : String(err),
       })
+      continue
+    }
+    if (items.length === 0) continue
+    if (items.length === 1 && (items[0] === 'decision' || items[0] === 'unknown')) continue
+    for (const item of items) {
+      const resolved = resolveCitation(item, 'evidence', citationResolver, futureChangesetPath)
+      if (!resolved.exists || resolved.error === 'UNKNOWN_ANCHOR' || resolved.error === 'MALFORMED') {
+        errors.push({
+          path: `operations[${index}].evidence`,
+          code: 'CITATION_UNRESOLVED',
+          message: `CITATION_UNRESOLVED: operations[${index}] cites "${item}" which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
+        })
+      }
     }
   }
   if (errors.length > 0) return errors
