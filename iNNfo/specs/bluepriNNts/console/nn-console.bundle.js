@@ -2954,11 +2954,13 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     }
   }
 
-  /** The `previous -> new` line; add shows the fields, delete the element name. */
+  /** The `previous -> new` line; add shows the draft's fields, delete the element name. */
   function cardDiff(op, entry) {
     var e = entry || {}
     if (op === 'add_element') {
-      var fields = e.fields && typeof e.fields === 'object' ? e.fields : e.proposed
+      // An applied change carries no inline `fields`: the value belongs to its own
+      // update_field card. An unsent `kind: 'new'` draft still previews `proposed`.
+      var fields = e.proposed && typeof e.proposed === 'object' ? e.proposed : null
       if (fields && typeof fields === 'object') {
         return Object.keys(fields)
           .map(function (k) {
@@ -13069,15 +13071,17 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     return str
   }
 
-  // Builds one `## NN Change` block addressed the way `apply_change` resolves it:
-  // `<file stem>@<element slug>[&field]`. The draft carries `knowledge_id` (the knowledge
-  // document's file stem) and `element_slug`; `fallbackModel` only covers drafts that
-  // lack them.
+  // Builds the `## NN Change` blocks of one draft, addressed the way `apply_change`
+  // resolves them: `<file stem>@<element slug>[&field]`. The draft carries
+  // `knowledge_id` (the knowledge document's file stem) and `element_slug`;
+  // `fallbackModel` only covers drafts that lack them. A `kind: 'new'` draft with
+  // filled fields yields the `add_element` block plus one `update_field` block per
+  // field (a change carries no inline `fields`).
   function oneLine(v) {
     return String(v).replace(new RegExp('[\\r\\n\\u2028\\u2029]+', 'g'), ' ').trim()
   }
 
-  function draftToChange(draft, index, fallbackModel, author) {
+  function draftToChanges(draft, index, fallbackModel, author) {
     var d = isObject(draft) ? draft : {}
     var id = oneLine(d.id || 'c-' + String(index + 1).padStart(2, '0'))
     var model = oneLine(d.knowledge_id || fallbackModel || 'model')
@@ -13138,7 +13142,6 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     } else if (op === 'add_element') {
       lines.push('concept:: ' + oneLine(d.concept))
       lines.push('name:: ' + formatChangesetValue(d.element))
-      if (isObject(d.proposed)) lines.push('fields:: ' + JSON.stringify(d.proposed))
     }
     // Every exported block names its author so a field citing the applied change
     // resolves to a human author. `oneLine` folds CR/LF/U+2028 so a name cannot
@@ -13147,7 +13150,27 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
     if (d.comment) {
       lines.push('notes:: ' + formatChangesetValue(d.comment))
     }
-    return lines.join('\n')
+    if (op !== 'add_element' || !isObject(d.proposed)) return [lines.join('\n')]
+    // A change carries no inline fields: each filled field is its own
+    // `update_field`, with its own evidence and no `from` (the field does not
+    // exist yet, so there is nothing to precondition).
+    var slug = oneLine(d.element_slug || slugify(d.element || '') || 'elem')
+    var blocks = [lines.join('\n')]
+    Object.keys(d.proposed)
+      .sort()
+      .forEach(function (field) {
+        blocks.push(
+          [
+            '## NN Change: ' + id + '-' + slugify(field),
+            'op:: update_field',
+            'target:: ' + model + '@' + slug + '&' + oneLine(field),
+            'evidence:: ' + oneLine(ev),
+            'to:: ' + formatChangesetValue(d.proposed[field]),
+            'author:: ' + oneLine(author || 'reviewer'),
+          ].join('\n'),
+        )
+      })
+    return blocks
   }
 
   function serializeChangesetMarkdown(meta, drafts, fallbackModel) {
@@ -13176,8 +13199,9 @@ var uPlot=function(){"use strict";const e="u-off",l="u-label",t="width",n="heigh
       '',
     ]
     var modelName = fallbackModel || meta.source_knowledge || 'model'
-    var blocks = drafts.map(function (d, i) {
-      return draftToChange(d, i, modelName, author)
+    var blocks = []
+    drafts.forEach(function (d, i) {
+      blocks = blocks.concat(draftToChanges(d, i, modelName, author))
     })
     lines.push(blocks.join('\n\n'))
     lines.push('')

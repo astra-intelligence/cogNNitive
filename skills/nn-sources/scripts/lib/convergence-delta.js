@@ -266,13 +266,16 @@ function buildProposal(options) {
 /**
  * Maps a proposal to the ONE `nn-mcp_propose_changeset` payload that applies
  * it through the reviewed mutation path (same change keys: op/target/concept/
- * name/fields/from/to/evidence):
- *   - one `add_element` per new key;
+ * name/from/to/evidence):
+ *   - one `add_element` per new key (op/target/concept/name only: a change
+ *     carries no inline fields);
+ *   - one `update_field` per field of a new key, with `to` and `evidence` and NO
+ *     `from` (the field does not exist yet, so there is nothing to precondition);
  *   - one `update_field` per changed value, ONLY for `replace-values`
  *     (`upsert` leaves changed values under `review` for a human decision);
  *   - at most one trailing `bump_version` (`to` names the level), which the
  *     changeset applies once per model.
- * Every element change cites the target snapshot through `evidence`.
+ * Every change cites the target snapshot through `evidence`.
  * Removed keys are never an operation (flag-only). Requires the target concept
  * and model.
  *
@@ -293,9 +296,18 @@ function buildApplyPlan(proposal, concept, model) {
       target: `${model}@${added.key}`,
       concept,
       name: added.key,
-      fields: added.fields,
       evidence,
     });
+    // Each field is its own change so it carries its own evidence; no `from`
+    // because the element (and therefore the field) is created by this plan.
+    for (const field of Object.keys(added.fields || {}).sort()) {
+      operations.push({
+        op: 'update_field',
+        target: `${model}@${added.key}&${field}`,
+        to: added.fields[field],
+        evidence,
+      });
+    }
   }
   const review = [];
   for (const change of proposal.changed) {

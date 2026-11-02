@@ -273,13 +273,15 @@ field the schema declares on the chosen concept. Submitting MUST store a draft w
 filled fields). The draft store MUST accept a `kind: "new"` draft without `element_id`
 and `base_hash`, and MUST reject it when `knowledge_id`, `concept` or `element` is missing;
 every other kind keeps requiring `element_id` and `base_hash`. The changeset export MUST
-map the draft to `op:: add_element` with `concept`, `name` and `fields`. The action
+map the draft to `op:: add_element` with `concept` and `name`, followed by one
+`update_field` per filled field (target `<model>@<element slug>&<field>`, `to` and its own
+`evidence`, no `from`) so no change carries inline `fields`. The action
 MUST NOT create models and MUST work offline.
 
-#### Scenario: New element exports as add_element
+#### Scenario: New element exports as add_element then update_field
 - GIVEN the console of model `strategy` with concept `Goal` in its schema
 - WHEN the user adds a new element `Grow revenue` of concept `Goal` with field `owner` set to `CFO`
-- THEN the exported changeset contains `op:: add_element`, `target:: strategy@Goal`, `concept:: Goal`, `name:: Grow revenue` and `fields::` with `owner`
+- THEN the exported changeset contains `op:: add_element`, `target:: strategy@Goal`, `concept:: Goal`, `name:: Grow revenue`, and a second block with `op:: update_field`, `target:: strategy@grow-revenue&owner`, `to:: CFO` and no `from::` or `fields::`
 
 #### Scenario: Store accepts a new draft without base_hash
 - GIVEN a draft with `kind: "new"`, `knowledge_id`, `concept` and `element` and no `element_id` or `base_hash`
