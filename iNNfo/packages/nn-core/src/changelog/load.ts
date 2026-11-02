@@ -42,6 +42,7 @@ export interface ChangeLike {
   concept?: string
   name?: string
   slug?: string
+  resolved_slug?: string
   notes?: string
   resolution?: string
   fields?: Record<string, string>
@@ -102,6 +103,7 @@ function loggedChanges(cs: ChangesetLike): LoggedChange[] {
       concept: change.concept,
       name: change.name,
       slug: change.slug,
+      resolvedSlug: change.resolved_slug,
       notes: change.notes,
       resolution: change.resolution,
       fields: change.fields,

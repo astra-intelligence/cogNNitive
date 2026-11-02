@@ -46,6 +46,8 @@ export interface LoggedChange {
   readonly concept?: string
   readonly name?: string
   readonly slug?: string
+  /** Apply annotation: the frozen slug `add_element` resolved to. */
+  readonly resolvedSlug?: string
   readonly notes?: string
   readonly resolution?: string
   readonly fields?: Readonly<Record<string, string>>

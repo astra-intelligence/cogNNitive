@@ -166,10 +166,11 @@ export {
   applyMutation,
   listMutationOperations,
   freeze_slugs,
+  replayMutations,
   updateReferenceString,
   updateWikiLinks,
 } from './mutate.js'
-export type { MutationResult } from './mutate.js'
+export type { MutationResult, ReplayOperation, ReplayResult } from './mutate.js'
 export { envelope, envelopeList, envelopeVersion, ENVELOPE_MAJOR } from './envelope.js'
 export type { VersionedEnvelope } from './envelope.js'
 export { Diagnostics } from './diagnostics.js'
@@ -187,6 +188,7 @@ export * from './console/index.js'
 export * from './changelog/index.js'
 export * from './changelog/load.js'
 export { loadChangeLog } from './changelog/node.js'
+export { canonicalUnitModelId } from './changeset/resolved-target.js'
 export * from './lineage/index.js'
 export { readLineageSnapshot, readLineageRecord } from './lineage/fs-snapshot.js'
 

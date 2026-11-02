@@ -32,8 +32,10 @@ import {
   type TemplateResolutionResult,
   type IntegrityDiagnostic,
   type CatalogSource,
+  type ProvenanceReport,
 } from '@cognnitive/nn-core'
 import type { SpecCache } from '@cognnitive/nn-core'
+import { checkDomainProvenance } from './provenance-strict.js'
 import { listKnowledge } from './list-read.js'
 import { modelIdCollisionDiagnostics, type ModelIdCollisionDiagnostic } from './model-collisions.js'
 import { deriveNameFromUrl } from './spec.js'
@@ -61,6 +63,8 @@ const FRESHNESS_TIMEOUT_MS = 10000
 export interface CheckWorkspaceOptions {
   summaryOnly?: boolean
   offline?: boolean
+  /** Strict provenance: replay the applied changes and compare serialized bodies. */
+  strict?: boolean
 }
 
 /** Result of the lineage drift gate (site 3 of the gate; the record is not a model). */
@@ -383,6 +387,11 @@ export async function checkWorkspace(
     lineage: LineageGateReport
     /** `EVIDENCE_UNKNOWN` per applied change with absent or `unknown` evidence. */
     evidence: IntegrityDiagnostic[]
+    /**
+     * Provenance report: fold mode by default, strict replay with
+     * `{strict: true}` (the unit drift is then the replay comparison).
+     */
+    provenance: ProvenanceReport
     /** Repeated model ids (filename stems): warnings that name the id and every path. */
     collisions: ModelIdCollisionDiagnostic[]
   }
@@ -396,6 +405,7 @@ export async function checkWorkspace(
     absByPath: new Map(),
   }
   const base = await buildWorkspaceIntegrityReport(buildCheckWorkspacePorts(ctx))
+  const provenance = await checkDomainProvenance(rootDir, { strict: options.strict })
   const report = {
     ...base,
     lineage: checkLineageGate(rootDir),
@@ -405,6 +415,7 @@ export async function checkWorkspace(
       severity: d.severity,
       code: d.code,
     })),
+    provenance,
     collisions: modelIdCollisionDiagnostics(ctx.models.map((m) => m.path)),
   }
 

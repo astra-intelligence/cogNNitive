@@ -127,6 +127,45 @@ type MutationHandler = (
   schema?: BlueprintSchema,
 ) => MutationResult
 
+/** One operation of a strict replay: the op name plus its mutation arguments. */
+export interface ReplayOperation {
+  op: string
+  args?: Record<string, unknown>
+}
+
+/** The result of replaying a sequence of operations onto one draft. */
+export interface ReplayResult {
+  /** True when every op succeeded. */
+  success: boolean
+  /** The replayed model; the input model is never mutated. */
+  model: ParsedKnowledge
+  /** One result per operation, in order. */
+  results: MutationResult[]
+}
+
+/**
+ * Replays a sequence of operations from a starting model (the `add_model`
+ * skeleton, in strict drift) with ONE clone: every op runs against the same
+ * draft, so the cost is linear in the number of ops instead of cloning the
+ * whole model per op like `applyMutation` does. The input model is untouched.
+ *
+ * A failing op does not stop the replay (a recorded change that would have
+ * failed cannot be in an applied log; strict mode compares the resulting body,
+ * and the per-op results say which one diverged).
+ */
+export function replayMutations(
+  model: ParsedKnowledge,
+  ops: readonly ReplayOperation[],
+  schema?: BlueprintSchema,
+): ReplayResult {
+  const draft = cloneKnowledge(model)
+  const results: MutationResult[] = []
+  for (const { op, args } of ops) {
+    results.push(runMutation(draft, op, args ?? {}, schema))
+  }
+  return { success: results.every((result) => result.success), model: draft, results }
+}
+
 export function freeze_slugs(model: ParsedKnowledge): MutationResult {
   const existingSlugs = new Set<string>()
   for (const [, elements] of model.elements.entries()) {

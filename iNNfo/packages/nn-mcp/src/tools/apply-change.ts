@@ -47,6 +47,7 @@ import type {
 } from '@cognnitive/nn-core'
 import { findKnowledgeFile, resolveBlueprintWithCache, normalizeId, AmbiguousModelIdError } from './spec.js'
 import { canonicalizeTarget, modelIdAliases } from './model-id.js'
+import { findElementInModel, mutationArgsForChange, parseTargetAddress } from './change-args.js'
 import { writeProposedChangeset } from './propose-changeset.js'
 
 import { isInsideRoot, isSafeRelativeId } from './path-guard.js'
@@ -469,48 +470,6 @@ async function latestAppliedAt(changesDir: string): Promise<string | undefined> 
     }
   }
   return latest
-}
-
-function parseTargetAddress(target: string): {
-  modelSlug: string
-  remainder: string
-  parts: string[]
-} {
-  const atIdx = target.indexOf('@')
-  if (atIdx === -1) {
-    return { modelSlug: target.trim(), remainder: '', parts: [] }
-  }
-  const modelSlug = target.slice(0, atIdx).trim()
-  const remainder = target.slice(atIdx + 1).trim()
-  const parts = remainder.split('&').map((p) => p.trim())
-  return { modelSlug, remainder, parts }
-}
-
-function findElementInModel(
-  model: ParsedKnowledge,
-  conceptName?: string,
-  elementIdent?: string,
-): { concept: string; element: any } | null {
-  if (!elementIdent) return null
-  const lowerIdent = elementIdent.toLowerCase()
-  if (conceptName) {
-    const list = model.elements.get(conceptName)
-    if (list) {
-      for (const el of list) {
-        if (el.name.toLowerCase() === lowerIdent || (el.slug && el.slug.toLowerCase() === lowerIdent)) {
-          return { concept: conceptName, element: el }
-        }
-      }
-    }
-  }
-  for (const [c, list] of model.elements.entries()) {
-    for (const el of list) {
-      if (el.name.toLowerCase() === lowerIdent || (el.slug && el.slug.toLowerCase() === lowerIdent)) {
-        return { concept: c, element: el }
-      }
-    }
-  }
-  return null
 }
 
 /**
@@ -1309,117 +1268,7 @@ export async function executeChangesetApply(
         }
       }
 
-      let mutationArgs: Record<string, unknown> = {}
-      if (change.op === 'update_field') {
-        const elIdent = parts[0]
-        const fieldIdent = parts.length > 1 ? parts[1] : ''
-        mutationArgs = {
-          conceptName: change.concept,
-          elementName: elIdent,
-          fieldName: fieldIdent,
-          value: change.to,
-          to: change.to,
-          target: change.target,
-        }
-      } else if (change.op === 'update_element_text') {
-        // The prose body is a unit: `to` is the new text, `from` was checked in
-        // partitionChangeset.
-        mutationArgs = { target: change.target, text: change.to }
-      } else if (change.op === 'add_element') {
-        const conceptName = change.concept || (remainder && !remainder.includes('&') ? remainder : '')
-        const elementName = change.name || change.slug || ''
-        mutationArgs = {
-          conceptName,
-          elementName,
-          slug: change.resolved_slug || change.slug,
-        }
-        // Use the declared spelling of the concept (matching is case-insensitive).
-        const declaredConcept = renameSchema?.concepts.find(
-          (c) => c.name.toLowerCase() === String(conceptName).toLowerCase(),
-        )
-        if (declaredConcept) mutationArgs.conceptName = declaredConcept.name
-      } else if (change.op === 'update_matrix_cell') {
-        mutationArgs = {
-          // The console emits the matrix display name (`Concept 1-Concept 2
-          // Matrix`), not a slug. Pass it as BOTH: `matchesMatrix` accepts an
-          // exact name or a slugified name/slug, so name and slug targets both
-          // resolve.
-          matrixName: parts[0],
-          matrixSlug: parts[0],
-          row: parts[1],
-          col: parts[2],
-          value: change.to,
-          to: change.to,
-        }
-      } else if (change.op === 'remove_element') {
-        const elIdent = change.name || parts[0] || remainder
-        let conceptName = change.concept
-        if (!conceptName) {
-          const found = findElementInModel(entry.model, undefined, elIdent)
-          conceptName = found?.concept
-        }
-        mutationArgs = { conceptName, elementName: elIdent }
-      } else if (change.op === 'rename_element') {
-        const elIdent = parts[0] || remainder
-        let conceptName = change.concept
-        if (!conceptName) {
-          const found = findElementInModel(entry.model, undefined, elIdent)
-          conceptName = found?.concept
-        }
-        mutationArgs = {
-          conceptName,
-          elementName: elIdent,
-          newName: change.name || change.to,
-        }
-      } else if (change.op === 'rename_concept') {
-        const conceptName = change.concept || remainder
-        mutationArgs = { conceptName, newName: change.name || change.to }
-      } else if (change.op === 'update_concept_text') {
-        const conceptName = change.concept || remainder
-        mutationArgs = {
-          conceptName,
-          text: change.to || (change as any).text || (change as any).content || '',
-        }
-      } else if (change.op === 'update_concept_field') {
-        let conceptName = change.concept || remainder
-        let fieldName = ''
-        const ampIdx = remainder.indexOf('&')
-        if (ampIdx !== -1) {
-          conceptName = remainder.slice(0, ampIdx).trim()
-          fieldName = remainder.slice(ampIdx + 1).trim()
-        }
-        if (conceptName.toLowerCase().startsWith('concept:')) {
-          conceptName = conceptName.slice('concept:'.length).trim()
-        }
-        mutationArgs = {
-          conceptName,
-          fieldName,
-          value: change.to,
-          to: change.to,
-          target: change.target,
-        }
-      } else if (change.op === 'remove_matrix') {
-        let matrixName = remainder.trim()
-        if (matrixName.toLowerCase().startsWith('matrix:')) {
-          matrixName = matrixName.slice('matrix:'.length).trim()
-        }
-        mutationArgs = { matrixName, target: change.target }
-      } else if (change.op === 'add_matrix') {
-        let matrixName = change.name || remainder.trim()
-        if (matrixName.toLowerCase().startsWith('matrix:')) {
-          matrixName = matrixName.slice('matrix:'.length).trim()
-        }
-        mutationArgs = {
-          matrixName,
-          source: change.concept,
-          targetConcept: change.to,
-          columns: change.seed?.columns,
-          rows: change.seed?.rows,
-          target: change.target,
-        }
-      } else {
-        mutationArgs = { target: change.target, value: change.to, to: change.to }
-      }
+      const mutationArgs = mutationArgsForChange(change, entry.model, renameSchema)
 
       const mutRes = coreApplyMutation(entry.model, change.op, mutationArgs, renameSchema)
       if (!mutRes.success) {

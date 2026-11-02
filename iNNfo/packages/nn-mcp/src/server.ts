@@ -584,6 +584,11 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
             description:
               'Skip all network: no catalog fetch, no hydration, no freshness. Default false.',
           },
+          strict: {
+            type: 'boolean',
+            description:
+              'Strict provenance: rebuild each model from its add_model skeleton, replay its applied changes and compare the serialized bodies (whitespace and reordering count as drift). Default false (fold mode).',
+          },
         },
       },
     },
@@ -1071,6 +1076,7 @@ async function handleCheckDomain(args: Record<string, unknown>): Promise<CallToo
   const report = await checkDomain(root, {
     summaryOnly: Boolean(args.summary_only),
     offline: Boolean(args.offline),
+    strict: Boolean(args.strict),
   })
   return textResult(JSON.stringify(envelope('innfo-check-domain', report), null, 2))
 }
