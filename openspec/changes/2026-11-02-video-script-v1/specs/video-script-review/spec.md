@@ -88,13 +88,20 @@ The script MUST be approved only when every scene has `review:: approved`. A sin
 
 ### Requirement: Budget Gate Is Independent Of The Review Gate
 
-`budget` MUST be a cascade field (a number in the domaiNN currency, per episode). When the estimate does not exceed the budget, the cost MUST be auto-approved and no approval MUST be requested. When it exceeds the budget, `produce` MUST stop with exit 11 unless it was given `--approve <plan_hash>` for the current hash. `script_review:: skip` MUST NOT bypass this stop.
+`budget` MUST be a cascade field (a number in the domaiNN currency, per episode). When the estimate does not exceed the budget, the cost MUST be auto-approved and no approval MUST be requested. When it exceeds the budget, `produce` MUST stop with exit 11 unless it was given `--approve <plan_hash>` for the current hash. The bluepriNNt MUST ship no `budget` default, so an unset `budget` MUST be treated as an amount no estimate can fit: the gate asks (exit 11) rather than auto-approving. `script_review:: skip` MUST NOT bypass this stop.
 
 #### Scenario: Under budget auto-approves
 
 - GIVEN an estimate of 1.20 and `budget:: 2.00`
 - WHEN the review is approved
 - THEN no cost approval is requested
+
+#### Scenario: Unset budget always asks
+
+- GIVEN no level declares `budget`
+- WHEN `produce` reaches the budget gate without `--approve <plan_hash>`
+- THEN it exits 11 naming the estimate and the unset budget
+- AND it spends nothing
 
 #### Scenario: Over budget stops even when review is skipped
 

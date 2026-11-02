@@ -1,6 +1,47 @@
 # Delta for video-script-model
 
-Change `2026-11-02-video-script-v1`. Decisions D1 to D4, D9, D11, D12. Defaults named below (`language`, `budget`, `output_formats`, `script_review`) are spec-level assumptions recorded as open items in the change summary.
+Change `2026-11-02-video-script-v1`. Decisions D1 to D4, D9, D11, D12, plus maintainer decisions 1–3 (four Layer behaviour types, `avatar` naming, no `budget` or `language` default). Defaults named below (`language`, `budget`, `output_formats`, `script_review`) are settled by the maintainer decisions table in `tasks.md`.
+
+## ADDED Requirements
+
+### Requirement: Layer Types Are Four Behaviours
+
+The blueprint MUST define the Layer Field `type` with exactly four options, each naming a behaviour and not an appearance: `avatar` (a lip-synced, paid avatar job), `media` (an image or a video), `text` (overlay text) and `animation` (an authored HyperFrames sub-composition). A `media` Layer MUST carry `placement` (`full` or `inset`) and `timing` (`scene` or `slot`). A `text` Layer MUST carry `style` (the visual component: `title`, `lower-third`, `caption`, `watermark` or `quote`) and MAY carry `source` (the reserved value `narration` takes the scene narration). Appearance MUST come from Presets, never from a type name, and a `Style` MUST be styleable by a Preset such as "Lower third", "Title", "Quote", "Captions" or "B-roll". The name `avatar` MUST be used everywhere (the Field `type`, the internal manifest kind and every `avatar*` Field), and the names `presenter`, `talking_avatar` and `talking-avatar` MUST NOT exist as a type, Concept or alias.
+
+Source: maintainer decisions 1 and 1b.
+
+#### Scenario: Four types validate
+
+- GIVEN Layers declaring `type:: avatar`, `type:: media`, `type:: text` and `type:: animation`
+- WHEN the script is validated
+- THEN each validates and no fifth type is accepted
+
+#### Scenario: Retired type names are rejected
+
+- GIVEN a Layer declaring `type:: presenter`, `type:: background`, `type:: b-roll`, `type:: title`, `type:: lower-third`, `type:: caption`, `type:: brand`, `type:: quote` or `type:: watermark`
+- WHEN the script is validated
+- THEN validation fails naming the value and the four accepted types, with no alias
+- AND the same visual intent is expressed as a Preset on a `text` or `media` Layer
+
+#### Scenario: A text Layer names its component by style
+
+- GIVEN a `text` Layer with `style:: lower-third` and `source:: narration`
+- WHEN the manifest is compiled
+- THEN it renders the Lower-third component with the scene narration as its text
+- AND no Layer type is named `lower-third`
+
+#### Scenario: Media placement and timing are declared
+
+- GIVEN a `media` Layer with `placement:: inset` and `timing:: slot`
+- WHEN the script is validated
+- THEN both values validate and the manifest carries them
+- AND a `media` Layer without `placement` or without `timing` fails naming the missing Field
+
+#### Scenario: Avatar is the only name
+
+- GIVEN a Layer declaring `type:: avatar` and `avatar_model::`
+- WHEN the manifest is compiled
+- THEN its manifest kind is `avatar` and every generated field name starts with `avatar`
 
 ## ADDED Requirements
 
@@ -143,7 +184,8 @@ Source: D4.
 
 - GIVEN the package `defaults/video-defaults_NN.md`
 - WHEN it is inspected
-- THEN it declares `script_review:: required`, `budget:: 0`, an `image_size` and a `language` value
+- THEN it declares `script_review:: required`, an `image_size` and an `output_formats` list
+- AND it declares no `budget` and no `language`: an unset `budget` always asks at the budget gate and an unset `language` is a validation error naming the field
 - AND `daily_budget` is settable only in a `Video Defaults` document (domain or blueprint level)
 
 ### Requirement: Series Concept
@@ -212,15 +254,20 @@ Each cascade parameter MUST have exactly one Field Definition whose `concept::` 
 | fit | Layer, Scene, Video, Preset, Series, Video Defaults | select `cover`, `contain` | `cover` |
 | components | Video, Preset, Series, Video Defaults | select, multiple, keyed | current list |
 | sounds | Video, Preset, Series, Video Defaults | select, multiple, keyed | `[scene-boundary=whoosh]` |
-| language | Video, Series, Video Defaults | string (language code) | `en` |
-| budget | Video, Series, Video Defaults | number (domaiNN currency, per episode) | `0` |
+| language | Video, Series, Video Defaults | string (language code) | none (unset is a validation error) |
+| budget | Video, Series, Video Defaults | number (domaiNN currency, per episode) | none (unset always asks at the budget gate) |
 | daily_budget | Video Defaults | number (domaiNN currency) | none (no daily cap) |
 | output_formats | Video, Series, Video Defaults | list of `<W>x<H>`; the first entry is the master size | `[1920x1920, 1080x1920, 1920x1080, 1080x1080]` |
 | script_review | Video, Series, Video Defaults | select `required`, `skip` | `required` |
-| type, asset, prompt, text, position, enter_animation, exit_animation | Layer | unchanged | none |
+| type | Layer | select `avatar`, `media`, `text`, `animation` | none |
+| placement | Layer (`media`) | select `full`, `inset` | none |
+| timing | Layer (`media`) | select `scene`, `slot` | none |
+| style | Layer (`text`) | select `title`, `lower-third`, `caption`, `watermark`, `quote` | none |
+| source | Layer (`text`) | select `narration` | none |
+| asset, prompt, text, position, enter_animation, exit_animation | Layer | unchanged | none |
 | z_index | Layer | string (number) | none |
 
-(Previously: the table had `master_resolution`, `voice_tone` and the old `status` options, and no `kind`, `review`, `for`, `published_url`, `image_size`, `language`, `budget`, `daily_budget`, `output_formats` or `script_review`.)
+(Previously: the table had `master_resolution`, `voice_tone` and the old `status` options, and no `kind`, `review`, `for`, `published_url`, `image_size`, `language`, `budget`, `daily_budget`, `output_formats` or `script_review`; and `type` was an unconstrained name with one type per visual role.)
 
 Source: D4.
 
@@ -240,7 +287,8 @@ Source: D4.
 
 - GIVEN the package `defaults/video-defaults_NN.md`
 - WHEN its values are read
-- THEN `voice_model` is `minimax/speech-2.8-hd`, `background_audio_volume` is `0.2`, `transition` is `none`, `frame` is `neutral`, `fit` is `cover`, `sounds` is `[scene-boundary=whoosh]`, `script_review` is `required`, `budget` is `0`, `image_size` is `1024x1024` and `output_formats` holds the four default entries
+- THEN `voice_model` is `minimax/speech-2.8-hd`, `background_audio_volume` is `0.2`, `transition` is `none`, `frame` is `neutral`, `fit` is `cover`, `sounds` is `[scene-boundary=whoosh]`, `script_review` is `required`, `image_size` is `1024x1024` and `output_formats` holds the four default entries
+- AND neither `budget` nor `language` has a blueprint default
 
 #### Scenario: output_formats is replaced as a whole
 
@@ -322,7 +370,7 @@ Each cascade parameter MUST be settable at every level where it has meaning, so 
 
 ### Requirement: The Video Concept Carries The Episode Record
 
-The `video-script` blueprint's `Video` concept MUST also declare the episode's catalogue and delivery fields `description` (markdown_inline), `status` (select of `idea`/`draft`/`approved`/`produced`/`published`/`archived`), `published_url` (string), `script` (file), `master` (video) and `thumbnail` (image), so that one L3 document of the blueprint is both the episode's record and its script; `slug` is the reserved iNNfo identity property and MUST NOT be redeclared as a Field Definition of this blueprint.
+The `coNNtent` blueprint's `Video` concept MUST also declare the episode's catalogue and delivery fields `description` (markdown_inline), `status` (select of `idea`/`draft`/`approved`/`produced`/`published`/`archived`), `published_url` (string), `script` (file), `master` (video) and `thumbnail` (image), so that one L3 document of the blueprint is both the episode's record and its script; `slug` is the reserved iNNfo identity property and MUST NOT be redeclared as a Field Definition of this blueprint.
 
 Each file-backed field MUST hold exactly one filename resolved under the owning model's directory, `master` MUST name the episode's master `<slug>_<W>x<H>.mp4` where `<W>x<H>` is the first entry of the resolved `output_formats`, and a `Video` element MUST NOT carry a field for a derived format variant: the other formats and the thumbnail variants are derived from `master` and are never stored.
 (Previously: `status` had the options `draft`/`scripting`/`rendering`/`published`/`archived`, there was no `published_url`, and `master` was tied to the file name `<slug>_1920x1920.mp4`.)
@@ -331,7 +379,7 @@ Source: D4, D5.
 
 #### Scenario: An episode is one L3 document
 
-- GIVEN an L3 document of the `video-script` blueprint holding one `## NN Video:` element with `slug`, `status`, `script`, `master` and `thumbnail`
+- GIVEN an L3 document of the `coNNtent` blueprint holding one `## NN Video:` element with `slug`, `status`, `script`, `master` and `thumbnail`
 - WHEN it is validated as an L3 document
 - THEN it validates with no schema errors
 
@@ -362,8 +410,8 @@ Source: D4, D5.
 
 ### Requirement: Retired Field Names Are Rejected
 
-The blueprint MUST NOT define the retired Fields and Concept names `template`, `tool`, `tts_model`, `speed`, `emotion`, `music`, `music_volume`, `presenter_asset`, `intro_asset`, `voice_tone`, `scene_duration`, `scene_tts_model` and `master_resolution`, the Layer field `level`, the Layer field `model`, and the Video field `voice_id`, and a document using any of them MUST fail validation with no alias or fallback.
-(Previously: `voice_tone`, `scene_duration`, `scene_tts_model` and `master_resolution` were not in the retired set.)
+The blueprint MUST NOT define the retired Fields and Concept names `template`, `tool`, `tts_model`, `speed`, `emotion`, `music`, `music_volume`, `presenter_asset`, `intro_asset`, `voice_tone`, `scene_duration`, `scene_tts_model` and `master_resolution`, the Layer field `level`, the Layer field `model`, and the Video field `voice_id`, and a document using any of them MUST fail validation with no alias or fallback. The retired type names `presenter`, `talking_avatar` and `talking-avatar` MUST fail the same way, naming their replacement `avatar`.
+(Previously: `voice_tone`, `scene_duration`, `scene_tts_model` and `master_resolution` were not in the retired set, and the type names were not validated at all.)
 
 #### Scenario: Renamed field is rejected under the old name
 

@@ -71,7 +71,7 @@ Every V_1-0-0 episode MUST record the blueprint version it was authored against 
 
 #### Scenario: Pin recorded
 
-- GIVEN a new episode created under `video-script_V_1-0-0`
+- GIVEN a new episode created under `coNNtent_V_1-0-0`
 - WHEN its record is read
 - THEN its frontmatter has `blueprint_version: V_1-0-0`
 

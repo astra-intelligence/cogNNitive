@@ -67,6 +67,6 @@ Source: D9, settled defaults 5 and 7.
 
 #### Scenario: Scope document defines the series level
 
-- GIVEN `s_series_NN.md` with `scope: true` declaring `frame:: brand`
+- GIVEN `s_series_NN.md` with `scope: true` declaring `frame:: plain`
 - WHEN a Scene in that series resolves `frame`
-- THEN the value is `brand` with source `series`
+- THEN the value is `plain` with source `series`

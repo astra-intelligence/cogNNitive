@@ -8,7 +8,7 @@ Defines the append-only JSONL facts of a run: the spend ledger and the stage tim
 
 ### Requirement: Facts Are Machine-Local Files Under .cognnitive/video
 
-The ledger MUST be `<domaiNN>/.cognnitive/video/ledger.jsonl` and the timing log `<domaiNN>/.cognnitive/video/timings.jsonl`, one file of each per machine. The previous `.cognnitive/video-ledger.jsonl` MUST NOT be read. The files MUST NOT be committed. Comparing machines MUST merge the files at console export time.
+The ledger MUST be `<domaiNN>/.cognnitive/video/ledger.jsonl` and the timing log `<domaiNN>/.cognnitive/video/timings.jsonl`, one file of each per machine. The previous `.cognnitive/video-ledger.jsonl` MUST NOT be read. The files MUST be gitignored and MUST NOT be committed. Comparing machines MUST merge the files at console export time.
 
 #### Scenario: New location
 
@@ -24,13 +24,13 @@ The ledger MUST be `<domaiNN>/.cognnitive/video/ledger.jsonl` and the timing log
 
 ### Requirement: Spend Ledger Row Schema
 
-The ledger MUST be append-only JSONL. Every row MUST carry `v` (2), `ts`, `run_id`, `episode`, `plan_hash`, `stage`, `kind`, `model`, `cache_key`, `units`, `unit_price`, `price_date`, `price_source`, `est_usd`, `actual_usd`, `cache_hit`, `outcome` (`ok`, `failed` or `blocked`), `queue_ms` and `processing_ms`. Rows MUST NOT be rewritten or deleted by the engine. Queue time and processing time MUST be separate values.
+The ledger MUST be append-only JSONL. Every row MUST carry `v` (2), `ts`, `run_id`, `episode`, `plan_hash`, `stage`, `kind`, `model`, `cache_key`, `units`, `unit_price`, `price_date`, `price_source`, `est_usd`, `actual_usd`, `cache_hit`, `outcome` (`ok`, `failed` or `blocked`), `queue_ms`, `processing_ms` and `machine` (the object carrying at least the `fp` fingerprint of "Stage Timing Row Schema"). Rows MUST NOT be rewritten or deleted by the engine. Queue time and processing time MUST be separate values, and every row MUST carry the machine fingerprint so logs from several machines can be compared when merged by hand.
 
 #### Scenario: Row carries keys
 
 - GIVEN a paid TTS call during `produce`
 - WHEN its ledger row is read
-- THEN it carries the episode, `run_id`, `plan_hash`, model, units, unit price with date and source, estimate, actual cost and outcome
+- THEN it carries the episode, `run_id`, `plan_hash`, model, units, unit price with date and source, estimate, actual cost, outcome and the machine fingerprint
 
 #### Scenario: Append-only
 

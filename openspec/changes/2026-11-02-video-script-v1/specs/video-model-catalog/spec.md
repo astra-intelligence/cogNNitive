@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines the Provider, Model and Voice catalog as kNNowledge: the dated reference catalog shipped by the `video-script` bluepriNNt, the domaiNN overlay (allowlist, additions, invoice prices), the merged catalog that is the single source for the spend guard, estimator, picklists and adapters, and per-model intent adapters. Decision D5 of change `2026-11-02-video-script-v1`, aligned to design.md A9, A14 and the data shapes.
+Defines the Provider, Model and Voice catalog as kNNowledge: the dated reference catalog shipped by the `coNNtent` bluepriNNt, the domaiNN overlay (allowlist, additions, invoice prices), the merged catalog that is the single source for the spend guard, estimator, picklists and adapters, and per-model intent adapters. Decision D5 of change `2026-11-02-video-script-v1`, aligned to design.md A9, A14 and the data shapes.
 
 ## Requirements
 
@@ -140,18 +140,18 @@ Each Model MUST name an adapter (`scripts/adapters/<id>.mjs`) exporting its `con
 - WHEN the contract test runs
 - THEN it fails naming the model
 
-### Requirement: infinitetalk Stays Active With A Warning Until Confirmed
+### Requirement: infinitetalk Is An Active Allowed Avatar Model
 
-Until the maintainer confirms that `infinitetalk` is blocked (open item Q7), the reference catalog MUST ship it with `status:: active`, and every run that resolves it MUST emit a warning naming it. After confirmation its status MUST become `blocked` and the blocked-status behaviour above applies.
+`infinitetalk` MUST stay in the reference catalog as an active avatar model. The engine MUST allow it through the normal catalog path and MUST NOT emit a warning or a block for it. A domaiNN MAY still exclude it through the overlay allowlist like any other model.
 
-#### Scenario: Warning while active
+#### Scenario: No warning while active
 
-- GIVEN `infinitetalk` with `status:: active` and a presenter Layer that resolves it
+- GIVEN `infinitetalk` with `status:: active` and an `avatar` Layer that resolves it
 - WHEN `produce` runs
-- THEN a warning names the model and the run continues
+- THEN no warning names the model and the run continues
 
-#### Scenario: Blocked after confirmation
+#### Scenario: Overlay may still exclude it
 
-- GIVEN `infinitetalk` with `status:: blocked`
-- WHEN a presenter Layer resolves it
-- THEN the run fails before spend
+- GIVEN a domaiNN overlay that does not allow `infinitetalk` and an `avatar` Layer that resolves it
+- WHEN `produce` runs
+- THEN the guard refuses the run before spend, like any other disallowed model

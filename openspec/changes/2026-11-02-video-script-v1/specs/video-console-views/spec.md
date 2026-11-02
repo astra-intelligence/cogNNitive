@@ -8,11 +8,11 @@ Defines the two domaiNN console views of the video workflow (Episode review and 
 
 ### Requirement: Views Are Registered, Not Standalone
 
-The Episode review and Series views MUST be registered through `registerView` as blueprint views of `video-script`, MUST appear as tabs in the domaiNN console and MUST be exportable with `scripts/export-console.mjs --view <id>`. The standalone console template `draft-template.html`, its builder and the generated `review_console.html` MUST NOT exist.
+The Episode review and Series views MUST be registered through `registerView` as blueprint views of `coNNtent`, MUST appear as tabs in the domaiNN console and MUST be exportable with `scripts/export-console.mjs --view <id>`. The standalone console template `draft-template.html`, its builder and the generated `review_console.html` MUST NOT exist.
 
 #### Scenario: Views appear as tabs
 
-- GIVEN a domaiNN adopting `video-script`
+- GIVEN a domaiNN adopting `coNNtent`
 - WHEN the console opens
 - THEN tabs for Episode review and Series are listed
 

@@ -1,6 +1,6 @@
 # Delta for video-script-skill
 
-Change `2026-11-02-video-script-v1`. Decisions D6, D10, D13. The agent does creative work only and delivers a proposed changeset; the engine command `produce` does everything deterministic.
+Change `2026-11-02-video-script-v1`. Decisions D6, D10, D13. The agent does creative work only and delivers a proposed changeset; the engine command `produce` does everything deterministic. The skill is renamed `nn-conntent` (formerly `nn-video-script`), under the bluepriNNt folder `iNNfo/specs/bluepriNNts/coNNtent/`, with no alias or redirect.
 
 ## ADDED Requirements
 
@@ -65,7 +65,7 @@ The skill and `scripts/dev` MUST NOT contain `draft-template.html`, `build-draft
 
 ### Requirement: Skill Reaches nn-core And The Apply Engine Through A Mirror
 
-The skill MUST obtain the scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply` and `writeProposedChangeset` from one generated, drift-guarded mirror (`lib/nn-core.generated.cjs`, built by the `video-script` target of `build-core-mirrors.mjs`), and MUST NOT keep a parser or writer of its own. `verify.js` MUST run the mirror `--check`.
+The skill MUST obtain the scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply` and `writeProposedChangeset` from one generated, drift-guarded mirror (`lib/nn-core.generated.cjs`, built by the `coNNtent` target of `build-core-mirrors.mjs`), and MUST NOT keep a parser or writer of its own. `verify.js` MUST run the mirror `--check`.
 
 Source: design A10 (bundle size to be measured in the first slice).
 

@@ -36,7 +36,7 @@ The Series document (`<s>_series_NN.md`, frontmatter `scope: true`) MUST be able
 
 ### Requirement: Every Scene States Its Kind
 
-Every `Scene` of a V_1-0-0 episode MUST state `kind::` with the name of a Scene Kind of its Series or the reserved name `Libre`. A scene's content MUST be its narration body plus its `Layer` elements (for example a background, b-roll or presenter with an asset or an image prompt). An unknown kind name MUST fail the pre-compile check with `unknown-kind`, naming the scene, the name and the kinds available, before any spend.
+Every `Scene` of a V_1-0-0 episode MUST state `kind::` with the name of a Scene Kind of its Series or the reserved name `Libre`. A scene's content MUST be its narration body plus its `Layer` elements (for example a `media` Layer with an asset or an image prompt, a `text` Layer whose `style` names a component, or an `avatar` Layer with a cached clip). An unknown kind name MUST fail the pre-compile check with `unknown-kind`, naming the scene, the name and the kinds available, before any spend.
 
 #### Scenario: Known kind validates
 
@@ -142,7 +142,7 @@ A scene with `kind:: Libre` MUST inherit no kind rules (narration setting, maxim
 
 ### Requirement: Series Chrome Is Declared Once And Applied Per Kind
 
-A Series MUST be able to declare one `Chrome` element per language, each with `language` and any of `watermark`, `cta`, `bumper` and `music`. A Scene Kind's `chrome` list names the items applied to its scenes. The engine MUST apply those items to every scene of the kind, using the `Chrome` element for the cascaded `language`, without the episode repeating them. When a kind lists a chrome item and no `Chrome` element for the resolved language declares it, the run MUST fail before spend with `missing-chrome-language` naming the item and the language.
+A Series MUST be able to declare one `Chrome` element per language, each with `language` and any of `watermark`, `cta`, `bumper` and `music`, whose media live in `series/<s>/assets/`. A Scene Kind's `chrome` list names the items applied to its scenes. The engine MUST apply those items to every scene of the kind, using the `Chrome` element for the cascaded `language`, without the episode repeating them. When a kind lists a chrome item and no `Chrome` element for the resolved language declares it, the run MUST fail before spend with `missing-chrome-language` naming the item and the language.
 
 #### Scenario: Watermark follows the language
 
@@ -165,10 +165,17 @@ A Series MUST be able to declare one `Chrome` element per language, each with `l
 
 ### Requirement: Language Is A Cascade Field
 
-`language` MUST be a cascade parameter set by the Series and overridable by an episode, driving voice selection, chrome text, narration rules and the description language. An unset language MUST resolve from the blueprint default.
+`language` MUST be a cascade parameter set by the Series and overridable by an episode, driving voice selection, chrome text, narration rules and the description language. The bluepriNNt MUST ship no `language` default, so an unset language MUST be a validation error naming the field before any spend.
 
 #### Scenario: Episode overrides the series language
 
 - GIVEN a Series with `language:: es` and an episode with `language:: en`
 - WHEN `language` is resolved for a scene
 - THEN the value is `en` with source `video`
+
+#### Scenario: Unset language fails before spend
+
+- GIVEN no level of the chain declares `language`
+- WHEN `produce` runs
+- THEN it fails with a named validation error naming `language`
+- AND nothing is spent

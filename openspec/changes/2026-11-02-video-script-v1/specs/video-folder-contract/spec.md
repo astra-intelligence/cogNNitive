@@ -56,7 +56,7 @@ Source: D7, D8.
 
 ### Requirement: Three-Level Asset Scoping
 
-Assets MUST be scoped at exactly three levels: domain (shared across all series, at the domain root), series (shared across the episodes of one series, in `series/<s>/assets/` for chrome media, `series/<s>/shared/<kind>/`, `series/<s>/sounds/`, `series/<s>/components/` and `series/<s>/frames/`), and episode (owned by one video, in `series/<s>/episodes/<slug>/`).
+Assets MUST be scoped at exactly three levels: domain (shared across all series, at the domain root), series (shared across the episodes of one series, in `series/<s>/assets/` for series media such as a bumper, logo, music, avatar image, sound or frame, `series/<s>/shared/<kind>/`, `series/<s>/sounds/`, `series/<s>/components/` and `series/<s>/frames/`), and episode (owned by one video, in `series/<s>/episodes/<slug>/`).
 (Previously: the episode level was `series/<s>/assets/<slug>/` and `series/<s>/assets/` was not a series-level folder.)
 
 Source: D1, D8.
@@ -99,7 +99,7 @@ Every video domain MUST use one layout: the domain root holds at least `domaiNN_
 
 Source: D1, D8.
 
-An episode folder `E` MUST contain `<slug>_NN.md` (the episode document: record and script), and MAY contain `sources/`, `media/`, `animations/<project>/`, `description.md`, the master `<slug>_<W>x<H>.mp4`, `formats/`, `thumbnail.png` and the regenerable `hyperframes/`, each optional until its producing step has run. `E` MUST NOT contain `build/`, `public/`, `draft.json`, `reviewed.json`, `review_console.html`, `asset_plan.md` or `asset_plan.approved.json`. Episodes authored before V_1-0-0 stay where they are as an archive and are not required to match this layout.
+An episode folder `E` MUST contain `<slug>_coNNtent_<s>_NN.md` (the episode document: record and script, where `<s>` is the series name), and MAY contain `sources/`, `media/`, `animations/<project>/`, `description.md`, the master `<slug>_<W>x<H>.mp4`, `formats/`, `thumbnail.png` and the regenerable `hyperframes/`, each optional until its producing step has run. A bare `<slug>_NN.md` MUST be rejected. `E` MUST NOT contain `build/`, `public/`, `draft.json`, `reviewed.json`, `review_console.html`, `asset_plan.md` or `asset_plan.approved.json`. The engine MUST discover episodes only under `series/<s>/episodes/`; a legacy episode folder left in `series/<s>/assets/` MUST be ignored and left for the maintainer to reorganise by hand. Episodes authored before V_1-0-0 stay where they are as an archive and are not required to match this layout.
 
 #### Scenario: Fully produced episode matches the layout
 
@@ -125,9 +125,15 @@ An episode folder `E` MUST contain `<slug>_NN.md` (the episode document: record 
 - WHEN the layout is checked
 - THEN it is reported as archive and no tool moves it
 
+#### Scenario: Legacy episode folder in assets is not discovered
+
+- GIVEN an episode folder left under `series/<s>/assets/<slug>/` and no folder under `series/<s>/episodes/`
+- WHEN the engine discovers the episodes of that series
+- THEN the legacy folder is not treated as an episode and no tool reads or writes it
+
 ### Requirement: Naming Scheme By File Class
 
-File and folder names MUST follow one scheme by class: domain-indexed documents (`_NN.md`) are `<stem>_<blueprint-or-role>_NN.md` or, for an episode, `<slug>_NN.md`; working files inside `E` carry fixed `snake_case` or lowercase role names with neither slug nor `V_`, the master and derived formats are `<slug>_<W>x<H>.mp4` named by true dimensions, and `description.md` carries no slug and no `V_`.
+File and folder names MUST follow one scheme by class: domain-indexed documents (`_NN.md`) are `<stem>_<blueprint-or-role>_NN.md` or, for an episode, `<slug>_coNNtent_<s>_NN.md`; working files inside `E` carry fixed `snake_case` or lowercase role names with neither slug nor `V_`, the master and derived formats are `<slug>_<W>x<H>.mp4` named by true dimensions, and `description.md` carries no slug and no `V_`.
 (Previously: the episode script was `<slug>_video-script_<s>_NN.md`, thumbnails were `<slug>_thumbnail_<W>x<H>.png`, and the working-file scenario listed `draft.json`, `reviewed.json` and `review_console.html`.)
 
 Source: D1.
@@ -148,9 +154,10 @@ Folders MUST be lowercase, plural when they hold many items (`episodes`, `assets
 
 #### Scenario: Episode document name
 
-- GIVEN episode `startup-founder`
+- GIVEN episode `startup-founder` in series `cognitive-use-cases`
 - WHEN its document is written
-- THEN its name is `startup-founder_NN.md`
+- THEN its name is `startup-founder_coNNtent_cognitive-use-cases_NN.md`
+- AND a bare `startup-founder_NN.md` is rejected as a non-conforming episode document
 
 #### Scenario: Spanish names are reported, not renamed
 

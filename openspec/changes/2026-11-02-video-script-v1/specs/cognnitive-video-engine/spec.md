@@ -7,7 +7,7 @@ Change `2026-11-02-video-script-v1`. Requirements marked `Slice: 0` ship first o
 | 1 image cache key | Image Cache Key Follows The Cascaded Model | durable (V_1-0-0 extends it with `image_size`, see "Image Size Is A Cascade Field And Cache Input") |
 | 3 avatar clip refusal | Render Refuses Missing Avatar Clips | durable |
 | 4 unpriced models | Allowed Models Must Be Priced | interim, superseded by video-model-catalog "Unpriced Allowed Models Block, Unknown Models Fail" (drop at archive of slice 3) |
-| 4 infinitetalk | video-model-catalog "infinitetalk Stays Active With A Warning Until Confirmed" | durable; the block applies once the maintainer confirms (Q7) |
+| 4 infinitetalk | video-model-catalog "infinitetalk Is An Active Allowed Avatar Model" | durable; the model stays active with no warning (maintainer decision 8) |
 | 5 crop fill | Blur Fill Is Opt-In And Suffixed | durable |
 | 2 console controls | video-console-views "No Control Without Effect" | durable |
 
@@ -286,7 +286,7 @@ The system MUST resolve every media reference emitted by the compiler — `layer
 
 ### Requirement: Spend Guard Is Gate-Only
 
-The spend guard MUST gate spend: it decides whether a resolved model is allowed by the domaiNN overlay (`allowed::`) of the merged model catalog and whether the run fits the cascaded `budget` (per episode) and `daily_budget`. It MUST NOT select a model id, MUST NOT hold an allowlist or price of its own, and MUST NOT supply any cascade level. `video-guard.json` MUST NOT exist.
+The spend guard MUST gate spend: it decides whether a resolved model is allowed by the domaiNN overlay (`allowed::`) of the merged model catalog and whether the run fits the cascaded `budget` (per episode) and `daily_budget`. It MUST NOT select a model id, MUST NOT hold an allowlist or price of its own, and MUST NOT supply any cascade level. `video-guard.json` MUST NOT exist. The bluepriNNt ships no `budget` default, so an unset `budget` MUST make the budget gate ask (`--approve <plan_hash>`), never auto-approve.
 (Previously: the guard's own `video-guard.json` `allowedModels` list decided which models were allowed, and budget came from the guard configuration.)
 
 #### Scenario: Blocked resolved model is refused before spend
@@ -312,6 +312,12 @@ The spend guard MUST gate spend: it decides whether a resolved model is allowed 
 - GIVEN `daily_budget:: 5`, ledger rows of the current day summing to 4.50 and an estimate of 1.00
 - WHEN `produce` runs
 - THEN it fails before the first charge naming the daily budget
+
+#### Scenario: Unset budget asks instead of auto-approving
+
+- GIVEN no level declares `budget` and an estimate of any amount
+- WHEN `produce` runs without `--approve <plan_hash>`
+- THEN the budget gate asks and no provider is called
 
 ### Requirement: Voice Parameters Resolve Through The Cascade
 
@@ -430,26 +436,26 @@ A rename that fails because the target is open MUST end in an error message that
 
 ### Requirement: Render Refuses Missing Avatar Clips
 
-The `render` command MUST refuse to render when a presenter Layer has no cached avatar clip, with a named non-zero error that states the avatar synthesis command. There is no override flag: the way forward is to synthesize the avatars first. The refusal MUST be enforced in code (`lib/avatar-jobs.mjs`), not only documented, and MUST name every presenter Layer lacking a clip.
-(Previously: stated as a requirement but not enforced by the code path.)
+The `render` command MUST refuse to render when an `avatar` Layer has no cached avatar clip, with a named non-zero error that states the avatar synthesis command. There is no override flag: the way forward is to synthesize the avatars first. The refusal MUST be enforced in code (`lib/avatar-jobs.mjs`), not only documented, and MUST name every `avatar` Layer lacking a clip.
+(Previously: stated as a requirement but not enforced by the code path; the Layer type is now `avatar`, not `presenter`.)
 
 Source: D8. Slice: 0 (V_0-14-x, quick win 3).
 
 #### Scenario: Missing clip stops the render
 
-- GIVEN a presenter Layer whose avatar clip is not in the cache
+- GIVEN an `avatar` Layer whose avatar clip is not in the cache
 - WHEN `render <script>` runs
 - THEN it fails before rendering, states the avatar synthesis command, and writes no master
 
 #### Scenario: Every missing layer is named
 
-- GIVEN two presenter Layers, one with a cached clip and one without
+- GIVEN two `avatar` Layers, one with a cached clip and one without
 - WHEN `render <script>` runs
 - THEN the error names only the Layer without a clip
 
 #### Scenario: All clips present renders
 
-- GIVEN every presenter Layer has a cached clip
+- GIVEN every `avatar` Layer has a cached clip
 - WHEN `render <script>` runs
 - THEN the render proceeds
 

@@ -62,14 +62,14 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice D: Align OpenSpec artifacts with the resolved decisions (docs-only)
 
-- [ ] D.1 Update `proposal.md`, `design.md` and `specs/*/spec.md` of this change to decisions 1–9 (layer type set, avatar naming, defaults, folders, names, rename). Keep capability names `video-*`.
-- [ ] D.2 Update this file's slice tasks that still name old types, paths or the old blueprint id.
-- [ ] Verify: no remaining `presenter`, `talking_avatar`, `brand`, `quote` (as a type), `<slug>_NN.md`, `budget=0`, `language=en` default in the change folder (`rg`), except in REMOVED requirement blocks.
+- [x] D.1 Update `proposal.md`, `design.md` and `specs/*/spec.md` of this change to decisions 1–9 (layer type set, avatar naming, defaults, folders, names, rename). Keep capability names `video-*`.
+- [x] D.2 Update this file's slice tasks that still name old types, paths or the old blueprint id.
+- [x] Verify: no remaining `presenter`, `talking_avatar`, `brand`, `quote` (as a type), `<slug>_NN.md`, `budget=0`, `language=en` default in the change folder (`rg`), except in `REMOVED` requirement blocks and explicit retired-name enumerations.
 
 ## Slice R: Rename the bluepriNNt to coNNtent (after Slice 1, before 2a; `size:exception`, mechanical)
 
 - [ ] R.1 RED: tests/guards that expect `coNNtent` in `iNNfo/specs/bluepriNNts/catalog.json`, `docs/innfo/blueprints/catalog.json`, the publish-web skill allowlist and the core-mirror target name.
-- [ ] R.2 GREEN: `git mv` the bluepriNNt folder to `coNNtent/` and the skill to `skills/nn-conntent`; update catalog entries, `parent_spec` URLs, SKILL.md name/triggers, `scripts/` references, docs, tests, `.atl` registry source if tracked. No alias, no redirect.
+- [ ] R.2 GREEN: `git mv` the bluepriNNt folder to `coNNtent/` and the skill to `skills/nn-conntent`; update catalog entries, `parent_spec` URLs, SKILL.md name/triggers, `scripts/` references, the `build-core-mirrors.mjs` target and its `scripts/core-mirrors/` entry, docs, tests, `.atl` registry source if tracked. No alias, no redirect.
 - [ ] R.3 Regenerate every derived artifact (`npm run regen`) and commit the results.
 - [ ] Verify: `node scripts/verify.js`; `rg -i "video-script|nn-video-script"` returns only OpenSpec history, archived changes and REMOVED blocks.
 
@@ -114,7 +114,7 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 ## Slice 3a: Model catalog and adapters
 
 - [ ] 3a.1 RED: tests for catalog merge (overlay wins per slug), allowlist, unknown model failure, adapter `controls` equal catalog `controls`, adapter `translate`.
-- [ ] 3a.2 GREEN: create `.../video-script/catalog/model-catalog_NN.md`, `S/scripts/lib/catalog.mjs`, `S/scripts/adapters/*.mjs`.
+- [ ] 3a.2 GREEN: create `.../coNNtent/catalog/model-catalog_NN.md`, `S/scripts/lib/catalog.mjs`, `S/scripts/adapters/*.mjs`.
 - [ ] Verify: `node --test S/test`.
 
 ## Slice 3b: Estimator, plan hash, ledger v2
@@ -164,7 +164,7 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 10: Draft procedure and docs
 
-- [ ] 10.1 Draft procedure under `.../video-script/procedures/` emitting a sealed changeset P; apply decision 7.
+- [ ] 10.1 Draft procedure under `.../coNNtent/procedures/` emitting a sealed changeset P; apply decision 7.
 - [ ] 10.2 Update `S/SKILL.md`, `references/{folder-contract,parameters,cost-guardrails}.md`; add `prune-duplicates.mjs --dry-run` with a test that only cache-identical bytes qualify.
 
 ## Slice 11: Pilot port (manual, maintainer-run, outside the repo)

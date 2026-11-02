@@ -1,6 +1,6 @@
 # Delta for console-view-registry
 
-Change `2026-11-02-video-script-v1`, design.md A12. A generic, small addition so that a view can receive data the model payload does not carry (the ledger and timing facts). It is not video-specific. Pending maintainer confirmation (design "Open for maintainer").
+Change `2026-11-02-video-script-v1`, design.md A12. A generic, small addition so that a view can receive data the model payload does not carry (the ledger and timing facts). It is not video-specific. Accepted as designed by the maintainer (2026-11-02).
 
 ## ADDED Requirements
 

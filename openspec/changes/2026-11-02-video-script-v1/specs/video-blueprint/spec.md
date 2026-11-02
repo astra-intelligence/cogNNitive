@@ -14,7 +14,7 @@ Source: D7, proposal Scope.
 
 - GIVEN `origin/main` carries the last V_0-14-x blueprint
 - WHEN this change edits `spec_NN.md`
-- THEN `blueprint_version` is `V_1-0-0`, the package defaults `parent_spec` names `video-script_V_1-0-0`, and both catalogs name `V_1-0-0`
+- THEN `blueprint_version` is `V_1-0-0`, the package defaults `parent_spec` names `coNNtent_V_1-0-0`, and both catalogs name `coNNtent` at `V_1-0-0`
 
 #### Scenario: Guards stay green
 
@@ -30,7 +30,7 @@ Source: D7, proposal Scope.
 
 ### Requirement: Blueprint Text Describes The Declared Master
 
-The `video-script` blueprint `spec_NN.md` MUST describe the Video `master` field as the episode's master sized by the first entry of `output_formats`, and the Layer `position` field as an overlay anchor inside the central safe square, and MUST NOT contain the 16:9 `center 12%` wording, a native dual-master description or the literal file name `<slug>_1920x1920.mp4` as a fixed rule.
+The `coNNtent` blueprint `spec_NN.md` MUST describe the Video `master` field as the episode's master sized by the first entry of `output_formats`, and the Layer `position` field as an overlay anchor inside the central safe square, and MUST NOT contain the 16:9 `center 12%` wording, a native dual-master description or the literal file name `<slug>_1920x1920.mp4` as a fixed rule.
 
 Source: D4.
 
@@ -66,38 +66,44 @@ The blueprint MUST define the Concepts `Scene Kind` and `Chrome` (see capability
 
 ### Requirement: Native L2 Video-Script Blueprint
 
-The Level 2 blueprint `video-script` MUST define the Concepts and Fields for a native video script (`Video`, `Scene`, `Layer`, `Preset`, plus `Video Defaults`, `Series`, `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` and `Voice`) using iNNfo `::` field syntax, and MUST be the schema an L3 script document adopts via `parent_spec`. The blueprint MUST NOT define VUS `scene_*` or `layer_*` fields.
-(Previously: the Concept list had no `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` or `Voice`.)
+The Level 2 blueprint `coNNtent` MUST define the Concepts and Fields for a native video script (`Video`, `Scene`, `Layer`, `Preset`, plus `Video Defaults`, `Series`, `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` and `Voice`) using iNNfo `::` field syntax, and MUST be the schema an L3 script document adopts via `parent_spec`. The blueprint MUST NOT define VUS `scene_*` or `layer_*` fields.
+(Previously: the Concept list had no `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` or `Voice`; the blueprint was named `video-script`.)
 
 #### Scenario: Blueprint defines the native concepts
 
-- GIVEN the Level 2 `video-script` blueprint
+- GIVEN the Level 2 `coNNtent` blueprint
 - WHEN it is inspected
 - THEN it defines `Video`, `Scene`, `Layer`, `Preset`, `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` and `Voice` Concepts with `::` Fields
 - AND it defines no `Template` Concept and no `scene_*` or `layer_*` fields
 
 #### Scenario: An L3 script adopts the blueprint
 
-- GIVEN an L3 script document whose `parent_spec` is the `video-script` blueprint
+- GIVEN an L3 script document whose `parent_spec` is the `coNNtent` blueprint
 - WHEN the document is validated
 - THEN its Concepts and Fields are checked against the blueprint
 
-### Requirement: Presenter Conditional Fields Include Avatar
+### Requirement: Conditional Fields Are Keyed By Layer Type
 
-The blueprint `validation.conditional_fields` MUST declare `presenter: [asset, prompt, avatar]`, and the engine MUST read its conditional-fields table from the generated field registry rather than from a hand-copied default.
-(Previously: the engine kept a default table that a drift test compared with the blueprint.)
+The blueprint `validation.conditional_fields` MUST key its rules by the four Layer behaviour types (`avatar`, `media`, `text`, `animation`) and MUST declare that an `avatar` Layer carries `asset`, `prompt` or `avatar_model`, and that a `media` Layer carries `asset` or `prompt`. The engine MUST read its conditional-fields table from the generated field registry rather than from a hand-copied default.
+(Previously: the table was keyed by the retired type name `presenter`, now `avatar`, and the engine kept a default table that a drift test compared with the blueprint.)
 
 #### Scenario: Blueprint declares the rule
 
 - GIVEN the blueprint `spec_NN.md`
-- WHEN `validation.conditional_fields.presenter` is read
-- THEN it is `[asset, prompt, avatar]`
+- WHEN `validation.conditional_fields.avatar` is read
+- THEN it is `[asset, prompt, avatar_model]`
 
 #### Scenario: Engine reads the registry
 
 - GIVEN a changed conditional-fields rule in the blueprint and a regenerated registry
 - WHEN the engine checks a script
 - THEN the new rule applies with no engine code change
+
+#### Scenario: Retired type key is rejected
+
+- GIVEN a blueprint whose `validation.conditional_fields` still keys a rule by `presenter`
+- WHEN the blueprint is validated
+- THEN validation fails naming the retired type and the replacement `avatar`
 
 ## REMOVED Requirements
 

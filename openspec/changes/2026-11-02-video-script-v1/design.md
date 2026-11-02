@@ -1,4 +1,4 @@
-# Design: video-script V_1-0-0 (decision-in redesign)
+# Design: coNNtent V_1-0-0 (decision-in redesign, formerly `video-script`)
 
 Note on length: this design exceeds the 800-word skill budget on purpose. The orchestrator asked it to settle 12 named questions (Q1–Q7 plus engine, console and slicing), and each one constrains the tasks. Decisions are in tables, and code appears only for data shapes.
 
@@ -19,7 +19,7 @@ The engine reads a model and runs one command; it never invents data. Data lives
 | A7 | Q5 image size | `image_size` is a cascade field, validated against the catalog Model `sizes`, and part of the image cache key. | Hard-coded 1024². Deriving it from the layer box adds logic without a decision behind it. | A person does choose the aspect (square or 16:9 b-roll). |
 | A8 | Q6 GSAP | `gsap` is pinned as an exact dependency in the skill `package.json` and installed by `ensure-hyperframes.mjs`. The engine links `node_modules/gsap/dist/gsap.min.js` into `hyperframes/vendor/`, and the emitter references `vendor/gsap.min.js`. A missing file fails loudly. | A committed vendor copy has unclear redistribution terms under the GSAP license. The CDN is what we have today and is not hermetic. | This is hermetic with no redistribution by us. |
 | A9 | Q4 stale prices | Every price carries `price_date`. Catalog-level `stale_after_days` defaults to 90. A stale price warns in the estimate and in the Series view and never blocks. An allowed model without a price blocks. | Blocking on stale prices. | Stale prices are approximate; missing prices are wrong. |
-| A10 | Parser and apply reuse | A new mirror target `video-script` in `scripts/build-core-mirrors.mjs` uses entry `scripts/core-mirrors/video-script.ts`. It re-exports the scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply` and `writeProposedChangeset`. It replaces the `scope` target, and the output is `lib/nn-core.generated.cjs`. | Shelling out to the MCP. Keeping `lib/knowledge-model.mjs`. | This is an existing, drift-guarded pattern, and the engine writes status and master through the real apply engine. |
+| A10 | Parser and apply reuse | A new mirror target `coNNtent` in `scripts/build-core-mirrors.mjs` uses entry `scripts/core-mirrors/coNNtent.ts`. It re-exports the scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply` and `writeProposedChangeset`. It replaces the `scope` target, and the output is `lib/nn-core.generated.cjs`. | Shelling out to the MCP. Keeping `lib/knowledge-model.mjs`. | This is an existing, drift-guarded pattern, and the engine writes status and master through the real apply engine. |
 | A11 | Field registry | `scripts/build-field-registry.mjs` parses `spec_NN.md` Field Definitions and frontmatter `validation.conditional_fields` and writes `lib/field-registry.generated.json`. `--check` runs in `verify.js`. Consumption is declared in code (`lib/field-consumers.mjs`, field → module). A test fails when a registry field has no consumer or a consumer names an unknown field. | Adding `consumer::` to Field Definitions, which would extend iNNfo L1. | The spec stays pure, and dead or phantom fields fail CI. |
 | A12 | Console data | Generic, small addition to `export-console.mjs`: an optional `<pkg>/assets/console-view-<slug>.data.mjs` exporting `collect({ rootDir, models })`. Its JSON result is embedded as `payload.viewData[slug]` and exposed as `ctx.viewData`. | A computed kNNowledge runs document, which goes against "facts stay JSONL". A video-specific hack in the exporter. | The views need ledger and timing data, and today nothing carries it. **This modifies `console-view-registry`** (see Open for maintainer). |
 | A13 | Facts location | `<domaiNN>/.cognnitive/video/ledger.jsonl` and `timings.jsonl`, one file per machine. The old `.cognnitive/video-ledger.jsonl` is not read. | Committed facts. | These are machine-local facts. Comparing machines merges files at export time. |
@@ -30,11 +30,11 @@ The engine reads a model and runs one command; it never invents data. Data lives
 - **Series document:**
   - `Series` has `title`, `language`, `presets`, `budget`, `script_review` and `output_formats`.
   - `Scene Kind` has `role`, `narration:: on|off`, `max_duration` (seconds), `variants` (count), `fixed:: none|first|last|after:<kind>` with `asset` for fixed scenes, `chrome:: [watermark, cta, …]` and `presets`.
-  - `Chrome` (one element per language) has `language`, `watermark`, `cta`, `bumper` and `music`.
+  - `Chrome` (one element per language) has `language`, `watermark`, `cta`, `bumper` and `music`; its media live in `series/<s>/assets/`.
 - **Episode:**
   - `Video` has `status:: idea|draft|approved|produced|published|archived`, `published_url`, `master`, `language`, `budget`, `script_review` and `output_formats` (the first entry is the master size; the master is named `<slug>_<W>x<H>.mp4`). The frontmatter pins `blueprint_version: V_1-0-0`.
   - `Scene` has `kind`, the body as narration, `review` and `presets`.
-  - `Layer` is one of the 8 used types.
+  - `Layer` states exactly one of four behaviour types: `avatar` (lip-synced, paid job), `media` (image or video, with `placement:: full|inset` and `timing:: scene|slot`), `text` (overlay text, whose `style::` names the visual component: title, lower-third, caption, watermark, quote; `source:: narration` takes the scene narration) and `animation` (an authored HyperFrames sub-composition). Appearance lives in Presets ("Lower third", "Title", "Quote", "Captions", "B-roll"). `presenter` is not a type: the name is `avatar` everywhere.
   - `Variant` is described in A3.
 - **Catalog:**
   - `Provider` has `name` and `api_base`.
@@ -49,7 +49,7 @@ export default { id, capability, controls: ['speed','emotion'],
 ```
 
   A test asserts `adapter.controls` equals the catalog `controls`. A non-default intent value for a control the model does not declare fails at estimate, before any spend.
-- **Ledger row (v2):** `{v:2, ts, run_id, episode, plan_hash, stage, kind, model, cache_key, units, unit_price, price_date, price_source, est_usd, actual_usd, cache_hit, outcome:ok|failed|blocked, queue_ms, processing_ms}`.
+- **Ledger row (v2):** `{v:2, ts, run_id, episode, plan_hash, stage, kind, model, cache_key, units, unit_price, price_date, price_source, est_usd, actual_usd, cache_hit, outcome:ok|failed|blocked, queue_ms, processing_ms, machine:{fp}}`. Every row carries the machine fingerprint (decision 6) so logs from several machines can be compared when merged by hand.
 - **Timing row (v1):** `{v:1, ts, run_id, episode, plan_hash, stage:plan|tts|image|avatar|compile|render|formats|apply, start, end, duration_ms, link_mode, machine:{fp, cpu, cores, gpu|null, ram_gb, os, node, hyperframes}, render?:{frames, fps_effective, width, height}, cache:{hits, misses}}`. `fp` is the first 12 hex characters of the sha256 of the canonical `machine` object without `fp`.
 - **`plan_hash`:** sha256 of canonical JSON `{episode, blueprint_version, items:[{kind, model, cache_key, units, unit_price, price_date}]}`. Any price change invalidates an approval.
 
@@ -63,6 +63,8 @@ draft --any needs-change--> exit 10 STOP_REVIEW (lists scenes + comments; agent 
 draft --no R yet--> export Episode review view, exit 10
 approved --> kinds+chrome expand --> cascade --> estimate (catalog, plan_hash)
    total > budget and no --approve <plan_hash> --> exit 11 STOP_BUDGET   (skip never bypasses this)
+   budget unset --> exit 11 STOP_BUDGET (an unset budget always asks)
+   language unset --> validation error before estimate (the bluepriNNt ships no language default)
    else --> tts --> image --> avatar --> compile --> link-stage --> render master --> formats
         --> E(status=produced, master) --> produced          [ledger+timings appended per stage]
 produced --user--> published (published_url) | archived
@@ -74,24 +76,24 @@ Exit codes: 0 done, 10 awaiting review, 11 over budget, 1 error. Every stage is 
 
 ```
 <domaiNN>/video-defaults_NN.md   model-catalog_NN.md   .cognnitive/{cache/video, video/*.jsonl}
-series/<s>/<s>_series_NN.md   assets/ (chrome media)
-series/<s>/episodes/<slug>/<slug>_NN.md  sources/  hyperframes/ (regenerable, gitignored:
+series/<s>/<s>_series_NN.md   assets/ (series media: bumper, logo, music, avatar images, sounds, frames)
+series/<s>/episodes/<slug>/<slug>_coNNtent_<s>_NN.md  sources/  media/  hyperframes/ (regenerable, gitignored:
     index.html, compositions/, assets/ hardlinks, vendor/gsap.min.js, manifest.json)
     <slug>_<W>x<H>.mp4 (the one master)   formats/   thumbnail.png
 ```
 
-There is no `build/`, no `render.tmp.mp4` outside `hyperframes/`, and no second master.
+The engine discovers episodes only under `series/<s>/episodes/`; a legacy episode folder left in `series/<s>/assets/` is ignored and the maintainer reorganises it by hand. There is no `build/`, no `render.tmp.mp4` outside `hyperframes/`, and no second master.
 
-## File Changes (skill root `S` = `iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script`)
+## File Changes (skill root `S` = `iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent`)
 
 | File | Action | Description |
 |---|---|---|
-| `iNNfo/specs/bluepriNNts/video-script/spec_NN.md` | Modify | V_1-0-0: concepts Scene Kind, Chrome, Variant; new and removed fields |
-| `.../video-script/catalog/model-catalog_NN.md` | Create | Dated reference catalog |
-| `.../video-script/procedures/` (draft procedure) | Create | Agent draft procedure that emits P |
-| `.../video-script/assets/console-view-episode-review.js`, `console-view-series.js` (+ `.data.mjs`) | Create | The two views |
+| `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md` | Modify | V_1-0-0: concepts Scene Kind, Chrome, Variant; new and removed fields |
+| `.../coNNtent/catalog/model-catalog_NN.md` | Create | Dated reference catalog |
+| `.../coNNtent/procedures/` (draft procedure) | Create | Agent draft procedure that emits P |
+| `.../coNNtent/assets/console-view-episode-review.js`, `console-view-series.js` (+ `.data.mjs`) | Create | The two views |
 | `scripts/export-console.mjs` | Modify | `.data.mjs` collect hook, `ctx.viewData` (A12) |
-| `scripts/build-core-mirrors.mjs`, `scripts/core-mirrors/video-script.ts` | Modify/Create | A10 |
+| `scripts/build-core-mirrors.mjs`, `scripts/core-mirrors/coNNtent.ts` | Modify/Create | A10 |
 | `S/scripts/produce.mjs` | Create | CLI entry and state machine only |
 | `S/scripts/lib/{episode,kinds,cascade,catalog,plan,stage-assets,facts,changes,compile,render,field-consumers}.mjs` | Create | Split of `video-engine-cli.mjs` |
 | `S/scripts/build-field-registry.mjs`, `lib/field-registry.generated.json` | Create | A11 |
@@ -121,7 +123,7 @@ There is no `build/`, no `render.tmp.mp4` outside `hyperframes/`, and no second 
 |---|---|---|
 | 0a | QW1 image cache key, QW5 `--fill crop`, QW3 avatar render refusal (V_0-14-x) | — |
 | 0b | QW2 remove non-preset console controls, QW4 unpriced-model warning | — |
-| 1 | Mirror target `video-script`; replace `knowledge-model.mjs` | 0 |
+| 1 | Mirror target `coNNtent`; replace `knowledge-model.mjs` | 0 |
 | 2a | `spec_NN.md` V_1-0-0 text (docs-only; likely `size:exception`) | 1 |
 | 2b | Field registry generator, validator, consumers, delete drift tests | 2a |
 | 3 | Catalog document, `catalog.mjs`, adapters, estimator rewrite, `plan_hash` with prices, ledger v2, delete guard JSON | 2b |
@@ -138,11 +140,11 @@ There is no `build/`, no `render.tmp.mp4` outside `hyperframes/`, and no second 
 
 There is no migration code. Old episodes stay archives under their pinned version, and `produce` refuses a non-V_1 `blueprint_version`. The series are ported by hand, in the order cognitive-use-cases, villabotijos-today, innteresante.
 
-## Open for maintainer
+## Resolved by the maintainer (2026-11-02)
 
-- [ ] A12 adds a generic `.data.mjs` hook to `console-view-registry`. The spec phase must add a MODIFIED delta, so confirm.
-- [ ] Q7: ship `infinitetalk` as `status:: blocked`? The design defaults it to `active` with a warning until this is confirmed.
-- [ ] A4: P is applied at intake, so unreviewed narration sits in the model under `status:: draft`. Is that acceptable?
-- [ ] A6: per D3, a video-level value overrides a kind-level one. Confirm this is intended (for example, a video-level `voice_speed` beats a kind default).
-- [ ] A10: bundling `executeChangesetApply` (nn-mcp) into a skill mirror. Measure the bundle size in Slice 1.
-- [ ] `daily_budget` stays a cascade field restricted to the domain and blueprint levels. Confirm it should not be per series.
+- [x] A12 adds a generic `.data.mjs` hook to `console-view-registry`. Accepted as designed: the spec phase adds a MODIFIED delta.
+- [x] Q7: `infinitetalk` stays in the reference catalog as an active avatar model, with no warning (decision 8).
+- [x] A4: P is applied at intake, so unreviewed narration sits in the model under `status:: draft`. Accepted as designed.
+- [x] A6: a video-level value overrides a kind-level one. Accepted as designed.
+- [x] A10: bundling `executeChangesetApply` (nn-mcp) into a skill mirror. Bundle size measured in Slice 1.
+- [x] `daily_budget` stays a cascade field restricted to the domain and blueprint levels.

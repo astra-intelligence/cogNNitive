@@ -6,20 +6,20 @@ Change `2026-11-02-video-script-v1`. Decision D3: a kind says what a scene IS, a
 
 ### Requirement: Preset Is A Parameters-Only Concept
 
-The `video-script` blueprint MUST define a top-level `Preset` Concept that has no Field of its own, so that a `# NN Preset` element MAY carry only the preset parameters (the Fields whose `concept::` lists `Preset`) and the global `tags` Field (D2).
+The `coNNtent` blueprint MUST define a top-level `Preset` Concept that has no Field of its own, so that a `# NN Preset` element MAY carry only the preset parameters (the Fields whose `concept::` lists `Preset`) and the global `tags` Field (D2).
 
 The preset parameters are `voice`, `voice_model`, `voice_speed`, `voice_emotion`, `avatar`, `avatar_model`, `intro`, `image_model`, `image_size`, `background_audio`, `background_audio_volume`, `transition`, `frame`, `fit`, `components` and `sounds`. A Preset MUST NOT contain `Layer` elements. `tags` characterise a Preset and MUST NOT affect any resolved value. The reserved `slug` identity key that every element carries is exempt from the `preset-field` check and is not a preset parameter; migrated Presets keep their `slug::`.
 (Previously: the list of preset parameters included `voice_tone` and had no `image_size`.)
 
 #### Scenario: Preset with parameters only is valid
 
-- GIVEN a `# NN Preset` element `Lucas` declaring `voice:: lucas-es`, `voice_speed:: 1.1` and `tags:: [presenter]`
+- GIVEN a `# NN Preset` element `Lucas` declaring `voice:: lucas-es`, `voice_speed:: 1.1` and `tags:: [series-lucas]`
 - WHEN the script and its scope chain are checked
 - THEN no preset error is reported
 
 #### Scenario: Non-parameter key is rejected
 
-- GIVEN a Preset element declaring `presets:: [Other]`, `type:: presenter`, `asset:: a.png` or `title:: X`
+- GIVEN a Preset element declaring `presets:: [Other]`, `type:: avatar`, `asset:: a.png` or `title:: X`
 - WHEN the script is checked
 - THEN the check reports a `preset-field` error naming the Preset and the offending key
 - AND `presets` inside a Preset is rejected so that Presets cannot compose or form cycles
@@ -161,13 +161,13 @@ Each of the `domain`, `series`, `kind`, `video` and `scene` levels MUST expand i
 
 #### Scenario: Outer folder explicit field beats inner folder preset
 
-- GIVEN the outer folder sets `frame:: brand` explicitly and the inner folder's Preset sets `frame:: night`
+- GIVEN the outer folder sets `frame:: plain` explicitly and the inner folder's Preset sets `frame:: night`
 - WHEN `frame` is resolved at the series level
-- THEN the value is `brand`
+- THEN the value is `plain`
 
 #### Scenario: Layer explicit beats Scene preset
 
-- GIVEN a Scene with `presets:: [A]` where A sets `avatar_model:: m-a` and a presenter Layer with `avatar_model:: m-layer`
+- GIVEN a Scene with `presets:: [A]` where A sets `avatar_model:: m-a` and an `avatar` Layer with `avatar_model:: m-layer`
 - WHEN the Layer's `avatar_model` is resolved
 - THEN the value is `m-layer`
 
