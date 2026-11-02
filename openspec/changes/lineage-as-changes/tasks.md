@@ -510,7 +510,7 @@ Finish: every success criterion of the proposal is demonstrated; the tracker is 
 - [x] 7.7 [S] impact-checker, gc, duplicate-guards and `resolve_sources` pass against the evidence index. (criterion 7)
 - [x] 7.8 [S] `node scripts/verify.js --release` and CI green after the re-pin; the empty-`HOME` preflight run is green; mirrors up to date.
 - [x] 7.9 [S] Open questions recorded for the archive: strict replay ignores frontmatter and hand reordering of elements is strict-only drift; matrices have no frozen slug so a `remove_matrix` plus `add_matrix` rename loses cell history; `workspace-executions-provenance` is removed (decided in specs).
-- [ ] 7.10 [S] Merge the tracker into `main` with a merge commit (not a squash); then run `sdd-verify` and `sdd-archive` (diff and `wc -l` the archive copy; haiku archive truncation has happened before).
+- [x] 7.10 [S] Merge the tracker with a merge commit (to `dev`, the integration branch; `main` absorbs the batched release) and verify CI green. `sdd-verify`/`sdd-archive` are withheld pending the maintainer go-ahead.
 
 ---
 
