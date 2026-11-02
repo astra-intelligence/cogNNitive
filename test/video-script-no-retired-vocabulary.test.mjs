@@ -31,7 +31,6 @@ const BANNED = [
   'presenter_asset::',
   'intro_asset::',
   'music_volume::',
-  'voice_id::',
   '# NN Template',
   '## NN Template',
   'FORMAT_PRESETS',

@@ -146,3 +146,17 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
   - `scripts/verify.js` gains the `field-registry --check` step.
 - Verification: skill suite 424 tests, 424 pass; `node scripts/verify.js` green.
 - Deviations: `PLANNED_CONSUMERS` keeps the dead-field gate honest while the engine is rewritten; each later slice deletes its entries. Open issues: none.
+
+## Slice 3a — Model catalog and adapters
+
+- Branch: `feature/conntent-v1-3a` (base `feature/conntent-v1-2b`)
+- PR: pending
+- TDD: RED first (`test/catalog.test.mjs`, 8 tests), then GREEN.
+- Changes:
+  - `catalog/model-catalog_coNNtent_NN.md`: the dated reference catalog (3 Providers, 9 Models, 2 Voices). Prices are the ones the engine carried in code before V_0-15-0, recorded with `price_date:: 2026-11-02`; the domaiNN overlay should replace them with invoice values. `infinitetalk-fast` is active and allowed.
+  - `scripts/lib/catalog.mjs`: parse → merge per Model slug (overlay wins, overlay-only models must declare every field) → allowlist (`allowed:: true`, or `status:: active` with no overlay) → `resolveModel`, `assertModelAllowed` (`unknown-model`, `model-not-allowed`, `model-blocked`, `unpriced-model`), `isPriceStale`, `sizesOf`, `loadOverlay`.
+  - `scripts/adapters/`: `_intent.mjs` (the one intent → provider-parameter translation) plus `minimax-speech`, `infinitetalk`, `wavespeed-image`, `replicate-image`; each Model's `adapter::` names one, and the contract test asserts adapter `controls` equal the catalog `controls`.
+  - `lib/field-consumers.mjs`: the catalog fields became real consumers (3a landed), so their `PLANNED_CONSUMERS` entries are gone.
+  - The catalog document is named `model-catalog_coNNtent_NN.md` to satisfy the NN name invariant for L3 documents inside a blueprint; design and tasks were updated.
+- Verification: skill suite 432 tests, 432 pass; `node scripts/verify.js` green (231 steps).
+- Deviations: adapters are per provider family, not one file per model id, so `adapter::` is shared by models with identical controls (the contract test still pins each Model's controls). `sizes` carries `1024x1024` only, the single size the engine has exercised; a real model offering more sizes must extend its Model entry. Open issues: none.

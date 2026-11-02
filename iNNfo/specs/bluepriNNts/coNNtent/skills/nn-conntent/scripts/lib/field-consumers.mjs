@@ -43,6 +43,21 @@ export const FIELD_CONSUMERS = {
   exit_animation: ['scene-compiler.mjs'],
   z_index: ['scene-compiler.mjs'],
   output_formats: ['scene-compiler.mjs'],
+  name: ['lib/catalog.mjs'],
+  api_base: ['lib/catalog.mjs'],
+  provider: ['lib/catalog.mjs'],
+  api_id: ['lib/catalog.mjs'],
+  capability: ['lib/catalog.mjs'],
+  controls: ['lib/catalog.mjs', 'adapters/_intent.mjs'],
+  sizes: ['lib/catalog.mjs'],
+  adapter: ['lib/catalog.mjs'],
+  allowed: ['lib/catalog.mjs'],
+  voice_id: ['lib/catalog.mjs'],
+  price: ['lib/catalog.mjs'],
+  price_unit: ['lib/catalog.mjs'],
+  price_date: ['lib/catalog.mjs'],
+  price_source: ['lib/catalog.mjs'],
+  stale_after_days: ['lib/catalog.mjs'],
 };
 
 /**
@@ -79,21 +94,6 @@ export const PLANNED_CONSUMERS = {
   placement: '5',
   timing: '5',
   image_size: '5',
-  name: '3a',
-  api_base: '3a',
-  provider: '3a',
-  api_id: '3a',
-  capability: '3a',
-  controls: '3a',
-  sizes: '3a',
-  adapter: '3a',
-  price: '3b',
-  price_unit: '3b',
-  price_date: '3b',
-  price_source: '3b',
-  stale_after_days: '3b',
-  allowed: '3a',
-  voice_id: '3a',
 };
 
 /** Fields that are annotation by design: never engine input, so never a phantom. */

@@ -113,9 +113,9 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 3a: Model catalog and adapters
 
-- [ ] 3a.1 RED: tests for catalog merge (overlay wins per slug), allowlist, unknown model failure, adapter `controls` equal catalog `controls`, adapter `translate`.
-- [ ] 3a.2 GREEN: create `.../coNNtent/catalog/model-catalog_NN.md`, `S/scripts/lib/catalog.mjs`, `S/scripts/adapters/*.mjs`.
-- [ ] Verify: `node --test S/test`.
+- [x] 3a.1 RED: tests for catalog merge (overlay wins per slug), allowlist, unknown model failure, adapter `controls` equal catalog `controls`, adapter `translate`.
+- [x] 3a.2 GREEN: create `.../coNNtent/catalog/model-catalog_coNNtent_NN.md`, `S/scripts/lib/catalog.mjs`, `S/scripts/adapters/*.mjs`.
+- [x] Verify: `node --test S/test`.
 
 ## Slice 3b: Estimator, plan hash, ledger v2
 

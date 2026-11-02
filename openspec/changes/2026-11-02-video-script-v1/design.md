@@ -89,7 +89,7 @@ The engine discovers episodes only under `series/<s>/episodes/`; a legacy episod
 | File | Action | Description |
 |---|---|---|
 | `iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md` | Modify | V_0-15-0: concepts Scene Kind, Chrome, Variant; new and removed fields |
-| `.../coNNtent/catalog/model-catalog_NN.md` | Create | Dated reference catalog |
+| `.../coNNtent/catalog/model-catalog_coNNtent_NN.md` | Create | Dated reference catalog |
 | `.../coNNtent/procedures/` (draft procedure) | Create | Agent draft procedure that emits P |
 | `.../coNNtent/assets/console-view-episode-review.js`, `console-view-series.js` (+ `.data.mjs`) | Create | The two views |
 | `scripts/export-console.mjs` | Modify | `.data.mjs` collect hook, `ctx.viewData` (A12) |
