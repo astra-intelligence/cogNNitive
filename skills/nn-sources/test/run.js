@@ -95,6 +95,11 @@ async function main() {
     totalPassed += lineageSyncResult.passed;
     totalFailed += lineageSyncResult.failed;
 
+    const evidenceConsumersTest = require('./unit/test-evidence-index-consumers');
+    const evidenceConsumersResult = await evidenceConsumersTest.run();
+    totalPassed += evidenceConsumersResult.passed;
+    totalFailed += evidenceConsumersResult.failed;
+
     const lineageMigrationTest = require('./unit/test-lineage-migration');
     const lineageMigrationResult = await lineageMigrationTest.run();
     totalPassed += lineageMigrationResult.passed;

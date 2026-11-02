@@ -57,6 +57,8 @@ export {
 } from './lineage/record.js'
 
 export { checkLineageDrift } from './lineage/drift.js'
+export { buildChangeLog } from './changelog/load.js'
+export { isRegenerableView } from './naming/contract.js'
 
 export * from './naming/index.js'
 
