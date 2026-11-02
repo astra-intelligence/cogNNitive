@@ -522,3 +522,90 @@ Chain state: `lac/s2a1` is the tip (PR 9). Next branch:
 
 ---
 
+## PR 10 — S2a.2 (branch `lac/s2a2`, base `lac/s2a1`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 2a.3, 2a.4, 2a.9b.
+
+- `core/changelog/drift.ts`: `checkProvenance(log, models, options)` in fold mode.
+  It builds the file's unit map (element fields, prose bodies, concept text and
+  fields, matrix cells) and compares it with `log.units(model)`:
+  - mismatch, or a live value missing from the file → `EDITED_WITHOUT_RECORD`
+    (expected/actual named);
+  - a file unit with no live entry → `UNIT_WITHOUT_RECORD`;
+  - a unit the log cleared (`to:: ''`) that reappears in the file →
+    `EDITED_WITHOUT_RECORD` (expected absent); the absent case is no drift;
+  - an element without an explicit frozen slug (`slugExplicit !== true`) →
+    `UNIT_WITHOUT_RECORD`; an element the log created and the file lost (or the
+    log removed and the file still has) → `EDITED_WITHOUT_RECORD`.
+  Values compare through `canonicalValue`, so typed numbers/booleans/lists and
+  whitespace-only edits behave as specified. Severity is `warning` in fold mode and
+  `error` with `strict: true`; `ok` is false only when an error exists.
+- Evidence diagnostics over applied changes: `EVIDENCE_UNKNOWN` for missing or
+  `unknown` evidence (names change, author, target) and `EVIDENCE_SOURCE_CHANGED`
+  when a caller-supplied `sha256(path)` differs from the stamped
+  `evidence_sha256` entry. Anchor resolution stays in the validator; drift only
+  reports that the source moved.
+- `core/changelog/load.ts`: fills `evidenceItems` (`splitEvidence`) and
+  `evidenceSha256` from the parsed changeset, so drift (and later the evidence
+  index) reads them without re-parsing.
+- `core/changelog/index.ts`: exposes `cleared` and `elements` from the fold.
+- `core/changelog/fold.ts`: tracks the `cleared` set (a re-added line is drift) and
+  drops it on a new epoch.
+- New tests: `core-tests/changelog/drift.test.ts` (14 cases: hand edit, unrecorded
+  unit, rename relink, clear/re-add, typed values, whitespace, slug-less element,
+  missing element, matrix cell, evidence unknown/sha changed, strict, no changeset
+  context, untouched model).
+- Regenerated: `console/console-payload.generated.cjs` (+44 lines, generated).
+- Size: ~514 hand-authored changed lines (467+/47-), of which 205 are the new test
+  file; generated +44. Declared over the 400-line budget (~2x the ~200 forecast).
+- Verification: nn-core `vitest run` 201 files / 2,122 tests green; nn-mcp
+  `vitest run` 53 files / 628 tests green; `tsc -p` (core) and `tsc --noEmit`
+  (nn-mcp) clean; mirrors + their test green; `npm run verify:fast` fully green
+  (202 steps).
+
+### Deviations
+
+26. The design signature is `checkProvenance(log, models)`. The sha/anchor side
+    needs the current source bytes, so an optional third argument carries
+    `{ strict?, sha256?(path) }`; with no resolver the `EVIDENCE_SOURCE_CHANGED`
+    check is skipped, and anchor resolution remains the validator's job (S2b.2).
+27. Only models the applied log touches are checked. Otherwise every model of a
+    domain that gained changes later would report all of its units as
+    `UNIT_WITHOUT_RECORD`.
+28. "Element with no frozen slug" is read as `slugExplicit !== true`: the parser
+    derives a slug from the heading even without a `slug::` line, and the spec's
+    frozen-slug rule (freeze_slugs) is about the explicit, rename-stable slug.
+29. `strict: true` only changes severity here; the strict replay engine
+    (`replayMutations`, body comparison) is task 2b.1-2b.4 (PR 12), as designed.
+
+---
+
+## Handoff — start here next session (after PR 10)
+
+Chain state: `lac/s2a2` is the tip (PR 10). Next branch:
+`git switch lac/s2a2 && git switch -c lac/s2a3`.
+
+**PR 11 — S2a.3 (evidence index, performance guard, legacy matching deleted)**
+tasks 2a.5 [RED], 2a.6 [GREEN], 2a.7 [RED], 2a.8 [GREEN/REFACTOR], 2a.9c.
+
+- Add `evidence(scope: 'live' | 'all-time'): ReadonlyMap<string, EvidenceSite[]>` to
+  `ChangeLog`: `'live'` uses the last applied change per unit after the epoch cut,
+  `'all-time'` every applied change; a removed unit leaves no live edge but stays
+  all-time. `EvidenceSite` carries the change (id, unit, evidence items, sha list).
+  The loader already fills `evidenceItems` / `evidenceSha256` (PR 10).
+- Performance guard: fold over the largest corpus (benchmark fixture) completes under
+  a documented budget, and the changelog stays browser-safe (no Node imports in
+  `index.ts`; only `node.ts` touches the filesystem).
+- Delete `core/console/provenance.ts`; keep `core/console/element-history.ts` working
+  through the log; reduce `core/changeset/history.ts` (`checkStaleTarget`) to a call
+  into the log; delete `normalizeAddressKey`; update imports. Move the remaining
+  `history.test.ts` cases onto the log.
+- Touches the console payload and console history: regenerate
+  `console/console-payload.generated.cjs`, and run the console golden suites plus
+  `npm --workspace=@cognnitive/nn-core test -- changelog changeset console` (run
+  vitest directly) and `npm run verify:fast`.
+
+---
+

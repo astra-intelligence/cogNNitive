@@ -155,9 +155,9 @@ Goal: `checkProvenance(log, models)` in fold mode.
 Depends on: PR 9.
 Rollback: revert; not wired to tools yet.
 
-- [ ] 2a.3 [RED] [S] `core-tests/changelog/drift.test.ts`: `EDITED_WITHOUT_RECORD` (mismatch or expected value missing from file), `UNIT_WITHOUT_RECORD` (unit in file with no live entry; element with no frozen slug), `EVIDENCE_UNKNOWN`, `EVIDENCE_SOURCE_CHANGED` (sha mismatch skips anchor checks, anchor error only when sha matches), warnings by default, errors in strict mode, `slug::` and `knowledge_version` are not units, runs only for documents inside a domaiNN, no changeset context yields no diagnostics. Typed values (`price:: 5` to `7`, booleans, lists), `''` field clearing, hand edit, whitespace-only edit is NOT fold drift. (cp: Drift)
-- [ ] 2a.4 [GREEN] [S] Create `core/changelog/drift.ts` with `checkProvenance(log, models): ProvenanceReport`.
-- [ ] 2a.9b [S] (was 2a.9) Regenerate mirrors, standard PR gate. Open PR 10.
+- [x] 2a.3 [RED] [S] `core-tests/changelog/drift.test.ts`: `EDITED_WITHOUT_RECORD` (mismatch or expected value missing from file), `UNIT_WITHOUT_RECORD` (unit in file with no live entry; element with no frozen slug), `EVIDENCE_UNKNOWN`, `EVIDENCE_SOURCE_CHANGED` (sha mismatch skips anchor checks, anchor error only when sha matches), warnings by default, errors in strict mode, `slug::` and `knowledge_version` are not units, runs only for documents inside a domaiNN, no changeset context yields no diagnostics. Typed values (`price:: 5` to `7`, booleans, lists), `''` field clearing, hand edit, whitespace-only edit is NOT fold drift. (cp: Drift)
+- [x] 2a.4 [GREEN] [S] Create `core/changelog/drift.ts` with `checkProvenance(log, models): ProvenanceReport`.
+- [x] 2a.9b [S] (was 2a.9) Regenerate mirrors, standard PR gate. Open PR 10.
 
 Files: `core/changelog/drift.ts`, `core-tests/changelog/drift.test.ts`.
 Verification: `npm --workspace=@cognnitive/nn-core test -- changelog`, `npm run verify:fast`.
