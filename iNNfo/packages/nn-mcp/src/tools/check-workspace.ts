@@ -39,6 +39,7 @@ import { modelIdCollisionDiagnostics, type ModelIdCollisionDiagnostic } from './
 import { deriveNameFromUrl } from './spec.js'
 import {
   collectWorkspaceDiagnostics,
+  collectEvidenceDiagnostics,
   filterDiagnosticsForModel,
   validateKnowledge,
 } from './validate.js'
@@ -380,6 +381,8 @@ export async function checkWorkspace(
     truncated?: boolean
     collisionsTruncated?: boolean
     lineage: LineageGateReport
+    /** `EVIDENCE_UNKNOWN` per applied change with absent or `unknown` evidence. */
+    evidence: IntegrityDiagnostic[]
     /** Repeated model ids (filename stems): warnings that name the id and every path. */
     collisions: ModelIdCollisionDiagnostic[]
   }
@@ -396,6 +399,12 @@ export async function checkWorkspace(
   const report = {
     ...base,
     lineage: checkLineageGate(rootDir),
+    evidence: collectEvidenceDiagnostics(rootDir).map((d) => ({
+      path: d.path,
+      message: d.message,
+      severity: d.severity,
+      code: d.code,
+    })),
     collisions: modelIdCollisionDiagnostics(ctx.models.map((m) => m.path)),
   }
 

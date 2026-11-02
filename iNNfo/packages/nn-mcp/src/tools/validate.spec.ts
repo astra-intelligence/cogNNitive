@@ -444,3 +444,96 @@ describe('baseline single shared implementation (robustness-coda 1.3)', () => {
     )
   })
 })
+
+const EVIDENCE_CHANGESET = (changes: string) =>
+  [
+    '---',
+    'spec_version: "V_0-1-0"',
+    'level: 3',
+    'parent_spec:',
+    '  name: changes',
+    '  url: "https://example.com/changes/spec_NN.md"',
+    'blueprint_version: "0.1.0"',
+    'status: applied',
+    'author: "lucas"',
+    'applied_at: "2026-10-10T12:00:00.000Z"',
+    '---',
+    '',
+    '# NN Change',
+    '',
+    changes,
+  ].join('\n')
+
+describe('EVIDENCE_UNKNOWN (change-provenance)', () => {
+  beforeEach(async () => {
+    await rm(rootDir, { recursive: true, force: true })
+    await mkdir(rootDir, { recursive: true })
+    vi.restoreAllMocks()
+  })
+
+  afterEach(async () => {
+    await rm(rootDir, { recursive: true, force: true })
+  })
+
+  async function writeChanges(changes: string): Promise<void> {
+    await mkdir(join(rootDir, 'changes'), { recursive: true })
+    await writeFile(
+      join(rootDir, 'changes', 'temp_agent_20261010T120000Z_changes_NN.md'),
+      EVIDENCE_CHANGESET(changes),
+      'utf-8',
+    )
+  }
+
+  it('warns once per applied change with unknown or missing evidence, naming change, author and target', async () => {
+    await writeWorkspace()
+    await writeChanges(
+      [
+        '## NN Change: c-01',
+        'op:: update_field',
+        'target:: Alpha@RoleA&linked',
+        'to:: decision',
+        'author:: ana',
+        'evidence:: unknown',
+        '',
+        '## NN Change: c-02',
+        'op:: update_field',
+        'target:: Alpha@RoleA&other',
+        'to:: x',
+        '',
+        '## NN Change: c-03',
+        'op:: update_field',
+        'target:: Alpha@RoleA&skipped',
+        'to:: y',
+        'status:: conflict',
+        'evidence:: unknown',
+      ].join('\n'),
+    )
+
+    const diagnostics = await collectWorkspaceDiagnostics(rootDir, buildCache())
+    const unknown = diagnostics.filter((d) => d.code === 'EVIDENCE_UNKNOWN')
+    expect(unknown).toHaveLength(2)
+    expect(unknown[0].severity).toBe('warning')
+    expect(unknown[0].message).toContain('c-01')
+    expect(unknown[0].message).toContain('ana')
+    expect(unknown[0].message).toContain('Alpha@RoleA&linked')
+    expect(unknown[1].message).toContain('c-02')
+    expect(unknown[0].path.replace(/\\/g, '/')).toContain('alpha_V_0-1-0_linked_test_NN.md')
+  })
+
+  it('reports all 130 unknown changes of an LC_programas-like domain', async () => {
+    await writeWorkspace()
+    const changes = Array.from({ length: 130 }, (_, i) =>
+      [
+        `## NN Change: c-${String(i + 1).padStart(3, '0')}`,
+        'op:: update_field',
+        `target:: Alpha@RoleA&f${i + 1}`,
+        'to:: x',
+        'evidence:: unknown',
+      ].join('\n'),
+    ).join('\n\n')
+    await writeChanges(changes)
+
+    const diagnostics = await collectWorkspaceDiagnostics(rootDir, buildCache())
+    expect(diagnostics.filter((d) => d.code === 'EVIDENCE_UNKNOWN')).toHaveLength(130)
+  })
+})

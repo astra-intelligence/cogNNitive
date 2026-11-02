@@ -14,6 +14,11 @@ import {
   validateWorkspaceSources,
   createFsSourceResolver,
   readLineageSnapshot,
+  buildChangeLog,
+  unitOf,
+  slugify,
+  isNNName,
+  isSidecarName,
   levenshteinDistance,
   loadBaseline,
   fingerprint,
@@ -256,6 +261,48 @@ export function createNodeDirectoryHandle(
 }
 
 /**
+ * `EVIDENCE_UNKNOWN`: one warning per APPLIED change whose evidence is absent or
+ * the literal `unknown` (change-provenance: `unknown` evidence is a warning).
+ * `decision` is a legitimate evidence and never warns. The diagnostic is filed
+ * against the model document the change targets, so per-model views carry it.
+ */
+export function collectEvidenceDiagnostics(rootDir: string): ReferenceDiagnostic[] {
+  const files = readLineageSnapshot(rootDir)
+  const log = buildChangeLog(files)
+  const knowledgePaths = files
+    .filter((file) => {
+      const name = file.path.split('/').pop() ?? ''
+      return isNNName(name) && !isSidecarName(name) && /(^|\/)kNNowledge\//i.test(file.path)
+    })
+    .map((file) => file.path)
+
+  const diagnostics: ReferenceDiagnostic[] = []
+  for (const change of log.all) {
+    if (!change.applied) continue
+    const evidence = (change.evidence ?? '').trim()
+    if (evidence !== '' && evidence.toLowerCase() !== 'unknown') continue
+    const unit = unitOf(change)
+    const at = unit.indexOf('@')
+    const modelSlug = slugify(at === -1 ? unit : unit.slice(0, at))
+    const modelPath =
+      knowledgePaths.find((path) => {
+        const name = (path.split('/').pop() ?? '').toLowerCase()
+        return name.startsWith(`${modelSlug}_`) || name === `${modelSlug}_nn.md`
+      }) ?? change.changeset
+    diagnostics.push({
+      path: modelPath,
+      code: 'EVIDENCE_UNKNOWN',
+      severity: 'warning',
+      message:
+        `[EVIDENCE_UNKNOWN] change "${change.id}" (author "${change.author ?? 'unknown'}") targeting ` +
+        `"${unit}" has ${evidence === '' ? 'no evidence' : 'unknown evidence'}; ` +
+        `record the change's evidence`,
+    })
+  }
+  return diagnostics
+}
+
+/**
  * Workspace-scope cross-model validation. Collects the UNFILTERED
  * diagnostics for the whole tree — one Node-backed `recursiveParse` over
  * `rootDir`, threading the SAME synchronous template-schema resolver the
@@ -285,6 +332,7 @@ export async function collectWorkspaceDiagnostics(
   return [
     ...validateWorkspaceReferences(result, index),
     ...validateWorkspaceSources(result, resolveSource, snapshot),
+    ...collectEvidenceDiagnostics(rootDir),
   ]
 }
 
