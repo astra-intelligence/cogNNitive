@@ -2049,8 +2049,62 @@ Chain state: `lac/s6a` is the tip (PR 30). Next branch:
 - Verification: `npm run verify:fast`, skill-shared-rules parity test,
   `rg "sync_lineage|get_lineage|update_description" skills` returns 0.
 
-**Then:** PR 32 (docs + vocabulary), S7 (full verify, empty-HOME preflight, the seven
-criteria), then the release step and the tracker merge (both need your go).
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
+## PR 31 — S6b (branch `lac/s6b`, base `lac/s6a`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 6.1b, 6.2b, 6.4b.
+
+- `skills/nn-innfo/SKILL.md`: §4 is now "Provenance Protocol (evidence on the applied
+  change)" — the reserved field is banned, `evidence::` carries the citation, `decision`
+  / `unknown` are the honest placeholders, prose is `update_element_text`, artifacts are
+  `produce_artifact` changes. The lineage-graph sentence, the bump note, the discovery
+  exclusion and the watch-roots step no longer name the record; §16-bis.4 records
+  artifacts through `produce_artifact`.
+- `scripts/skill-shared-rules.md` was already evidence-based from PR 30; the skills were
+  regenerated.
+- `scripts/skill-content.test.mjs` now covers `nn-innfo` too (6 assertions total).
+- Size: ~90 hand-authored lines (the new §4 and the point fixes) plus the test row.
+- Verification: `scripts/skill-content.test.mjs` 6/6 green; `npm run verify:fast`
+  fully green (203 steps).
+
+### Deviations
+
+87. `nn-innfo`'s §4 was replaced wholesale rather than patched rule by rule: eleven
+    numbered rules all taught the reserved property, and a partial edit would have left
+    contradictory guidance. The replacement keeps the grammar (path/unit/subunit), the
+    binary-through-sidecar rule and the staging exclusion.
+88. The parity test is the existing `build-skill-shared-rules` suite; no new parity
+    harness was added.
+
+---
+
+## Handoff — start here next session (after PR 31)
+
+Chain state: `lac/s6b` is the tip (PR 31). Next branch:
+`git switch lac/s6b && git switch -c lac/s6c`.
+
+**PR 32 — S6c (docs and vocabulary)** — tasks 6.1c [RED], 6.3 [GREEN], 6.4c.
+
+- Doc tests: no doc mentions `sync_lineage`, `--lineage`, a persisted record, `sources::`
+  as authoring syntax, `update_description`, `get_lineage`.
+- Docs under `docs/documentation/**` and `docs/documentation/content/vocabulary.md`: the
+  console "Lineage" tab shows change history, distinct from the removed record;
+  `vocabulary.json` entries (Source/Citation/Lineage) updated; rebuild the dogfooding
+  model `documentation_NN.md` if the docs index is generated.
+- Verification: docs build, `node scripts/verify.js`,
+  `rg "sync_lineage|get_lineage|update_description" skills docs` returns 0.
+
+**Then:** S7 (full verify, empty-HOME preflight, the seven proposal criteria), then the
+release step (tag) and the tracker merge — both need the maintainer's go.
 
 Environment reminders (unchanged): no local bin shims, so run
 `node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run

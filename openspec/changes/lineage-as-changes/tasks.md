@@ -475,9 +475,9 @@ Goal: `nn-innfo` and shared rules updated; parity test green.
 Depends on: PR 30.
 Rollback: revert.
 
-- [ ] 6.1b [RED] [S] (was 6.1, nn-innfo and shared rules) Tests: `skill-shared-rules.md` parity test passes against the skills; `skills/nn-innfo/SKILL.md` has no journal entries section.
-- [ ] 6.2b [GREEN] [P] (was 6.2, part) Rewrite `skills/nn-innfo/SKILL.md` (section 16-bis.4: emit `produce_artifact` instead of journal entries), `scripts/skill-shared-rules.md`; regenerate with the skill-rules generator.
-- [ ] 6.4b [S] (was 6.4) Standard PR gate. Open PR 31.
+- [x] 6.1b [RED] [S] (was 6.1, nn-innfo and shared rules) Tests: `skill-shared-rules.md` parity test passes against the skills; `skills/nn-innfo/SKILL.md` has no journal entries section.
+- [x] 6.2b [GREEN] [P] (was 6.2, part) Rewrite `skills/nn-innfo/SKILL.md` (section 16-bis.4: emit `produce_artifact` instead of journal entries), `scripts/skill-shared-rules.md`; regenerate with the skill-rules generator.
+- [x] 6.4b [S] (was 6.4) Standard PR gate. Open PR 31.
 
 Files: `skills/nn-innfo/SKILL.md`, `scripts/skill-shared-rules.md`, generator output.
 Verification: `npm run verify:fast`, skill-shared-rules parity test, `rg "sync_lineage|get_lineage|update_description" skills` returns 0.
