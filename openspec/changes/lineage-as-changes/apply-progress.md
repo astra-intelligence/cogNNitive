@@ -189,4 +189,33 @@ Tasks: 1b.1, 1b.2, 1b.3, 1b.4, 1b.13a.
     list grammar to work end to end; it landed here because this PR is where the
     apply engine reads evidence.
 
+---
+
+## PR 6 — S1b.2 (branch `lac/s1b2`, base `lac/s1b1`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 1b.7, 1b.8, 1b.9, 1b.10, 1b.13b.
+
+- `add_matrix` reads its headers from the sealed `seed` (`{columns, rows}`): empty
+  cells, no cell units. `seed` is refused on any other op at proposal and at apply.
+- `produce_artifact`: path target, no model load, no version bump (`models: {}`),
+  `resolved_target` = the POSIX artifact path, author = the producing procedure. The
+  target must be a safe, existing workspace path that is not a model, changeset or
+  sidecar (`ARTIFACT_INVALID_PATH` / `ARTIFACT_NOT_FOUND`, the latter leaving the
+  changeset `proposed`). A second applied record for the same path is
+  `ARTIFACT_ALREADY_RECORDED` (conflict, via `blockedChanges`).
+- `CHANGE_OPS` gains `produce_artifact`; `partitionChangeset` treats it as
+  model-free; the direct-operations test lists it as apply-only.
+- Size: ~300 hand-authored lines (implementation + two spec files). Inside budget.
+- Verification: `vitest run src/tools/produce-artifact` 6 passed; nn-mcp 52 files /
+  620 tests; `vitest run tests/changeset` 113; both typecheck; `verify:fast` green.
+
+### Deviation
+
+12. `update_element_text` is not yet in `CHANGE_OPS`: the closed-set test requires
+    every op to be either a mutation or apply-only, and its mutation lands in
+    S1b.4 (PR 8). Adding it there keeps the partition invariant true at every PR.
+
+
 
