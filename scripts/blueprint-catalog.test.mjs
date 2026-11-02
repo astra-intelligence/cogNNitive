@@ -31,7 +31,6 @@ function fixtureTree() {
   fs.mkdirSync(path.join(t, 'business', 'samples'), { recursive: true });
   fs.mkdirSync(path.join(t, 'documentation'), { recursive: true });
   fs.mkdirSync(path.join(t, 'draft'), { recursive: true });
-  fs.mkdirSync(path.join(t, 'cogNNitive'), { recursive: true });
   fs.mkdirSync(path.join(t, 'blank', 'skills', 'nn-blank'), { recursive: true });
   fs.mkdirSync(path.join(t, 'blank', 'skills', 'ignored-no-skill-md'), { recursive: true });
 
@@ -58,10 +57,9 @@ function fixtureTree() {
   fs.writeFileSync(path.join(t, 'workspace_spec_NN.md'), spec('https://x/workspace_spec_NN.md', 2, 'V_0-3-0', 'template_version'));
   // level-2 template with no frontmatter blueprint_version — skipped with a warning
   fs.writeFileSync(path.join(t, 'draft', 'spec_NN.md'), spec('https://x/draft/spec_NN.md', 2, null));
-  // frozen lineage templates — cogNNitive must land in `frozen`, not `blueprints`.
+  // frozen templates — a frozen name must land in `frozen`, not `blueprints`.
   // The real frozen files carry `template_version` (never `blueprint_version`) and are
   // byte-frozen, so the generator must read the field they actually have.
-  fs.writeFileSync(path.join(t, 'cogNNitive', 'spec_NN.md'), spec('https://x/cogNNitive/spec_NN.md', 2, 'V_0-2-0', 'template_version'));
   return root;
 }
 
@@ -103,16 +101,13 @@ async function runTests() {
       console.log('✔ generator emits correct catalog (frontmatter versions, adopted, level-3 excluded, canonical names)');
     }
 
-    // Test 1a: frozen partition — cogNNitive + workspace under `frozen`, absent from `blueprints`
+    // Test 1a: frozen partition — workspace under `frozen`, absent from `blueprints`
     {
       const catalog = JSON.parse(fs.readFileSync(out, 'utf-8'));
       assert.ok('frozen' in catalog, 'catalog carries a top-level frozen partition');
-      assert.ok('cogNNitive' in catalog.frozen, 'cogNNitive recorded under frozen');
       assert.ok('workspace' in catalog.frozen, 'workspace recorded under frozen');
-      assert.ok(!('cogNNitive' in catalog.blueprints), 'cogNNitive dropped from blueprints');
       assert.ok(!('workspace' in catalog.blueprints), 'workspace dropped from blueprints');
-      assert.strictEqual(catalog.frozen.cogNNitive.adopted, 'V_0-2-0', 'frozen cogNNitive adopted version preserved');
-      console.log('✔ frozen partition emits cogNNitive and drops it from blueprints');
+      console.log('✔ frozen partition emits workspace and drops it from blueprints');
     }
 
     // Test 1b: enriched catalog metadata — tier/access/when_to_use/release_tag/embedded_skills
@@ -149,7 +144,7 @@ async function runTests() {
       assert.deepStrictEqual(bp.documentation.embedded_skills, [], 'no skills dir yields an empty array');
 
       // Frozen partition keeps its original shape (no tier/access metadata).
-      assert.ok(!('tier' in catalog.frozen.cogNNitive), 'frozen entries keep their unchanged shape');
+      assert.ok(!('tier' in catalog.frozen.workspace), 'frozen entries keep their unchanged shape');
       console.log('✔ enriched metadata (tier/access/when_to_use/release_tag/embedded_skills) is emitted');
     }
 

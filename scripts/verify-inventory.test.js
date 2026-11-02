@@ -80,8 +80,6 @@ blueprints:
   - name: registered-tmpl
     path: iNNfo/specs/templates/registered-tmpl
 frozen_blueprints:
-  - name: cogNNitive
-    path: iNNfo/specs/templates/cogNNitive/cogNNitive_V_0-2-0_NN.md
     version: "V_0-2-1"
 `;
       const sourceYamlPath = path.join(tmpDir, 'source.yaml');
@@ -89,7 +87,6 @@ frozen_blueprints:
 
       const blueprintsDir = path.join(tmpDir, 'templates');
       fs.mkdirSync(path.join(blueprintsDir, 'registered-tmpl'), { recursive: true });
-      fs.mkdirSync(path.join(blueprintsDir, 'cogNNitive'), { recursive: true });
 
       const result = checkBlueprintInventory(blueprintsDir, sourceYamlPath);
       assert.strictEqual(
@@ -191,7 +188,7 @@ blueprints:
       'manifest/source.yaml must declare exactly the 7 Core bluepriNNts',
     );
     const frozen = (doc.frozen_blueprints || []).map((b) => b.name).sort();
-    assert.deepStrictEqual(frozen, ['cogNNitive', 'workspace'], 'frozen_blueprints unchanged');
+    assert.deepStrictEqual(frozen, ['workspace'], 'frozen_blueprints unchanged');
     console.log('✔ source.yaml declares exactly the 7 Core bluepriNNts');
   }
 
@@ -220,7 +217,7 @@ blueprints:
     }
     assert.deepStrictEqual(
       Object.keys(catalog.frozen).sort(),
-      ['cogNNitive', 'workspace'],
+      ['workspace'],
       'frozen partition unchanged',
     );
     console.log('✔ catalog.json carries tier/access/when_to_use/release_tag/embedded_skills');
@@ -245,7 +242,7 @@ blueprints:
       ['blank', 'changes', 'defiNNition', 'domaiNN', 'innfo', 'procedures', 'sidecar', 'sources', 'artifacts'].sort(),
       'canonical registry must embed L0/L1 specs plus exactly the 7 Core bluepriNNts',
     );
-    for (const removed of ['business', 'business-model', 'organization', 'metrics', 'workspace', 'cogNNitive', 'analysis', 'projects']) {
+    for (const removed of ['business', 'business-model', 'organization', 'metrics', 'workspace', 'analysis', 'projects']) {
       assert.ok(
         !new RegExp(`^\\s{4}name: '${removed.replace('-', '-')}',`, 'm').test(text),
         `canonical registry must not embed removed blueprint ${removed}`,

@@ -85,7 +85,7 @@ If you'd prefer a different location or want to stop, tell me before I begin."*
 
 1. **NEVER manually calculate SHA-256 hashes**, handcraft converted markdown tables, or manually edit source frontmatter to bypass layout mismatches.
 2. When updating or refreshing a single source file, always use the atomic command: `node scripts/index.js --normalize-file "<source-path>" --src "<project-dir>"`. To cognitivize a file or a whole folder in place, use `node scripts/index.js --cognitivize "<file-or-dir>" --src "<project-dir>"` (recursive; skips sidecars and `staging/`).
-3. The canonical toolchain guarantees write-once handling (imports, promotions and generated artifacts never overwrite: changed bytes add a new UTC-suffixed family member, identical bytes are deduplicated), sidecar refresh when a raw file's bytes change, downstream `[IMPACT WARNING]` audits, and lineage-record synchronization.
+3. The canonical toolchain guarantees write-once handling (imports, promotions and generated artifacts never overwrite: changed bytes add a new UTC-suffixed family member, identical bytes are deduplicated), sidecar refresh when a raw file's bytes change, and downstream `[IMPACT WARNING]` audits.
 
 This skill enables the agent to interactively guide the user through document ingestion, normalization, and transformation.
 
@@ -390,7 +390,7 @@ When the user pastes a URL in chat and wants it ingested:
 
 #### 2d. Lineage Record Filesystem Sync
 
-The cogNNitive **lineage record** (a `*_cogNNitive_NN.md` document; a new one is created as `<Project>_cogNNitive_NN.md`, and an existing one is found by its role, never by its file name or version) keeps three of its four sections in sync with the workspace filesystem on every build/refresh (bootstrap, `--scan`, `--cognitivize`, `--import-url`, or the standalone `--lineage` flag). The projection walks the whole domaiNN (scratch such as `staging/` is skipped) and derives everything from names and sidecars, not from folders:
+The cogNNitive **lineage record** (a `*_cogNNitive_NN.md` document; a new one is created as `<Project>_cogNNitive_NN.md`, and an existing one is found by its role, never by its file name or version) keeps three of its four sections in sync with the workspace filesystem on every build/refresh (bootstrap, `--scan`, `--cognitivize`, `--import-url`, and the MCP `read_lineage` tool). The projection walks the whole domaiNN (scratch such as `staging/` is skipped) and derives everything from names and sidecars, not from folders:
 
 - **`# NN Sources`** — one entry per cognitivized raw file (the subject of each sidecar), carrying `raw_filename`, `raw_hash`, `normalized_content` (the sidecar), `version::` (its rank in its UTC-suffixed family, `V1`, `V2`...), `superseded_by::` (the next family member, when there is one) and `derived_from::` (the upstream the file declares via `sources`).
 - **`# NN ModelRecords`** — one entry per knowledge document (`kNNowledge/*_NN.md`), with `model_ref`, `knowledge_version`, `model_template`, and `derived_from::` projected from that model's `sources::` Citations.
@@ -400,14 +400,10 @@ All three use **idempotent replace**: re-running regenerates them from the curre
 
 - **`# NN Procedures`** is an **append-only run log**. Each scripted pipeline run (`--scan`, `--import-url`) appends one `## NN Procedures:` entry (`command`, `flags`, `run_at`, `inputs`, `outputs`). A section refresh never removes existing procedure entries. The agent should still add `## NN Procedures:` entries by hand for **non-scripted** research/analysis steps it performs itself. This is distinct from the `procedures/` directory, which holds saved, user-authored orchestration specs.
 
-Run `node scripts/index.js --lineage --check` (or `--check`) to report drift between the lineage record and the filesystem. It flags:
-1. A missing record, or any model citation that fails validation (dangling `sources::` references, missing anchors);
-2. Unlisted family members (a cognitivized file on disk with no element in `# NN Sources`) and projection diagnostics such as a sidecar whose `source_file` does not match the subject its name derives (`SIDECAR_SUBJECT_MISMATCH`);
-3. Dangling `superseded_by::` pointers that resolve to no element or file;
-4. Hash mismatches (a sidecar `sha256` that differs from the hash of its raw bytes);
-5. **Lineage drift** (`LINEAGE_DRIFT`): a managed section of the record (`# NN Sources`, `# NN ModelRecords`, `# NN Artifacts`) that differs, byte for byte, from a fresh projection. The `# NN Procedures` journal and hand-authored blocks (such as `## NN External Watch Roots`) are never compared. Regenerate with `--lineage`. The MCP `check_domain` tool reports the same drift;
-6. Orphaned sidecars (warning only: the raw file is gone, and the sidecar is preserved).
-It exits non-zero when any error is found.
+Lineage is computed, never persisted: there is no record to drift. Provenance lives in
+the applied changes, and the MCP tools report it (`read_lineage`, `check_domain` with its
+`provenance` report, `resolve_sources`). The CLI still validates citations, sidecar hashes
+and orphaned sidecars; run `nn-sources --check-impact` for the citation audit.
 
 #### 2e. Binary / Batch Sources Not Covered by Auto-Sync
 
@@ -595,7 +591,7 @@ This skill does not execute procedures. Procedure execution follows the canonica
 **Procedure Execution Protocol** in `nn-innfo` (§Procedure Execution Protocol);
 do not restate it here. `nn-sources` only provides the ingestion and lineage tools
 a procedure step may delegate to (e.g. `--scan`, `--cognitivize`, `--import-url`,
-`--check-impact`, `--lineage`).
+`--check-impact`).
 
 ---
 
@@ -616,6 +612,6 @@ At the end of transformation:
 2. **Mandatory Model Citations**: Level 3 elements MUST include `sources:: sources/import/<path.md>@## Heading` (or a list `sources:: [sources/import/a.md@## H1, sources/import/b.pdf_sidecar_NN.md@## H2]`) with a domaiNN-relative path and no implicit prefix; binaries are cited through their sidecar — no `src-NNN` IDs, no line-number ranges.
 3. **V_0-1-0 Compliance**: Target iNNfo V_0-1-0 meta-template specification and unified NN syntax (`# NN`, `## NN`, `key:: value`).
 4. **Saved Procedure Proactive Check**: When starting `nn-sources` or `nn`, check for existing procedures in `procedures/` and offer them as runnable options to the user before starting standard ingestion.
-4a. **Lineage Record Sync**: `# NN Sources`, `# NN ModelRecords` and `# NN Artifacts` re-sync from the filesystem (sidecars, `kNNowledge/`, `artifacts/`) on every `--scan`/`--cognitivize`/`--import-url`/`--lineage` run — idempotent replace, removed files drop out. `# NN Procedures` is an append-only log: scripted runs (`--scan`, `--cognitivize`, `--import-url`) append their own entry; the agent still adds `## NN Procedures:` entries by hand for non-scripted research/analysis steps (see §2d). `node scripts/index.js --lineage --check` reports drift, including hand-edited managed sections.
+4a. **Provenance Through Changes**: every produced artifact is recorded with a `produce_artifact` change; element provenance is the applied change's `evidence`. There is no persisted lineage record to refresh.
 5. **Prose Description in Level 3 Models**: The description of an element in a Level 3 model must NEVER be formatted as a `description::` property field. It must always be written as free-form Markdown prose below the `key:: value` fields list, separated from them by a blank line.
 6. **Scored Matching, Never Silent Exclusion**: normalized sources map to model elements through `scorePairs` (`scripts/lib/score-matcher.js`, threshold 0.7); below-threshold pairs enter the review queue with a recorded decision, and undecided pairs stay queued across sessions.

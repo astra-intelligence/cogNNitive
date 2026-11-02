@@ -51,7 +51,7 @@ const SKIP_DIRS = new Set(['samples', 'node_modules', '.git', 'dist', '.spec-cac
  * `frozen` object and dropped from `blueprints` (so nn-preflight upgrade-check —
  * which reads only `catalog.blueprints` — gives them no upgrade notices).
  */
-const FROZEN_NAMES = ['cogNNitive', 'workspace'];
+const FROZEN_NAMES = ['workspace'];
 
 /**
  * The 7 Core `bluepriNNts` that remain bundled in `manifest/source.yaml` and the

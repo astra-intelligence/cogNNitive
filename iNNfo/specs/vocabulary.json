@@ -113,12 +113,6 @@
       "excludes": ["write-once-memory"],
       "stable_identifiers": ["writeOnce", "latestOfFamily", "planGc", "applyGc"]
     },
-    "drift-gate": {
-      "canonical": true,
-      "sense": "Consistency check that the managed view sections of the persisted lineage record (*_cogNNitive_NN.md) equal a fresh core projection. Runs in nn-sources --lineage --check, scripts/verify.js, and the nn-mcp check_domain tool.",
-      "excludes": [],
-      "stable_identifiers": ["checkLineageDrift", "LINEAGE_DRIFT"]
-    },
     "assistant": {
       "canonical": true,
       "aliases": ["coach", "architecture coach"],
