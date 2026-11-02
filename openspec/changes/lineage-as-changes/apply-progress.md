@@ -2103,8 +2103,74 @@ Chain state: `lac/s6b` is the tip (PR 31). Next branch:
 - Verification: docs build, `node scripts/verify.js`,
   `rg "sync_lineage|get_lineage|update_description" skills docs` returns 0.
 
-**Then:** S7 (full verify, empty-HOME preflight, the seven proposal criteria), then the
-release step (tag) and the tracker merge — both need the maintainer's go.
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+
+## PR 32 — S6c (branch `lac/s6c`, base `lac/s6b`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 6.1c, 6.3, 6.4c.
+
+- New `scripts/docs-provenance.test.mjs` (3): no user-facing doc under
+  `docs/documentation/content/**` teaches a removed surface, the docs name `read_lineage`
+  / `produce_artifact` / `evidence`, and the vocabulary defines `lineage` as computed.
+- `concepts/sources-citations-lineage.md`: the Citation and Lineage sections describe the
+  applied change as the citation and the computed projection as the map; the drift
+  section became `check_domain.provenance` (`EDITED_WITHOUT_RECORD`, `UNIT_WITHOUT_RECORD`,
+  `EVIDENCE_UNKNOWN`, `EVIDENCE_SOURCE_CHANGED`, strict replay).
+- `reference/cli.md`: the two `--lineage` rows are gone, the `--scan-external` and
+  `--check-impact` rows no longer mention the record.
+- `reference/mcp-tools.md`: the `sync_lineage` row is gone; `check_domain` and
+  `init_domain` use the new wording.
+- `reference/glossary.md`, `concepts/{knowledge-lifecycle,mental-model}.md`,
+  `how-to/{cognitivize,execute-procedure,sync-and-backup,validate-domain}.md`,
+  `skills/{nn-preflight,nn-sources}.md`, `tutorials/{domain-from-scratch,first-domain}.md`:
+  record wording replaced with computed lineage / applied changes.
+- `iNNfo/specs/vocabulary.json`: new `lineage` term (computed view, `read_lineage` /
+  `projectLineage` / `checkProvenance`); `vocabulary.md` regenerated.
+- `mcp/server.ts`: the `init_domain` description said changes cite "through sources::";
+  corrected to evidence, dist rebuilt for the docs render, tracked bundle restored.
+- Verification: FULL `node scripts/verify.js` green (204 steps); `npm run verify:fast`
+  green; the closing grep `sync_lineage|get_lineage|update_description` over `skills` and
+  `docs` returns 0.
+
+### Deviations
+
+89. `docs/cognitive_nn/**` (the demo-domain corpus, 10 files) keeps its `sources::`
+    fields: those are L3 models pinned to `V_0-5-0`-era bluepriNNts, valid under the L1
+    they pin (same reasoning as deviation 81). The doc gate covers
+    `docs/documentation/content/**`, which is the user-facing prose.
+90. The docs-facts guard forced the `init_domain` description fix in `mcp/server.ts`
+    rather than in the generated skill table: hand-editing a generated region is always
+    wrong, and the guard caught it.
+
+---
+
+## Handoff — S6 done: next is S7 (final verify)
+
+Chain state: `lac/s6c` is the tip (PR 32). S7 runs on the tracker tip and produces no PR.
+
+**S7 checklist (tasks 7.1-7.9):**
+- 7.1 `rg "lineage-record|findLineageRecord|sync_lineage|LINEAGE_DRIFT"` → 0 in live
+  code, skills and specs (archive excluded).
+- 7.2 a domain built only through changes has no `sources::`/`type:: citation`; the
+  validator rejects a hand-added one.
+- 7.3 field and cell origins derive from applied changes, deterministic, no inherited
+  history after slug reuse.
+- 7.4 a hand edit and an unrecorded unit fire `EDITED_WITHOUT_RECORD` /
+  `UNIT_WITHOUT_RECORD` in `validate_knowledge` and `check_domain`; strict escalates.
+- 7.5 the LC_programas-like fixture shows `EVIDENCE_UNKNOWN`.
+- 7.6 every non-regenerable artifact has a `produce_artifact` or `ARTIFACT_WITHOUT_RECORD`.
+- 7.7 impact-checker, gc, duplicate-guards and `resolve_sources` pass against the index.
+- 7.8 `node scripts/verify.js --release` + empty-`HOME` preflight green.
+- 7.9 record the open questions for the archive.
+Then: the release step (tag) and the tracker merge — both need the maintainer's go.
 
 Environment reminders (unchanged): no local bin shims, so run
 `node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run

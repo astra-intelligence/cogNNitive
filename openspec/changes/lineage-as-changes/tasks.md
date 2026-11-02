@@ -488,9 +488,9 @@ Goal: docs and vocabulary describe change-based provenance.
 Depends on: PR 31.
 Rollback: revert.
 
-- [ ] 6.1c [RED] [S] (was 6.1, docs) Doc tests: no doc mentions `sync_lineage`, `--lineage`, a persisted record, `sources::` as authoring syntax, `update_description`, `get_lineage`.
-- [ ] 6.3 [GREEN] [P] Docs under `docs/documentation/**` and `docs/documentation/content/vocabulary.md`: the console "Lineage" tab shows change history, distinct from the removed record; `vocabulary.json` entries (Source/Citation/Lineage) updated; rebuild the dogfooding model `documentation_NN.md` consistently if the docs index is generated.
-- [ ] 6.4c [S] (was 6.4) Update the openspec living specs through the archive phase later (not here); run the full docs build and standard PR gate. Open PR 32.
+- [x] 6.1c [RED] [S] (was 6.1, docs) Doc tests: no doc mentions `sync_lineage`, `--lineage`, a persisted record, `sources::` as authoring syntax, `update_description`, `get_lineage`.
+- [x] 6.3 [GREEN] [P] Docs under `docs/documentation/**` and `docs/documentation/content/vocabulary.md`: the console "Lineage" tab shows change history, distinct from the removed record; `vocabulary.json` entries (Source/Citation/Lineage) updated; rebuild the dogfooding model `documentation_NN.md` consistently if the docs index is generated.
+- [x] 6.4c [S] (was 6.4) Update the openspec living specs through the archive phase later (not here); run the full docs build and standard PR gate. Open PR 32.
 
 Files: `docs/documentation/**`, `iNNfo/specs/vocabulary.json`, `documentation_NN.md`.
 Verification: docs build, `node scripts/verify.js`, `rg "sync_lineage|get_lineage|update_description" skills docs` returns 0.
