@@ -18,6 +18,7 @@ import {
   checkBlueprintDocumentation,
   checkElementGroups,
   checkSchemaConformance,
+  checkProvenanceBan,
   checkConceptFields,
   checkMatrixCells,
 } from './knowledge-checks.js'
@@ -159,6 +160,7 @@ export function validateKnowledge(
 
   const knownConceptGroups = checkElementGroups(model, templateConcepts, d)
   checkSchemaConformance(knownConceptGroups, templateConcepts, d)
+  checkProvenanceBan(model, composed.schema, d)
   checkConceptFields(model, templateConcepts, d)
 
   checkMatrixCells(model, templateMatrices, d)
