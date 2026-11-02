@@ -46,4 +46,12 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 - Deviations: none on product decisions. The Slice D verify line in `tasks.md` was refined to allow
   explicit retired-name enumerations in addition to `REMOVED` blocks; the intent (no old type or
   default survives as a rule) is unchanged.
+- CI note: `.github/workflows/ci.yml` runs on push to `main`, `dev` and `session/**`, and on PRs whose
+  base is `main` or `dev`. A `feature/**` slice branch therefore reports no checks; the gate used here
+  is the full offline `node scripts/verify.js` (the same steps CI runs), matching the existing chain
+  PRs #443–#461. The PR stays open for the maintainer to merge into the tracker.
+- Environment note: the primary checkout's `node_modules/.bin` is empty, so `npm run build` could not
+  find `tsc`/`tsup`. Built nn-core in the primary (gitignored `dist/` only) and used throwaway `.cmd`
+  shims in the worktree's gitignored `temp/shim/` to run the workspace builds. No lockfile or source
+  file was touched.
 - Open issues: none. No test code changes in this slice (docs-only), so no RED/GREEN cycle applies.
