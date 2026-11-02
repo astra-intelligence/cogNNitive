@@ -119,9 +119,9 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 3b: Estimator, plan hash, ledger v2
 
-- [ ] 3b.1 RED: golden `plan_hash` (changes with price), stale-price warning, unpriced-allowed blocks, ledger v2 row schema, real cost per episode.
-- [ ] 3b.2 GREEN: `lib/plan.mjs`, `lib/facts.mjs`; rewrite estimator on the catalog; delete `video-guard.json` and `PROVIDER_PRICING_CATALOG`. Apply decision 6.
-- [ ] Verify: `node --test S/test`, `node scripts/verify.js`.
+- [x] 3b.1 RED: golden `plan_hash` (changes with price), stale-price warning, unpriced-allowed blocks, ledger v2 row schema, real cost per episode.
+- [x] 3b.2 GREEN: `lib/plan.mjs`, `lib/facts.mjs`; rewrite estimator on the catalog; delete `PROVIDER_PRICING_CATALOG`. Apply decision 6. (`video-guard.json` deletion moves to 7a with the guard rewrite.)
+- [x] Verify: `node --test S/test`, `node scripts/verify.js`.
 
 ## Slice 4: Series kinds, chrome, cascade
 

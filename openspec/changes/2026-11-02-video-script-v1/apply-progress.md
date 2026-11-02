@@ -160,3 +160,17 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
   - The catalog document is named `model-catalog_coNNtent_NN.md` to satisfy the NN name invariant for L3 documents inside a blueprint; design and tasks were updated.
 - Verification: skill suite 432 tests, 432 pass; `node scripts/verify.js` green (231 steps).
 - Deviations: adapters are per provider family, not one file per model id, so `adapter::` is shared by models with identical controls (the contract test still pins each Model's controls). `sizes` carries `1024x1024` only, the single size the engine has exercised; a real model offering more sizes must extend its Model entry. Open issues: none.
+
+## Slice 3b — Estimator on the catalog, plan hash with prices, ledger v2
+
+- Branch: `feature/conntent-v1-3b` (base `feature/conntent-v1-3a`)
+- PR: pending
+- TDD: RED first (`test/plan-and-facts.test.mjs`), then GREEN.
+- Changes:
+  - `asset-cost-estimator.mjs`: the hand price table (`PROVIDER_PRICING_CATALOG`) is deleted; `findCatalogEntry`, `estimateCallUsd` and `unpricedAllowedModels` read the merged catalog through `lib/catalog.mjs`. An allowed model without a catalog price now blocks the estimate with `unpriced-model` (no fallback rate), and `plan_hash` includes the resolved unit prices.
+  - `lib/plan-approval.mjs`: `computePlanHash(script, models, prices)` — a price change invalidates an approval.
+  - `lib/facts.mjs`: canonical JSON, `machineInfo`/`fingerprintOf`/`verifyFingerprint` (first 12 hex of sha256 over the canonical machine object), the v2 ledger row with every required key plus `machine`, the v1 timing row, append-only writers under `.cognnitive/video/`, and a timing write that only warns.
+  - `scripts/guard-template-immutability.js`: `catalog/` is exempt from the template rules and is owned by the blueprint spec, like `defaults/` (the shipped catalog is an L3 instance, not a template).
+- Falsified the fallback: `estimateCallUsd` still prices a model the guard does not allow (needed by synthesizer-level tests), while `estimateScriptCost` refuses a resolved model that is allowed but unpriced. The full no-fallback rule lands with the guard rewrite in 7a.
+- Verification: skill suite 438 tests, 438 pass; `node scripts/verify.js` green (232 steps).
+- Deviations: `video-guard.json` is NOT deleted here (its allowlist still drives the guard until `produce` lands in 7a); recorded in tasks 3b.2. Stale-price *warning* is not printed yet: `isPriceStale` and `price_date` are in place, the warning line lands with the plan output in 7a. Open issues: none.

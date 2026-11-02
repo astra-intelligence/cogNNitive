@@ -15,8 +15,8 @@ import path from 'node:path';
 import test from 'node:test';
 
 import {
-  PROVIDER_PRICING_CATALOG,
   estimateScriptCost,
+  findCatalogEntry,
   unpricedAllowedModels,
   warnUnpricedAllowedModels,
 } from '../scripts/asset-cost-estimator.mjs';
@@ -42,9 +42,10 @@ test('each unpriced allowed model warns once and the list is deduplicated', () =
   assert.match(seen[0], /acme\/unpriced-image/);
 });
 
-test('every reference-catalog model is priced, so the shipped allowlist is silent', () => {
-  const priced = Object.values(PROVIDER_PRICING_CATALOG).flatMap((entries) => Object.keys(entries));
-  assert.ok(priced.includes('wavespeed-ai/infinitetalk-fast'), 'infinitetalk stays an allowed, priced avatar model');
+test('the shipped avatar model is priced in the catalog, so the allowlist is silent', () => {
+  const entry = findCatalogEntry('avatar', 'wavespeed-ai/infinitetalk-fast');
+  assert.ok(entry, 'infinitetalk stays an allowed, priced avatar model');
+  assert.equal(entry.unitPricePerSecond, 0.015);
 });
 
 const script = `---

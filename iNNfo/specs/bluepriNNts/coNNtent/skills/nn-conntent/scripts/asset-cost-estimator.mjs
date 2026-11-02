@@ -20,222 +20,11 @@ import { normalizeModelId } from './lib/video-guard.mjs';
 import { loadCascadeBags, resolve, withScriptPresets } from './lib/video-scope.mjs';
 import { isAvatarLayer, collectAvatarJobs, ttsCachePathFor, AVATAR_CACHE_EXT, AVATAR_CACHE_CATEGORY } from './lib/avatar-jobs.mjs';
 import { layerPrompt, imageCachePathFor } from './lib/image-options.mjs';
+import { loadMergedCatalog } from './lib/catalog.mjs';
 import { CacheManager } from './cache-manager.mjs';
 import { loadGuard, resolveDefaultCacheDir } from './lib/video-guard.mjs';
 import { parseArgs, CliUsageError } from './lib/cli-args.mjs';
 
-/**
- * Standard pricing catalog (USD) for supported video generation providers & models in cogNNitive Video.
- */
-export const PROVIDER_PRICING_CATALOG = {
-  image: {
-    'black-forest-labs/flux-schnell': {
-      provider: 'Replicate',
-      modelName: 'FLUX.1 Schnell',
-      unitPrice: 0.003,
-      unit: 'image',
-      quality: 'Very High',
-      speed: 'Fast (~2-4s)',
-      description: 'Cost-effective FLUX 4-step inference (guard model id)',
-    },
-    'luma/uni-v1/text-to-image': {
-      provider: 'WaveSpeed AI / Luma',
-      modelName: 'Luma Uni-1 Text to Image',
-      unitPrice: 0.043,
-      unit: 'image',
-      quality: 'Very High',
-      speed: 'Moderate',
-      description: 'Luma Uni-1 text-to-image (approximate price from invoices)',
-    },
-    'black-forest-labs/flux-3/text-to-image': {
-      provider: 'WaveSpeed AI / BFL',
-      modelName: 'FLUX.3 Text to Image',
-      unitPrice: 0.05,
-      unit: 'image',
-      quality: 'Maximum',
-      speed: 'Moderate',
-      description: 'FLUX.3 text-to-image (approximate price)',
-    },
-    'wavespeed-ai/minimax-h3/image-edit': {
-      provider: 'WaveSpeed AI / MiniMax',
-      modelName: 'MiniMax H3 Image Edit',
-      unitPrice: 0.035,
-      unit: 'image',
-      quality: 'High',
-      speed: 'Moderate',
-      description: 'Image editing (approximate price)',
-    },
-    'wavespeed-ai/z-image/turbo': {
-      provider: 'WaveSpeed AI',
-      modelName: 'Z-Image Turbo',
-      unitPrice: 0.005,
-      unit: 'image',
-      quality: 'High',
-      speed: 'Fast (~1-2s)',
-      description: 'Ultra-fast inference for cinematic photorealism and scenic backgrounds',
-    },
-    'wavespeed/wan-27-t2i': {
-      provider: 'WaveSpeed AI',
-      modelName: 'Wan 2.7 T2I (Alibaba)',
-      unitPrice: 0.010,
-      unit: 'image',
-      quality: 'Very High',
-      speed: 'Fast (~2-3s)',
-      description: 'High-quality text-to-image generation powered by Alibaba Wan 2.7',
-    },
-    'replicate/flux-schnell': {
-      provider: 'Replicate',
-      modelName: 'FLUX.1 Schnell',
-      unitPrice: 0.003,
-      unit: 'image',
-      quality: 'Very High',
-      speed: 'Fast (~2-4s)',
-      description: 'Cost-effective FLUX 4-step inference on Replicate cloud',
-    },
-    'replicate/flux-pro': {
-      provider: 'Replicate',
-      modelName: 'FLUX.1 Pro',
-      unitPrice: 0.025,
-      unit: 'image',
-      quality: 'Maximum',
-      speed: 'Moderate (~8-12s)',
-      description: 'Elite quality professional image generation with maximum prompt adherence',
-    },
-    'replicate/recraft-v3': {
-      provider: 'Replicate',
-      modelName: 'Recraft V3',
-      unitPrice: 0.015,
-      unit: 'image',
-      quality: 'Vector & Typography',
-      speed: 'Fast (~3s)',
-      description: 'Professional typography, graphic design, and clean vector art',
-    },
-    'local/sharp': {
-      provider: 'Local / Sharp',
-      modelName: 'Vector Composite & Static Assets',
-      unitPrice: 0.000,
-      unit: 'image',
-      quality: 'Standard',
-      speed: 'Instant (<50ms)',
-      description: 'Offline local SVG rendering and local JPEG/PNG asset binding',
-    },
-  },
-  tts: {
-    'minimax/speech-2.8-hd': {
-      provider: 'WaveSpeed AI / MiniMax',
-      modelName: 'MiniMax Speech 2.8 HD',
-      unitPricePer1kChars: 0.02,
-      priceNote: 'estimated: not verified against an invoice',
-      quality: 'Cinematic High-Definition',
-      languages: 'Spanish, English, Multilingual',
-      description: 'Default TTS model (guard model id). Price is an estimate.',
-    },
-    'minimax/speech-2.8-turbo': {
-      provider: 'WaveSpeed AI / MiniMax',
-      modelName: 'MiniMax Speech 2.8 Turbo',
-      unitPricePer1kChars: 0.015,
-      priceNote: 'estimated: not verified against an invoice',
-      quality: 'Fast High-Definition',
-      languages: 'Spanish, English, Multilingual',
-      description: 'Low-latency voice synthesis with emotional prosody',
-    },
-    'wavespeed/minimax/speech-2.8-hd': {
-      provider: 'WaveSpeed AI / MiniMax',
-      modelName: 'MiniMax Speech 2.8 HD',
-      unitPricePer1kChars: 0.02,
-      priceNote: 'estimated: not verified against an invoice',
-      quality: 'Cinematic High-Definition',
-      languages: 'Spanish, English, Multilingual',
-      description: 'WaveSpeed route for MiniMax Speech 2.8 HD',
-    },
-    'wavespeed/minimax/speech-2.5-hd-preview': {
-      provider: 'WaveSpeed AI / MiniMax',
-      modelName: 'MiniMax Speech 2.5 HD',
-      unitPricePer1kChars: 0.015,
-      quality: 'Studio Ultra-Realistic',
-      languages: 'Spanish, English, French, German, Italian, Portuguese',
-      description: 'High-definition emotional voice synthesis with natural cadence and tone control',
-    },
-    'replicate/minimax/speech-2.8-hd': {
-      provider: 'Replicate / MiniMax',
-      modelName: 'MiniMax Speech 2.8 HD',
-      unitPricePer1kChars: 0.020,
-      quality: 'Cinematic High-Definition',
-      languages: 'Spanish, English, Multilingual',
-      description: 'State-of-the-art TTS with human-like prosody and expressive emotional ranges',
-    },
-    'local/synthetic': {
-      provider: 'Local / Offline',
-      modelName: 'Synthetic Offline Buffer',
-      unitPricePer1kChars: 0.000,
-      quality: 'Standard Offline',
-      languages: 'n/a',
-      description: 'Offline synthetic audio buffer with zero API cost (no OS-native TTS)',
-    },
-  },
-  avatar: {
-    'wavespeed-ai/infinitetalk-fast': {
-      provider: 'WaveSpeed AI',
-      modelName: 'InfiniteTalk Fast',
-      unitPricePerSecond: 0.015,
-      quality: 'Photorealistic LipSync',
-      speed: 'Fast',
-      description: 'Default avatar model (about $0.015/s from real invoices: a 3s clip cost $0.045)',
-    },
-    'wavespeed-ai/infinitetalk': {
-      provider: 'WaveSpeed AI',
-      modelName: 'InfiniteTalk (non-fast)',
-      unitPricePerSecond: 0.06,
-      quality: 'Photorealistic LipSync',
-      speed: 'Slow',
-      description: 'BLOCKED by default: about $0.06/s from real invoices (a 30s clip is $1.80)',
-    },    'wavespeed/infinitetalk': {
-      provider: 'WaveSpeed AI',
-      modelName: 'InfiniteTalk (non-fast)',
-      unitPricePerSecond: 0.06,
-      quality: 'Photorealistic LipSync',
-      speed: 'Realtime Fast Inference',
-      description: 'High-performance digital talking avatar engine synchronized to speech audio',
-    },
-    'replicate/wan-2.1-s2v': {
-      provider: 'Replicate',
-      modelName: 'Wan 2.1 S2V (Speech to Video)',
-      unitPricePerSecond: 0.018,
-      quality: 'Cinema-Grade Facial Animation',
-      speed: 'Moderate (~15-20s)',
-      description: 'High-fidelity audio-driven talking avatar and expressive lip-sync animation',
-    },
-  },
-  video: {
-    'wavespeed/wan-i2v': {
-      provider: 'WaveSpeed AI',
-      modelName: 'Wan 2.1 I2V (Image to Video)',
-      unitPrice: 0.030,
-      unit: 'clip',
-      quality: 'Cinematic Motion',
-      speed: 'Fast (~5-10s)',
-      description: 'Economic image-to-video motion generator for dynamic scene backgrounds',
-    },
-    'replicate/wan-t2v': {
-      provider: 'Replicate',
-      modelName: 'Wan 2.1 T2V (Text to Video)',
-      unitPrice: 0.035,
-      unit: 'clip',
-      quality: 'Generative Video',
-      speed: 'Moderate (~15-30s)',
-      description: 'Direct text-to-video generation from prompt descriptions',
-    },
-  },
-};
-
-/**
- * Provider model ids contain a slash; anything else (a loose label such as 'wavespeed-v1-flux')
- * falls back. Shared by the estimator and the synthesizer so the plan
- * prices exactly the models that will be called.
- * @param {unknown} prop
- * @param {string} fallback
- * @returns {string}
- */
 export function resolveModelId(prop, fallback) {
   return normalizeModelId(typeof prop === 'string' && prop.includes('/') ? prop : fallback);
 }
@@ -244,10 +33,35 @@ export function resolveModelId(prop, fallback) {
 const FALLBACK_RATES = { image: 0.025, ttsPer1kChars: 0.02, avatarPerSecond: 0.018, video: 0.035 };
 
 export function findCatalogEntry(category, model) {
-  const entries = PROVIDER_PRICING_CATALOG[category] || {};
-  if (entries[model]) return entries[model];
-  const key = Object.keys(entries).find((k) => k.endsWith('/' + model) || model.endsWith('/' + k));
-  return key ? entries[key] : null;
+  const id = normalizeModelId(model);
+  if (!id) return null;
+  const models = Object.values(mergedCatalog().models);
+  const entry = models.find(
+    (m) =>
+      String(m.capability) === category &&
+      (String(m.api_id) === id || String(m.api_id).endsWith('/' + id) || id.endsWith('/' + String(m.api_id))),
+  );
+  if (!entry) return null;
+  const price = Number(entry.price);
+  const unit = String(entry.price_unit || '');
+  return {
+    slug: entry.slug,
+    provider: entry.provider,
+    modelName: entry.slug,
+    unit,
+    unitPrice: unit === 'per_image' ? price : undefined,
+    unitPricePer1kChars: unit === 'per_1k_chars' ? price : undefined,
+    unitPricePerSecond: unit === 'per_second' ? price : undefined,
+    priceDate: entry.price_date,
+    priceSource: entry.price_source || 'blueprint',
+  };
+}
+
+/** The merged catalog, loaded once per process (design A9/A14). */
+let CATALOG = null;
+function mergedCatalog() {
+  if (!CATALOG) CATALOG = loadMergedCatalog({ overlay: null });
+  return CATALOG;
 }
 
 /**
@@ -256,14 +70,14 @@ export function findCatalogEntry(category, model) {
  * @returns {string[]}
  */
 export function unpricedAllowedModels(config) {
-  const priced = new Set();
-  for (const entries of Object.values(PROVIDER_PRICING_CATALOG)) {
-    for (const id of Object.keys(entries)) priced.add(normalizeModelId(id));
-  }
   const out = [];
   for (const raw of config?.allowedModels || []) {
     const id = normalizeModelId(raw);
-    if (!priced.has(id) && !out.includes(id)) out.push(id);
+    const entry = Object.values(mergedCatalog().models).find(
+      (m) => String(m.api_id) === id || String(m.api_id).endsWith('/' + id) || id.endsWith('/' + String(m.api_id)),
+    );
+    const priced = entry && entry.price !== undefined && entry.price !== null && String(entry.price).trim() !== '';
+    if (!priced && !out.includes(id)) out.push(id);
   }
   return out;
 }
@@ -296,6 +110,7 @@ export function warnUnpricedAllowedModels(config, warn = console.warn) {
  */
 export function estimateCallUsd(kind, model, units = {}) {
   const entry = findCatalogEntry(kind, normalizeModelId(model));
+
   let usd;
   if (kind === 'tts') usd = ((units.chars || 0) / 1000) * (entry?.unitPricePer1kChars ?? FALLBACK_RATES.ttsPer1kChars);
   else if (kind === 'avatar') usd = Math.ceil(units.seconds || 0) * (entry?.unitPricePerSecond ?? FALLBACK_RATES.avatarPerSecond);
@@ -501,11 +316,28 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
     },
   };
 
-  const planHash = computePlanHash(scriptContent, {
-    image: options.defaultImageModel,
-    tts: options.defaultTtsModel,
-    avatar: options.defaultAvatarModel,
-  });
+  // An allowed model without a catalog price blocks the estimate: there is no fallback rate
+  // (capability video-model-catalog "Unpriced Allowed Models Block, Unknown Models Fail").
+  const allowedIds = new Set((config.allowedModels || []).map(normalizeModelId));
+  for (const [kind, id] of [
+    ['image', options.defaultImageModel],
+    ['tts', options.defaultTtsModel],
+    ['avatar', options.defaultAvatarModel],
+  ]) {
+    const model = normalizeModelId(id);
+    if (model && allowedIds.has(model) && !findCatalogEntry(kind, model)) {
+      throw new Error(`unpriced-model: "${model}" is allowed but has no price in the merged catalog. Nothing was spent.`);
+    }
+  }
+  const planHash = computePlanHash(
+    scriptContent,
+    {
+      image: options.defaultImageModel,
+      tts: options.defaultTtsModel,
+      avatar: options.defaultAvatarModel,
+    },
+    resolvedPrices(options),
+  );
 
   return {
     planHash,
@@ -535,6 +367,19 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
  * @param {Object} estimateResult
  * @returns {string} Markdown text
  */
+/** Resolved unit prices for the chosen models, so a price change invalidates an approval. */
+function resolvedPrices(options) {
+  const priceOf = (kind, id) => {
+    const entry = findCatalogEntry(kind, id);
+    if (!entry) return undefined;
+    return entry.unitPrice ?? entry.unitPricePer1kChars ?? entry.unitPricePerSecond;
+  };
+  return {
+    image: priceOf('image', options.defaultImageModel),
+    tts: priceOf('tts', options.defaultTtsModel),
+    avatar: priceOf('avatar', options.defaultAvatarModel),
+  };
+}
 export function formatAssetPlanMarkdown(estimateResult) {
   const { scenes, summary, tiers } = estimateResult;
 

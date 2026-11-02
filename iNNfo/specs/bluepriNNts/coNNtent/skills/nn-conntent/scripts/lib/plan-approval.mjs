@@ -39,7 +39,7 @@ function canonicalModels(models = {}) {
  * @param {Record<string, string | null | undefined>} [models] Explicitly chosen models (image/tts/avatar).
  * @returns {string} Hex sha256
  */
-export function computePlanHash(scriptContent, models = {}) {
+export function computePlanHash(scriptContent, models = {}, prices = {}) {
   const normalized = String(scriptContent)
     .normalize('NFC')
     .replace(/\r\n?/g, '\n')
@@ -47,7 +47,26 @@ export function computePlanHash(scriptContent, models = {}) {
     .map((l) => l.replace(/\s+$/, ''))
     .join('\n')
     .trim();
-  return crypto.createHash('sha256').update(normalized).update('\n:::\n').update(canonicalModels(models)).digest('hex');
+  const priceStamp = canonicalPrices(prices);
+  return crypto
+    .createHash('sha256')
+    .update(normalized)
+    .update('\n:::\n')
+    .update(canonicalModels(models))
+    .update('\n:::\n')
+    .update(priceStamp)
+    .digest('hex');
+}
+
+/** Canonical JSON of the resolved unit prices, so a price change invalidates an approval. */
+function canonicalPrices(prices = {}) {
+  const out = {};
+  for (const key of Object.keys(prices || {}).sort()) {
+    const value = prices[key];
+    if (value === undefined || value === null) continue;
+    out[key] = String(value);
+  }
+  return JSON.stringify(out);
 }
 
 /**
