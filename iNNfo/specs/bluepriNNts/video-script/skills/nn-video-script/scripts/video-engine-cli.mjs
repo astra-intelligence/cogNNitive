@@ -28,6 +28,7 @@ import { loadCascadeBags, resolve, resolveKeyed, findNearest, findNearestByStem,
 import { applyCachedAvatars } from './lib/avatar-jobs.mjs';
 import { buildTtsVoiceOptions } from './lib/tts-options.mjs';
 import { buildImageOptions } from './lib/image-options.mjs';
+import { warnUnpricedAllowedModels } from './asset-cost-estimator.mjs';
 import { loadFrame } from './lib/frame-tokens.mjs';
 import { probeDuration } from './lib/media-duration.mjs';
 import { checkMissingAsset } from './lib/missing-asset.mjs';
@@ -486,6 +487,7 @@ export async function compileVideo(options) {
   const scriptContent = fs.readFileSync(scriptPath, 'utf8');
   const scriptDir = path.dirname(scriptPath);
   const loaded = loadGuard(scriptDir);
+  warnUnpricedAllowedModels(loaded.config);
   const models = options.models || {};
   const allowModels = options.allowModels || [];
   const approvalPath = options.approvalPath ? path.resolve(options.approvalPath) : path.join(scriptDir, APPROVAL_FILENAME);

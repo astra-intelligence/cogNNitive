@@ -251,6 +251,43 @@ export function findCatalogEntry(category, model) {
 }
 
 /**
+ * Allowed model ids that have no price in any catalog category, deduplicated and normalized.
+ * @param {{ allowedModels?: string[] }} config
+ * @returns {string[]}
+ */
+export function unpricedAllowedModels(config) {
+  const priced = new Set();
+  for (const entries of Object.values(PROVIDER_PRICING_CATALOG)) {
+    for (const id of Object.keys(entries)) priced.add(normalizeModelId(id));
+  }
+  const out = [];
+  for (const raw of config?.allowedModels || []) {
+    const id = normalizeModelId(raw);
+    if (!priced.has(id) && !out.includes(id)) out.push(id);
+  }
+  return out;
+}
+
+/**
+ * Emits one warning per allowed model without a price. The run continues: an unpriced model
+ * is estimated at a conservative fallback rate (cognnitive-video-engine "Allowed Models Must
+ * Be Priced"). Returns the warned models so a caller can assert or report them.
+ * @param {{ allowedModels?: string[] }} config
+ * @param {(message: string) => void} [warn]
+ * @returns {string[]}
+ */
+export function warnUnpricedAllowedModels(config, warn = console.warn) {
+  const models = unpricedAllowedModels(config);
+  for (const model of models) {
+    warn(
+      '[video-engine] warning: allowed model "' + model + '" has no price in the catalog; ' +
+        'the estimate falls back to a conservative rate.',
+    );
+  }
+  return models;
+}
+
+/**
  * Estimated USD for ONE billable provider call, used by the spend guard (budget + ledger).
  * @param {'image' | 'tts' | 'avatar' | 'video'} kind
  * @param {string} model Provider model id
@@ -321,6 +358,7 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
   const cache = cacheDir ? new CacheManager({ baseDir: cacheDir, readOnly: true }) : null;
   const models = { image: options.defaultImageModel, tts: options.defaultTtsModel, avatar: options.defaultAvatarModel };
   const config = scriptDir ? loadGuard(scriptDir).config : {};
+  warnUnpricedAllowedModels(config);
   const cachedAvatarLayers = new Set();
   if (cache && scriptDir) {
     try {

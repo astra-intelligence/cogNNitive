@@ -83,10 +83,10 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 0b: Quick wins on console and guard
 
-- [ ] 0b.1 RED: test that `draft-template.html` exposes only preset controls.
-- [ ] 0b.2 GREEN: remove non-preset controls from `S/scripts/draft-template.html`.
-- [ ] 0b.3 RED then GREEN: allowed model without price emits a warning in `asset-cost-estimator.mjs`. `infinitetalk` stays allowed (decision 8).
-- [ ] Verify: as 0a.
+- [x] 0b.1 RED: test that `draft-template.html` exposes only preset controls.
+- [x] 0b.2 GREEN: remove non-preset controls from `S/scripts/draft-template.html`.
+- [x] 0b.3 RED then GREEN: allowed model without price emits a warning in `asset-cost-estimator.mjs`. `infinitetalk` stays allowed (decision 8).
+- [x] Verify: as 0a.
 
 ## Slice 1: Core mirror target
 

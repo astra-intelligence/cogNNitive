@@ -68,3 +68,15 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
   - `lib/avatar-jobs.mjs` + `renderVideo`: a render refuses when an `avatar` Layer has no cached lip-sync clip, naming every `scene/layer` and `synthesize-avatar.mjs`; there is no override flag.
 - Verification: `node --test "test/*.test.mjs"` in the skill → 413 tests, 413 pass. Full `node scripts/verify.js` run before the PR.
 - Deviations: none. Open issues: none.
+
+## Slice 0b — Quick wins on the console and the guard (V_0-14-3)
+
+- Branch: `feature/conntent-v1-0b` (base `feature/conntent-v1-0a`)
+- PR: pending
+- TDD: RED first (`draft-template-preset-only.test.mjs`, `unpriced-model-warning.test.mjs`), then GREEN.
+- Changes:
+  - `draft-template.html`: the video parameter grid and the scene exception drawer are gone, so the preset selector is the only control. The script build no longer emits `background_audio`, `background_audio_volume` or `transition` overrides that no control can produce.
+  - `asset-cost-estimator.mjs`: `unpricedAllowedModels` and `warnUnpricedAllowedModels` emit exactly one warning per allowed model without a catalog price, and the run continues at the conservative fallback rate. `compileVideo` warns at guard load too. `infinitetalk` stays allowed and priced, so it is silent (decision 8).
+  - Blueprint `V_0-14-3`, skill `V_0-15-9`, regenerated catalog.
+- Verification: skill suite 420 tests, 420 pass; `node scripts/verify.js` green.
+- Deviations: none. Open issues: none.
