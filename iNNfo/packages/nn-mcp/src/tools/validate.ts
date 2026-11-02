@@ -16,6 +16,7 @@ import {
   readLineageSnapshot,
   buildChangeLog,
   checkProvenance,
+  evidenceCitationSites,
   unitOf,
   slugify,
   isNNName,
@@ -332,9 +333,10 @@ export async function collectWorkspaceDiagnostics(
   // the latter resolved against real files under the workspace root. One read
   // per file: content backs headings AND the unit checks (rows/columns/fields).
   const resolveSource: SourceResolver = createFsSourceResolver(rootDir)
+  const log = buildChangeLog(snapshot)
   return [
     ...validateWorkspaceReferences(result, index),
-    ...validateWorkspaceSources(result, resolveSource, snapshot),
+    ...validateWorkspaceSources(result, resolveSource, snapshot, evidenceCitationSites(log)),
     ...collectEvidenceDiagnostics(rootDir),
   ]
 }

@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs'
 import { existsSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import {
+  buildChangeLog,
   buildWorkspaceIntegrityReport,
   summarizeWorkspaceIntegrity,
   parseFrontmatter,
@@ -371,6 +372,27 @@ export function checkLineageGate(rootDir: string): LineageGateReport {
 }
 
 /**
+ * Provenance plus the projection's own diagnostics: a non-regenerable artifact
+ * with no `produce_artifact` change is `ARTIFACT_WITHOUT_RECORD` (a warning in
+ * both modes; it is not a body drift).
+ */
+async function provenanceWithArtifacts(rootDir: string, strict: boolean): Promise<ProvenanceReport> {
+  const provenance = await checkDomainProvenance(rootDir, { strict })
+  const files = readLineageSnapshot(rootDir)
+  const projection = projectLineage(files, buildChangeLog(files))
+  const artifactDiagnostics = projection.diagnostics
+    .filter((diagnostic) => diagnostic.code === 'ARTIFACT_WITHOUT_RECORD')
+    .map((diagnostic) => ({
+      code: diagnostic.code as ProvenanceReport['diagnostics'][number]['code'],
+      severity: 'warning' as const,
+      message: `${diagnostic.code}: ${diagnostic.message}`,
+      unit: diagnostic.path,
+    }))
+  if (artifactDiagnostics.length === 0) return provenance
+  return { ...provenance, diagnostics: [...provenance.diagnostics, ...artifactDiagnostics] }
+}
+
+/**
  * Run the workspace integrity check. Returns the builder's consolidated
  * report. With `summaryOnly`, `models` carries only rows with validation
  * errors or `upgrade-available` (capped at 25) and `collisions` is capped at 25 too;
@@ -404,7 +426,7 @@ export async function checkWorkspace(
     absByPath: new Map(),
   }
   const base = await buildWorkspaceIntegrityReport(buildCheckWorkspacePorts(ctx))
-  const provenance = await checkDomainProvenance(rootDir, { strict: options.strict })
+  const provenance = await provenanceWithArtifacts(rootDir, options.strict === true)
   const report = {
     ...base,
     lineage: checkLineageGate(rootDir),

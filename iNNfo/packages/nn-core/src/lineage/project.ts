@@ -237,6 +237,26 @@ function familyKey(path: string): string | null {
 }
 
 /**
+ * Citation sites for the evidence of applied changes (change-provenance:
+ * consumers read the log; S5a removes `sources::`). Keyword evidence
+ * (`decision`, `unknown`) is not a citation and is skipped.
+ */
+export function evidenceCitationSites(
+  log: ChangeLog,
+  scope: 'live' | 'all-time' = 'live',
+): CitationSite[] {
+  const sites: CitationSite[] = []
+  for (const [citation, entries] of log.evidence(scope)) {
+    const keyword = citation.toLowerCase()
+    if (keyword === 'decision' || keyword === 'unknown') continue
+    for (const entry of entries) {
+      sites.push({ value: citation, referringPath: entry.unit, field: 'evidence' })
+    }
+  }
+  return sites
+}
+
+/**
  * Pure projection from FileSnapshot[] to LineageView.
  *
  * Inventory (sources, knowledge, artifacts, changesets) comes from the files

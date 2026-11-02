@@ -28,6 +28,13 @@ export {
   projectLineage,
   extractDeclaredCitations,
   extractFileCitations,
+  evidenceCitationSites,
+  type LineageArtifact,
+  type LineageChangeset,
+  type LineageEdge,
+  type LineageKnowledge,
+  type LineageSource,
+  type LineageView,
 } from './lineage/project.js'
 
 export {

@@ -208,8 +208,15 @@ export function validateWorkspaceSources(
   result: RecursiveParseResult,
   resolver: SourceResolver,
   snapshot?: FileSnapshot[],
+  evidenceSites?: CitationSite[],
 ): ReferenceDiagnostic[] {
   const diagnostics: ReferenceDiagnostic[] = []
+
+  // Evidence of the applied changes is a citation site too: once `sources::` is
+  // banned (S5a) it is the ONLY provenance a unit declares.
+  if (evidenceSites && evidenceSites.length > 0) {
+    diagnostics.push(...validateCitations(evidenceSites, resolver))
+  }
 
   if (snapshot && Array.isArray(snapshot) && snapshot.length > 0) {
     const fileSites = extractFileCitations(snapshot)

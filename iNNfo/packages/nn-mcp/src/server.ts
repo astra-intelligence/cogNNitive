@@ -52,6 +52,7 @@ import { applyWithConsole, regenerateConsole, buildNextSteps } from './tools/con
 import { proposeChangeset } from './tools/propose-changeset.js'
 import { initDomain } from './tools/init-domain.js'
 import { syncLineageTool } from './tools/sync-lineage.js'
+import { readLineageTool } from './tools/read-lineage.js'
 import { explainEffective, resolveEffective } from './tools/resolve-effective.js'
 import { envelope, envelopeList, findDomainRoot } from '@cognnitive/nn-core'
 
@@ -685,6 +686,37 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
   },
   {
     definition: {
+      name: 'read_lineage',
+      annotations: { readOnlyHint: true },
+      description:
+        'Read-only computed lineage view of the domain: {sources, models, artifacts, changes, edges, diagnostics}. Inventory comes from the filesystem; edges come from the applied changes (evidence: cited file -> model/artifact, target: unit -> owner, produced: artifact -> changeset). `scope` selects live evidence (the last applied change of each unit, default) or all-time evidence; `focus` narrows every section to refs containing it. A non-regenerable artifact with no produce_artifact change is ARTIFACT_WITHOUT_RECORD. Never writes files.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          focus: {
+            type: 'string',
+            description: 'Optional substring filter applied to every section (case-insensitive)',
+          },
+          scope: {
+            type: 'string',
+            enum: ['live', 'all-time'],
+            description: 'Evidence scope: live (default) or all-time',
+          },
+          domain: {
+            type: 'string',
+            description: 'Optional domain root directory override (default: server root)',
+          },
+          root: {
+            type: 'string',
+            description: 'Optional domain root directory override (alias for domain)',
+          },
+        },
+      },
+    },
+    handler: handleReadLineage,
+  },
+  {
+    definition: {
       name: 'resolve_sources',
       annotations: { readOnlyHint: true },
       description:
@@ -1110,8 +1142,16 @@ async function handleSyncLineage(args: Record<string, unknown>): Promise<CallToo
   return textResult(JSON.stringify(envelope('innfo-sync-lineage', result), null, 2))
 }
 
-async function handleResolveSources(args: Record<string, unknown>): Promise<CallToolResult> {
-  const knowledgeId = (args.knowledge_id as string) || (args.model as string)
+async function handleReadLineage(args: Record<string, unknown>): Promise<CallToolResult> {
+  const root = (args.domain as string) || (args.root as string) || ROOT_DIR
+  const result = await readLineageTool(root, {
+    focus: args.focus as string | undefined,
+    scope: args.scope === 'all-time' ? 'all-time' : 'live',
+  })
+  return textResult(JSON.stringify(envelope('innfo-read-lineage', result), null, 2))
+}
+
+async function handleResolveSources(args: Record<string, unknown>): Promise<CallToolResult> {  const knowledgeId = (args.knowledge_id as string) || (args.model as string)
   const elementId = args.elementId as string
   if (!knowledgeId || !elementId) return errorResult('Missing required arguments: knowledge_id, elementId')
   const root = (args.domain as string) || (args.root as string) || ROOT_DIR

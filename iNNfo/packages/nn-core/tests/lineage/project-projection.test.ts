@@ -7,7 +7,7 @@
  * `produce_artifact` change is `ARTIFACT_WITHOUT_RECORD`. Nothing is written.
  */
 import { describe, it, expect } from 'vitest'
-import { projectLineage } from '../../src/lineage/project.js'
+import { evidenceCitationSites, projectLineage } from '../../src/lineage/project.js'
 import { buildChangeLogFromChangesets } from '../../src/changelog/load.js'
 import type { FileSnapshot } from '../../src/queryUnits.js'
 
@@ -172,5 +172,20 @@ describe('projectLineage artifacts and diagnostics', () => {
     const view = projectLineage(files)
     expect(view.edges.length).toBeGreaterThan(0)
     expect(view.knowledge).toHaveLength(1)
+  })
+})
+
+describe('evidenceCitationSites', () => {
+  it('turns live evidence into citation sites and skips keywords', () => {
+    const log = buildChangeLogFromChangesets([
+      changeset([
+        { id: 'c-01', op: 'update_field', target: 'goal@goal-1&owner', to: 'Ana', evidence: 'sources/import/a.md' },
+        { id: 'c-02', op: 'update_field', target: 'goal@goal-1&note', to: 'x', evidence: 'decision' },
+        { id: 'c-03', op: 'update_field', target: 'goal@goal-1&other', to: 'y', evidence: 'unknown' },
+      ]),
+    ])
+    expect(evidenceCitationSites(log)).toEqual([
+      { value: 'sources/import/a.md', referringPath: 'goal@goal-1&owner', field: 'evidence' },
+    ])
   })
 })

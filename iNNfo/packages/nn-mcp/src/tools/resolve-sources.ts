@@ -111,8 +111,7 @@ interface FoundElement {
   fields: Record<string, unknown>
 }
 
-/** The unit part of a target address (`owner`, `#body`, `row&col`). */
-function unitLabelOf(target: string): string {
+/** The unit part of a target address (`owner`, `#body`, `row&col`). */function unitLabelOf(target: string): string {
   const at = target.indexOf('@')
   if (at === -1) return ''
   const rest = target.slice(at + 1)

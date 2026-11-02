@@ -7400,6 +7400,7 @@ __export(trannsformPrimitives_exports, {
   createFsSourceResolver: () => createFsSourceResolver,
   displayStem: () => displayStem,
   ensureNNFilename: () => ensureNNFilename,
+  evidenceCitationSites: () => evidenceCitationSites,
   extractDeclaredCitations: () => extractDeclaredCitations,
   extractFileCitations: () => extractFileCitations,
   extractHeadings: () => extractHeadings,
@@ -9988,6 +9989,17 @@ function familyKey(path4) {
   const family = familyOf(path4);
   return family ? `${family.dir}\0${family.key}\0${family.ext}` : null;
 }
+function evidenceCitationSites(log, scope = "live") {
+  const sites = [];
+  for (const [citation, entries] of log.evidence(scope)) {
+    const keyword = citation.toLowerCase();
+    if (keyword === "decision" || keyword === "unknown") continue;
+    for (const entry of entries) {
+      sites.push({ value: citation, referringPath: entry.unit, field: "evidence" });
+    }
+  }
+  return sites;
+}
 function projectLineage(files, log = buildChangeLog(files), options = {}) {
   const live = files.map((f) => ({ path: posixPath(f.path), content: f.content })).filter((f) => !isExcludedPath(f.path)).sort((a, b) => compareStrings2(a.path, b.path));
   const byFilePath = new Map(live.map((f) => [f.path, f]));
@@ -11218,6 +11230,7 @@ async function importRaw(root, externalAbs, o = {}) {
   createFsSourceResolver,
   displayStem,
   ensureNNFilename,
+  evidenceCitationSites,
   extractDeclaredCitations,
   extractFileCitations,
   extractHeadings,

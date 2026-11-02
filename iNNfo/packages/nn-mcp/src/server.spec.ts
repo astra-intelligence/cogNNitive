@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest'
+﻿import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest'
 import { join } from 'node:path'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, realpathSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -47,7 +47,7 @@ async function stubSpecChain() {
 }
 
 /** Write a level-2 business blueprint (declaring a "Work" list concept)
- * resolving up to the stubbed level-1 chain — fully resolvable locally. */
+ * resolving up to the stubbed level-1 chain â€” fully resolvable locally. */
 async function stubBlueprintChain() {
   await writeFile(
     join(specsDir, 'business_V_0-2-0_NN.md'),
@@ -127,11 +127,11 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
     expect(info?.version).toBe(pkgVersion)
   })
 
-  it('lists exactly the 24 canonical tools and no retired names', async () => {
+  it('lists exactly the 25 canonical tools and no retired names', async () => {
     const { tools } = await client.listTools()
     const names = tools.map((t) => t.name).sort()
     expect(names).toEqual(toolDefinitions.map((t) => t.name).sort())
-    expect(tools).toHaveLength(24)
+    expect(tools).toHaveLength(25)
 
     const canonicalNames = [
       'list_knowledge',
@@ -153,6 +153,7 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
       'query_units',
       'cognitivize',
       'sync_lineage',
+      'read_lineage',
       'resolve_sources',
       'list_blueprint_procedures',
       'list_blueprint_skills',
@@ -161,7 +162,7 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
     ].sort()
     expect(names).toEqual(canonicalNames)
 
-    // Verify all 24 tools declare MCP tool annotations with readOnlyHint
+    // Verify all 25 tools declare MCP tool annotations with readOnlyHint
     for (const tool of tools) {
       expect(tool.annotations).toBeDefined()
       expect(typeof tool.annotations?.readOnlyHint).toBe('boolean')
@@ -462,7 +463,7 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
       await mkdir(join(rootDir, 'conversations'), { recursive: true })
       await writeFile(
         join(rootDir, 'conversations', '2026-10-01_192904.md'),
-        '# Session log\n\nNo frontmatter here — this is a transcript, not a model.\n',
+        '# Session log\n\nNo frontmatter here â€” this is a transcript, not a model.\n',
         'utf-8',
       )
 
