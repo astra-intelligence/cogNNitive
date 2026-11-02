@@ -2180,3 +2180,56 @@ worktree.
 
 ---
 
+## S7 — Final verify (no PR; runs on the chain tip `lac/s6c`)
+
+Applied: 2026-11-02.
+
+- **7.1** The record-symbol grep over live code, skills and specs returns **0**. The only
+  remaining hits are six test files that pin the absence (`record-retired`,
+  `read-lineage`, `skill-content`, `docs-provenance`, `core-blueprint-roles`) and are
+  excluded by name, plus `openspec/**` (the historical record). A hit in the generated
+  testlab fixture exposed a stale `nn-address.generated.js` (it still embedded
+  `cognnitive: "lineage-record"`): regenerated with `scripts/export-address-module.mjs`,
+  then the console bundle and the fixture; all three are clean now.
+- **7.2** `tests/validator/knowledge-checks.test.ts` proves the ban: a hand-added
+  `sources::` is `SOURCES_FIELD_BANNED` and a `type:: citation` field is
+  `CITATION_FIELD_BANNED` on L3 (V_0-6-0-pinned documents). `provenance-contracts` builds
+  a domain only through changes and finds no citation syntax in it.
+- **7.3** `tests/changelog/{fold,log,drift}.test.ts` (one case per A4 row): origins come
+  from the applied change, matrix cells and cleared units behave, the epoch cut drops
+  inherited history on slug reuse, and ordering is the shared comparator (deterministic).
+- **7.4** `provenance-contracts` (fold, warning) and `provenance-strict` (strict, error)
+  prove `EDITED_WITHOUT_RECORD` / `UNIT_WITHOUT_RECORD` in both `check_domain` and
+  `validate_knowledge`, and that strict escalates severity.
+- **7.5** `provenance-contracts` asserts exactly **130** `EVIDENCE_UNKNOWN` for the
+  LC_programas-like corpus.
+- **7.6** `project-projection` asserts `ARTIFACT_WITHOUT_RECORD` for an unrecorded
+  non-regenerable artifact and silence for a recorded one and for a regenerable view.
+- **7.7** `test/unit/test-evidence-index-consumers.js` (gc all-time protection, impact
+  sha comparison, duplicate-guards evidence citation) plus `resolve-sources-target`
+  (field/body/cell) pass; the full nn-sources suite is 564 green.
+- **7.8** `node scripts/verify.js --release` green; the empty-`HOME`/`USERPROFILE`
+  preflight pass green.
+- Test counts at the tip: nn-core 30 files / 296 tests over `changelog validator lineage
+  naming`; nn-mcp 8 files / 47 tests over `provenance read-lineage resolve-sources
+  legacy-citation record-retired`; the 8 simulation scenarios green; the full suites were
+  green on the last run of each PR.
+- **7.9 open questions recorded for the archive** (from the design's Open Questions):
+  1. Strict replay compares the serialized body only; frontmatter is excluded because
+     `knowledge_version` is bump-driven. A hand reordering of elements is therefore
+     strict-only drift.
+  2. Matrices have no frozen slug: renaming a matrix by `remove_matrix` + `add_matrix`
+     loses the cell history.
+  3. `workspace-executions-provenance` (`# NN Executions`) is removed; the decision is in
+     the specs.
+  4. The L1 provenance ban is scoped by the blueprint's L1 pin: only `changes`,
+     `sidecar` and `visual-catalog` adopt `V_0-6-0` in this change (A14), so documents on
+     `V_0-5-0`-era blueprints keep the reserved property legitimately.
+  5. The ~108-file `sources::` corpus (samples, fixtures, demo docs) is intentionally not
+     stripped, for the same reason.
+
+**S7 status: green except the release tag, which is deliberately withheld pending the
+maintainer's explicit go (hard stop).**
+
+---
+

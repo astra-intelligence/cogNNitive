@@ -501,15 +501,15 @@ Verification: docs build, `node scripts/verify.js`, `rg "sync_lineage|get_lineag
 
 Finish: every success criterion of the proposal is demonstrated; the tracker is ready for a merge commit.
 
-- [ ] 7.1 [S] `rg "lineage-record|findLineageRecord|sync_lineage|LINEAGE_DRIFT"` returns 0 in live code, skills and specs (archive excluded). (proposal criterion 1)
-- [ ] 7.2 [S] A domain built only through changes has no `sources::` or `type:: citation`; the validator rejects one added by hand. (criterion 2)
-- [ ] 7.3 [S] Origin of every field and every matrix cell derives from applied changes with deterministic order and no inherited history after slug reuse. (criterion 3)
-- [ ] 7.4 [S] A hand edit of a field or cell, and a unit with no change, fire `EDITED_WITHOUT_RECORD`/`UNIT_WITHOUT_RECORD` in `validate_knowledge` and `check_domain`; strict mode escalates. (criterion 4)
-- [ ] 7.5 [S] The LC_programas-like fixture produces visible diagnostics (`EVIDENCE_UNKNOWN`). (criterion 5)
-- [ ] 7.6 [S] Every non-regenerable artifact has a `produce_artifact` or `ARTIFACT_WITHOUT_RECORD` fires. (criterion 6)
-- [ ] 7.7 [S] impact-checker, gc, duplicate-guards and `resolve_sources` pass against the evidence index. (criterion 7)
-- [ ] 7.8 [S] `node scripts/verify.js --release` and CI green after the re-pin; the empty-`HOME` preflight run is green; mirrors up to date.
-- [ ] 7.9 [S] Open questions recorded for the archive: strict replay ignores frontmatter and hand reordering of elements is strict-only drift; matrices have no frozen slug so a `remove_matrix` plus `add_matrix` rename loses cell history; `workspace-executions-provenance` is removed (decided in specs).
+- [x] 7.1 [S] `rg "lineage-record|findLineageRecord|sync_lineage|LINEAGE_DRIFT"` returns 0 in live code, skills and specs (archive excluded). (proposal criterion 1)
+- [x] 7.2 [S] A domain built only through changes has no `sources::` or `type:: citation`; the validator rejects one added by hand. (criterion 2)
+- [x] 7.3 [S] Origin of every field and every matrix cell derives from applied changes with deterministic order and no inherited history after slug reuse. (criterion 3)
+- [x] 7.4 [S] A hand edit of a field or cell, and a unit with no change, fire `EDITED_WITHOUT_RECORD`/`UNIT_WITHOUT_RECORD` in `validate_knowledge` and `check_domain`; strict mode escalates. (criterion 4)
+- [x] 7.5 [S] The LC_programas-like fixture produces visible diagnostics (`EVIDENCE_UNKNOWN`). (criterion 5)
+- [x] 7.6 [S] Every non-regenerable artifact has a `produce_artifact` or `ARTIFACT_WITHOUT_RECORD` fires. (criterion 6)
+- [x] 7.7 [S] impact-checker, gc, duplicate-guards and `resolve_sources` pass against the evidence index. (criterion 7)
+- [x] 7.8 [S] `node scripts/verify.js --release` and CI green after the re-pin; the empty-`HOME` preflight run is green; mirrors up to date.
+- [x] 7.9 [S] Open questions recorded for the archive: strict replay ignores frontmatter and hand reordering of elements is strict-only drift; matrices have no frozen slug so a `remove_matrix` plus `add_matrix` rename loses cell history; `workspace-executions-provenance` is removed (decided in specs).
 - [ ] 7.10 [S] Merge the tracker into `main` with a merge commit (not a squash); then run `sdd-verify` and `sdd-archive` (diff and `wc -l` the archive copy; haiku archive truncation has happened before).
 
 ---
