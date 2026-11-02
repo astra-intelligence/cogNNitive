@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * test/core-mirror-video-script.test.mjs
+ * test/core-mirror-coNNtent.test.mjs
  *
  * The video engine reaches nn-core and the apply engine through ONE generated,
  * drift-guarded mirror (design A10, capability video-script-skill "Skill Reaches
@@ -23,9 +23,9 @@ const MIRROR = path.join(
   'iNNfo',
   'specs',
   'bluepriNNts',
-  'video-script',
+  'coNNtent',
   'skills',
-  'nn-video-script',
+  'nn-conntent',
   'scripts',
   'lib',
   'nn-core.generated.cjs',
@@ -51,7 +51,7 @@ test('the mirror target exists and the generated file exports the contract', () 
 });
 
 test('the mirror is fresh against its nn-core sources', () => {
-  const res = spawnSync(process.execPath, ['scripts/build-core-mirrors.mjs', '--check', '--target', 'video-script'], {
+  const res = spawnSync(process.execPath, ['scripts/build-core-mirrors.mjs', '--check', '--target', 'coNNtent'], {
     cwd: ROOT,
     encoding: 'utf8',
   });

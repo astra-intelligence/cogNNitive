@@ -81,14 +81,14 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 - Verification: skill suite 420 tests, 420 pass; `node scripts/verify.js` green.
 - Deviations: none. Open issues: none.
 
-## Slice 1 — Core mirror target `video-script` (V_0-14-4)
+## Slice 1 — Core mirror target `coNNtent` (V_0-14-4)
 
 - Branch: `feature/conntent-v1-1` (base `feature/conntent-v1-0b`)
 - PR: pending
-- TDD: RED first (`test/core-mirror-video-script.test.mjs`), then GREEN.
+- TDD: RED first (`test/core-mirror-coNNtent.test.mjs`), then GREEN.
 - Changes:
-  - New bundler entry `scripts/core-mirrors/video-script.ts` re-exporting the nn-core scope fold, `parseKnowledge`, `slugify`, `serializeKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, plus nn-mcp's `executeChangesetApply` and `writeProposedChangeset`.
-  - `scripts/build-core-mirrors.mjs`: the `scope` target is replaced by `video-script`; the output stays `lib/nn-core.generated.cjs`.
+  - New bundler entry `scripts/core-mirrors/coNNtent.ts` re-exporting the nn-core scope fold, `parseKnowledge`, `slugify`, `serializeKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, plus nn-mcp's `executeChangesetApply` and `writeProposedChangeset`.
+  - `scripts/build-core-mirrors.mjs`: the `scope` target is replaced by `coNNtent`; the output stays `lib/nn-core.generated.cjs`.
   - `scripts/lib/knowledge-model.mjs` is now a thin adapter over the mirror's `parseKnowledge` (no private frontmatter reader or markdown parser); its public API is unchanged, so all 420 skill tests stay green.
   - `tsconfig.scripts.json` excludes `scripts/core-mirrors/**` (the bundler entry pulled nn-core/nn-mcp sources into a program with different strictness).
   - `test/no-retired-references.test.mjs`: the new mirror joins the generated-artifact allowlist (it embeds the write-once specs, like `console-payload.generated.cjs`).
@@ -96,3 +96,21 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 - Bundle size (design A10): **821,953 bytes** (`lib/nn-core.generated.cjs`), up from 333,607 bytes for the scope-only mirror. Not unreasonably large, so no maintainer stop was needed.
 - Verification: skill suite 420 tests, 420 pass; `node scripts/verify.js` green (229 steps).
 - Deviations: `lib/knowledge-model.mjs` is kept as a one-function adapter instead of being deleted, because seven consumers still import its API; deletion belongs with the `produce` rewrite (Slice 7b). Open issues: none.
+
+## Slice R — Rename the bluepriNNt to coNNtent (size:exception, mechanical)
+
+- Branch: `feature/conntent-v1-r` (base `feature/conntent-v1-1`)
+- PR: pending
+- Changes:
+  - `git mv iNNfo/specs/bluepriNNts/video-script iNNfo/specs/bluepriNNts/coNNtent` and `git mv .../skills/nn-video-script .../skills/nn-conntent`; no alias, no redirect.
+  - Swept 171 live files: `nn-video-script` → `nn-conntent`, blueprint path → `coNNtent`, `video-script_V_*` → `coNNtent_V_*`, and the bare blueprint id, while keeping OpenSpec capability names `video-script-model`, `video-script-review`, `video-script-skill` and the change id `2026-11-02-video-script-v1`.
+  - `scripts/core-mirrors/video-script.ts` → `scripts/core-mirrors/coNNtent.ts`; `build-core-mirrors.mjs` target `coNNtent`.
+  - Frontmatter `blueprint_name: "coNNtent"`, display title `coNNtent App`; blueprint `V_0-14-5`, skill `V_0-15-11`; both catalogs regenerated (`npm run regen`, `build-docs`).
+  - New guard `test/blueprint-rename.test.mjs` pins the folder, the skill name, both catalogs, the mirror target and the absence of leftover references.
+- RED/GREEN: the guard's assertions are red on the base tree (catalog has no `coNNtent` key and `build-core-mirrors.mjs` has no `coNNtent` target — verified with `git show HEAD:...`), green after the move.
+- Verification: `node scripts/verify.js` green (229 steps) including template immutability (a rename changes `spec_NN.md`, hence the `V_0-14-5` bump), sample coherence and core-mirror freshness.
+- Deviations / accepted residuals:
+  - `iNNfo/specs/bluepriNNts/design-presets/spec_NN.md` keeps one prose sentence naming `nn-video-script`: changing that blueprint requires a version bump plus a sample refresh at two sites, out of a mechanical rename's scope. It is encoded as an accepted exception in the guard.
+  - The frozen `video-golden` corpus keeps its historical `<nn-video-script>` strings; it is a frozen fixture of earlier episodes, like the archives.
+  - `openspec/changes/**` and `openspec/specs/**` keep `video-*` capability names by decision 9.
+- Open issues: none.

@@ -21,7 +21,7 @@ Source: D3, D6, D8.
 
 - GIVEN the video template's `procedures` list
 - WHEN it is inspected
-- THEN `generate-video-script` is the only script-generation procedure and no entry is marked deprecated
+- THEN `generate-coNNtent` is the only script-generation procedure and no entry is marked deprecated
 
 #### Scenario: Agent does not sequence the engine
 

@@ -134,7 +134,7 @@ An episode folder `E` MUST contain `<slug>_coNNtent_<s>_NN.md` (the episode docu
 ### Requirement: Naming Scheme By File Class
 
 File and folder names MUST follow one scheme by class: domain-indexed documents (`_NN.md`) are `<stem>_<blueprint-or-role>_NN.md` or, for an episode, `<slug>_coNNtent_<s>_NN.md`; working files inside `E` carry fixed `snake_case` or lowercase role names with neither slug nor `V_`, the master and derived formats are `<slug>_<W>x<H>.mp4` named by true dimensions, and `description.md` carries no slug and no `V_`.
-(Previously: the episode script was `<slug>_video-script_<s>_NN.md`, thumbnails were `<slug>_thumbnail_<W>x<H>.png`, and the working-file scenario listed `draft.json`, `reviewed.json` and `review_console.html`.)
+(Previously: the episode script was `<slug>_coNNtent_<s>_NN.md`, thumbnails were `<slug>_thumbnail_<W>x<H>.png`, and the working-file scenario listed `draft.json`, `reviewed.json` and `review_console.html`.)
 
 Source: D1.
 

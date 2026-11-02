@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..');
-const BLUEPRINT_DIR = path.join(REPO_ROOT, 'iNNfo', 'specs', 'bluepriNNts', 'video-script');
+const BLUEPRINT_DIR = path.join(REPO_ROOT, 'iNNfo', 'specs', 'bluepriNNts', 'coNNtent');
 export const SPEC_PATH = path.join(BLUEPRINT_DIR, 'spec_NN.md');
-export const DOC_PATH = path.join(BLUEPRINT_DIR, 'skills', 'nn-video-script', 'references', 'parameters.md');
+export const DOC_PATH = path.join(BLUEPRINT_DIR, 'skills', 'nn-conntent', 'references', 'parameters.md');
 
 /** Scope columns, in cascade-reading order (broadest first). Key = the spec's `concept::` name. */
 const SCOPES = [
@@ -88,7 +88,7 @@ export function renderParametersDoc(fields, conditionalFields) {
   lines.push('');
   lines.push('# Video Script Parameter Reference');
   lines.push('');
-  lines.push('Every Field the `video-script` blueprint defines, and the scopes where it can be written.');
+  lines.push('Every Field the `coNNtent` blueprint defines, and the scopes where it can be written.');
   lines.push('The authoritative definition is `spec_NN.md`; this page is its generated rendering.');
   lines.push('');
   lines.push('## How scopes resolve');
@@ -157,10 +157,10 @@ export function syncParametersDoc(options = {}) {
     }
     const current = fs.readFileSync(DOC_PATH, 'utf8');
     if (current.replace(/\r\n/g, '\n') !== rendered) {
-      console.error('FAIL: video-script parameters.md is out of sync with spec_NN.md. Run node scripts/generate-video-parameters-doc.mjs');
+      console.error('FAIL: coNNtent parameters.md is out of sync with spec_NN.md. Run node scripts/generate-video-parameters-doc.mjs');
       return false;
     }
-    console.log('OK: video-script parameters.md is in sync with spec_NN.md');
+    console.log('OK: coNNtent parameters.md is in sync with spec_NN.md');
     return true;
   }
 

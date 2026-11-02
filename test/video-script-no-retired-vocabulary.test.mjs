@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * test/video-script-no-retired-vocabulary.test.mjs
+ * test/coNNtent-no-retired-vocabulary.test.mjs
  *
  * The blueprint, its embedded skill and the video dev tooling speak one
  * vocabulary: the names retired by V_0-14-0/V_0-14-1 never appear outside
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ROOTS = [
-  path.join(ROOT, 'iNNfo/specs/bluepriNNts/video-script'),
+  path.join(ROOT, 'iNNfo/specs/bluepriNNts/coNNtent'),
   path.join(ROOT, 'scripts/dev'),
 ];
 const SKIP_DIRS = new Set(['node_modules', 'archive', '.git', 'dist']);
@@ -59,7 +59,7 @@ test('no retired field, flag or file name survives in the blueprint, the skill o
     for (const file of walk(root)) {
       // The scan's own fixtures and the test suites legitimately feed retired
       // documents in to prove they are rejected, so tests are out of scope.
-      if (file.endsWith('video-script-no-retired-vocabulary.test.mjs')) continue;
+      if (file.endsWith('coNNtent-no-retired-vocabulary.test.mjs')) continue;
       if (/\.test\.(mjs|js)$/.test(file)) continue;
       if (file.includes(`${path.sep}test${path.sep}`)) continue;
       // A tool that must interpret the frozen legacy domain declares it once.
@@ -79,7 +79,7 @@ test('no retired field, flag or file name survives in the blueprint, the skill o
 
 test('the blueprint declares the current field names only', () => {
   const spec = fs
-    .readFileSync(path.join(ROOT, 'iNNfo/specs/bluepriNNts/video-script/spec_NN.md'), 'utf8')
+    .readFileSync(path.join(ROOT, 'iNNfo/specs/bluepriNNts/coNNtent/spec_NN.md'), 'utf8')
     .replace(/\r\n/g, '\n');
   for (const retired of ['template', 'tool', 'tts_model', 'music', 'music_volume', 'presenter_asset', 'intro_asset', 'level', 'speed', 'emotion', 'voice_id']) {
     assert.doesNotMatch(

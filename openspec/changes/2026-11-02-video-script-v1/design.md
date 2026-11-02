@@ -1,4 +1,4 @@
-# Design: coNNtent V_1-0-0 (decision-in redesign, formerly `video-script`)
+# Design: coNNtent V_1-0-0 (decision-in redesign, formerly `coNNtent`)
 
 Note on length: this design exceeds the 800-word skill budget on purpose. The orchestrator asked it to settle 12 named questions (Q1–Q7 plus engine, console and slicing), and each one constrains the tasks. Decisions are in tables, and code appears only for data shapes.
 

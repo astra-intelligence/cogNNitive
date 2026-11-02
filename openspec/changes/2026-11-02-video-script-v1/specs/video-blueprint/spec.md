@@ -67,7 +67,7 @@ The blueprint MUST define the Concepts `Scene Kind` and `Chrome` (see capability
 ### Requirement: Native L2 Video-Script Blueprint
 
 The Level 2 blueprint `coNNtent` MUST define the Concepts and Fields for a native video script (`Video`, `Scene`, `Layer`, `Preset`, plus `Video Defaults`, `Series`, `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` and `Voice`) using iNNfo `::` field syntax, and MUST be the schema an L3 script document adopts via `parent_spec`. The blueprint MUST NOT define VUS `scene_*` or `layer_*` fields.
-(Previously: the Concept list had no `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` or `Voice`; the blueprint was named `video-script`.)
+(Previously: the Concept list had no `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` or `Voice`; the blueprint was named `coNNtent`.)
 
 #### Scenario: Blueprint defines the native concepts
 

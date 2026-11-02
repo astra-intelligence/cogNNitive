@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * test/video-script-contract-additions.test.mjs
+ * test/coNNtent-contract-additions.test.mjs
  *
- * Lives outside the embedded skill folder on purpose: files under video-script/skills are
+ * Lives outside the embedded skill folder on purpose: files under coNNtent/skills are
  * guarded by the Template Immutability Guard (any change demands a blueprint_version bump).
  *
- * Guards the video-script contract additions of V_0-14-0: the `Preset` concept, the
+ * Guards the coNNtent contract additions of V_0-14-0: the `Preset` concept, the
  * `presets` field and its shape, the retired Field names, the `presenter`
  * conditional-fields rule, the watermark Layer, the Layer paint order and the TTS
  * cache key staying independent of the avatar model.
@@ -20,13 +20,13 @@ import { fileURLToPath } from 'node:url';
 import {
   SceneCompiler,
   DEFAULT_CONDITIONAL_FIELDS,
-} from '../iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script/scripts/scene-compiler.mjs';
-import { buildTtsVoiceOptions, resolveRegisteredVoice } from '../iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script/scripts/lib/tts-options.mjs';
-import { loadPresetIndex } from '../iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script/scripts/lib/presets.mjs';
-import { CacheManager } from '../iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script/scripts/cache-manager.mjs';
+} from '../iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent/scripts/scene-compiler.mjs';
+import { buildTtsVoiceOptions, resolveRegisteredVoice } from '../iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent/scripts/lib/tts-options.mjs';
+import { loadPresetIndex } from '../iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent/scripts/lib/presets.mjs';
+import { CacheManager } from '../iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent/scripts/cache-manager.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const BP = path.join(ROOT, 'iNNfo/specs/bluepriNNts/video-script');
+const BP = path.join(ROOT, 'iNNfo/specs/bluepriNNts/coNNtent');
 /** Reads a blueprint file with normalized newlines, so `^…$` assertions work on Windows too. */
 const read = (rel) => fs.readFileSync(path.join(BP, rel), 'utf8').replace(/\r\n/g, '\n');
 const SPEC = read('spec_NN.md');
@@ -62,7 +62,7 @@ function fieldDefinition(name) {
 }
 
 async function runTests() {
-  console.log('Running video-script contract-additions tests...');
+  console.log('Running coNNtent contract-additions tests...');
 
   // 1. watermark: contract entry, guard and overlay.
   {
@@ -164,7 +164,7 @@ async function runTests() {
 
   // 6. The blueprint contract itself (capability video-blueprint and video-presets).
   {
-    assert.match(SPEC, /^blueprint_version: "V_0-14-4"$/m, 'the blueprint declares V_0-14-4');
+    assert.match(SPEC, /^blueprint_version: "V_0-14-5"$/m, 'the blueprint declares V_0-14-5');
     assert.match(SPEC, /^## NN Concept Definition: Preset$/m, 'Preset is a top-level Concept');
     assert.doesNotMatch(SPEC, /^## NN Concept Definition: Template$/m, 'Template is gone');
     assert.doesNotMatch(SPEC, /^## NN Field Definition: Template$/m);
@@ -202,7 +202,7 @@ async function runTests() {
     assert.doesNotMatch(DEFAULTS, /voice_speed::|voice_emotion::|voice_tone::/);
     assert.match(DEFAULTS, /^voice_model:: minimax\/speech-2\.8-hd$/m);
     assert.match(DEFAULTS, /^background_audio_volume:: 0\.2$/m);
-    assert.match(DEFAULTS, /^parent_spec:\n  name: "video-script_V_0-14-4"$/m);
+    assert.match(DEFAULTS, /^parent_spec:\n  name: "coNNtent_V_0-14-5"$/m);
 
     // One declared master size; every delivery format is derived from it.
     const masterResolution = fieldDefinition('master_resolution');
@@ -224,8 +224,8 @@ async function runTests() {
 
   // 7. The console template carries no literal blueprint version.
   {
-    const template = read('skills/nn-video-script/scripts/draft-template.html');
-    assert.doesNotMatch(template, /video-script_V_\d/, 'the version must be substituted at build time');
+    const template = read('skills/nn-conntent/scripts/draft-template.html');
+    assert.doesNotMatch(template, /coNNtent_V_\d/, 'the version must be substituted at build time');
     assert.match(template, /\{\{BLUEPRINT_VERSION\}\}/);
     console.log('OK the review console template carries no literal blueprint version');
   }

@@ -3,7 +3,7 @@
 /**
  * scripts/generate-video-parameters-doc.test.mjs
  *
- * Unit tests for the video-script parameter reference generator (plain node,
+ * Unit tests for the coNNtent parameter reference generator (plain node,
  * zero deps) plus a drift guard: the committed references/parameters.md must
  * equal the render of the real spec_NN.md.
  */

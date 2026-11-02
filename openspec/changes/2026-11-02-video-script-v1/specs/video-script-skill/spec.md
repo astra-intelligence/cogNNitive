@@ -1,6 +1,6 @@
 # Delta for video-script-skill
 
-Change `2026-11-02-video-script-v1`. Decisions D6, D10, D13. The agent does creative work only and delivers a proposed changeset; the engine command `produce` does everything deterministic. The skill is renamed `nn-conntent` (formerly `nn-video-script`), under the bluepriNNt folder `iNNfo/specs/bluepriNNts/coNNtent/`, with no alias or redirect.
+Change `2026-11-02-video-script-v1`. Decisions D6, D10, D13. The agent does creative work only and delivers a proposed changeset; the engine command `produce` does everything deterministic. The skill is renamed `nn-conntent` (formerly `nn-conntent`), under the bluepriNNt folder `iNNfo/specs/bluepriNNts/coNNtent/`, with no alias or redirect.
 
 ## ADDED Requirements
 

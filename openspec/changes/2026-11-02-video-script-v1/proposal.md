@@ -1,8 +1,8 @@
-# Proposal: coNNtent V_1-0-0 (decision-in redesign, formerly `video-script`)
+# Proposal: coNNtent V_1-0-0 (decision-in redesign, formerly `coNNtent`)
 
 ## Intent
 
-Rebuild the `coNNtent` bluepriNNt (formerly `video-script`) around the decisions a person makes when producing an episode, not around what the engine and providers need. The current design (bluepriNNt V_0-14-1, skill V_0-15-7) was built engine-out. Edits get lost, parameters drift and cost knowledge sits in code, and about 40% of the domaiNN's disk use is duplicates (exploration §1–§2).
+Rebuild the `coNNtent` bluepriNNt (formerly `coNNtent`) around the decisions a person makes when producing an episode, not around what the engine and providers need. The current design (bluepriNNt V_0-14-1, skill V_0-15-7) was built engine-out. Edits get lost, parameters drift and cost knowledge sits in code, and about 40% of the domaiNN's disk use is duplicates (exploration §1–§2).
 
 Success means:
 - An agent proposes the script as a changeset.

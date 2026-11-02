@@ -1,6 +1,6 @@
-# Tasks: video-script V_1-0-0 (decision-in redesign)
+# Tasks: coNNtent V_1-0-0 (decision-in redesign)
 
-Skill root `S` = `iNNfo/specs/bluepriNNts/video-script/skills/nn-video-script`. Tests live in `S/test` (`node --test`). Strict TDD: every slice lists RED (failing test) before GREEN (code) before REFACTOR. Chain strategy is `feature-branch-chain`: tracker branch `feature/conntent-v1` cut from `origin/dev`; PR D targets the tracker, every later slice PR targets the previous slice's branch; only the tracker merges into `dev`, and only on the maintainer's word. After Slice R, `S` moves to `iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent`.
+Skill root `S` = `iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent`. Tests live in `S/test` (`node --test`). Strict TDD: every slice lists RED (failing test) before GREEN (code) before REFACTOR. Chain strategy is `feature-branch-chain`: tracker branch `feature/conntent-v1` cut from `origin/dev`; PR D targets the tracker, every later slice PR targets the previous slice's branch; only the tracker merges into `dev`, and only on the maintainer's word. After Slice R, `S` moves to `iNNfo/specs/bluepriNNts/coNNtent/skills/nn-conntent`.
 
 ## Review Workload Forecast
 
@@ -24,7 +24,7 @@ Chain strategy: feature-branch-chain
 |------|------|-----------|-----------|-------|
 | 0a | QW1 image cache key, QW5 `--fill crop`, QW3 avatar render refusal | 150 | PR 0a | Independent; V_0-14-x. Base: main or tracker |
 | 0b | QW2 remove non-preset console controls, QW4 unpriced warning | 120 | PR 0b | Independent of 0a |
-| 1 | Mirror target `video-script` | 300 | PR 1 | Needs 0a/0b merged; generated bundle excluded |
+| 1 | Mirror target `coNNtent` | 300 | PR 1 | Needs 0a/0b merged; generated bundle excluded |
 | 2a | `spec_NN.md` V_1-0-0 text | 600 | PR 2a | Docs-only, likely `size:exception` |
 | 2b | Field registry generator, validator, consumers | 450 | PR 2b | Depends on 2a |
 | 3a | Catalog doc, `catalog.mjs`, adapters | 450 | PR 3a | Depends on 2b |
@@ -56,7 +56,7 @@ These override proposal, specs and design wherever they disagree. Slice D writes
 | 6 | Facts in git | `.cognnitive/video/` facts are gitignored, one log per machine; every row carries the machine fingerprint so logs from several machines can be compared if merged by hand. | D, 3b, 6, 9 |
 | 7 | Chapters | `produce` writes chapters into `description.md` between `<!-- chapters:start -->` and `<!-- chapters:end -->`, never touching the rest. | D, 10 |
 | 8 | `infinitetalk` | Allowed. It stays in the reference catalog as an active avatar model; no warning. | D, 0b, 3a |
-| 9 | bluepriNNt rename | `video-script` becomes `coNNtent` (display and id, NN casing as in `domaiNN`): folder `iNNfo/specs/bluepriNNts/coNNtent/`, catalog id `coNNtent`. Skill `nn-video-script` becomes `nn-conntent` (skills are lowercase, NN words keep the double n, as `nn-innfo`). OpenSpec capability names keep `video-*`. No aliases or redirects. | D, R |
+| 9 | bluepriNNt rename | `coNNtent` becomes `coNNtent` (display and id, NN casing as in `domaiNN`): folder `iNNfo/specs/bluepriNNts/coNNtent/`, catalog id `coNNtent`. Skill `nn-conntent` becomes `nn-conntent` (skills are lowercase, NN words keep the double n, as `nn-innfo`). OpenSpec capability names keep `video-*`. No aliases or redirects. | D, R |
 
 Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the agent's draft is applied into the model under `status:: draft`; A6 video-level beats kind-level in the cascade; A10 bundle size measured in Slice 1; `daily_budget` limited to domaiNN and bluepriNNt levels.
 
@@ -68,10 +68,10 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice R: Rename the bluepriNNt to coNNtent (after Slice 1, before 2a; `size:exception`, mechanical)
 
-- [ ] R.1 RED: tests/guards that expect `coNNtent` in `iNNfo/specs/bluepriNNts/catalog.json`, `docs/innfo/blueprints/catalog.json`, the publish-web skill allowlist and the core-mirror target name.
-- [ ] R.2 GREEN: `git mv` the bluepriNNt folder to `coNNtent/` and the skill to `skills/nn-conntent`; update catalog entries, `parent_spec` URLs, SKILL.md name/triggers, `scripts/` references, the `build-core-mirrors.mjs` target and its `scripts/core-mirrors/` entry, docs, tests, `.atl` registry source if tracked. No alias, no redirect.
-- [ ] R.3 Regenerate every derived artifact (`npm run regen`) and commit the results.
-- [ ] Verify: `node scripts/verify.js`; `rg -i "video-script|nn-video-script"` returns only OpenSpec history, archived changes and REMOVED blocks.
+- [x] R.1 RED: tests/guards that expect `coNNtent` in `iNNfo/specs/bluepriNNts/catalog.json`, `docs/innfo/blueprints/catalog.json`, the publish-web skill allowlist and the core-mirror target name.
+- [x] R.2 GREEN: `git mv` the bluepriNNt folder to `coNNtent/` and the skill to `skills/nn-conntent`; update catalog entries, `parent_spec` URLs, SKILL.md name/triggers, `scripts/` references, the `build-core-mirrors.mjs` target and its `scripts/core-mirrors/` entry, docs, tests, `.atl` registry source if tracked. No alias, no redirect.
+- [x] R.3 Regenerate every derived artifact (`npm run regen`) and commit the results.
+- [x] Verify: `node scripts/verify.js`; `rg -i "video-script|nn-video-script"` returns only OpenSpec history, archived changes, frozen fixtures and REMOVED blocks.
 
 ## Slice 0a: Quick wins on the engine (V_0-14-x)
 
@@ -90,8 +90,8 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 1: Core mirror target
 
-- [x] 1.1 RED: `build-core-mirrors.mjs --check` test expects target `video-script` and `lib/nn-core.generated.cjs` exports (scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply`, `writeProposedChangeset`).
-- [x] 1.2 GREEN: create `scripts/core-mirrors/video-script.ts`; edit `scripts/build-core-mirrors.mjs` (replaces `scope` target); regenerate.
+- [x] 1.1 RED: `build-core-mirrors.mjs --check` test expects target `coNNtent` and `lib/nn-core.generated.cjs` exports (scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply`, `writeProposedChangeset`).
+- [x] 1.2 GREEN: create `scripts/core-mirrors/coNNtent.ts`; edit `scripts/build-core-mirrors.mjs` (replaces `scope` target); regenerate.
 - [x] 1.3 Replace `S/scripts/lib/knowledge-model.mjs` imports; its tests stay green.
 - [x] 1.4 Measure bundle size and record it (design A10).
 - [x] Verify: `node scripts/build-core-mirrors.mjs --check`, `node scripts/verify.js`.

@@ -60,7 +60,7 @@ using strict TDD, without reopening product decisions.
   - `infinitetalk` allowed;
   - the rename to coNNtent.
 - **0a / 0b** are quick wins on the current engine (V_0-14-x), under the old paths.
-- **R** renames `video-script` to `coNNtent` (folder and catalog id) and `nn-video-script` to `nn-conntent` (skill). It leaves no alias or redirect. OpenSpec capability names stay `video-*`. It is mechanical and carries `size:exception`.
+- **R** renames `coNNtent` to `coNNtent` (folder and catalog id) and `nn-conntent` to `nn-conntent` (skill). It leaves no alias or redirect. OpenSpec capability names stay `video-*`. It is mechanical and carries `size:exception`.
 - **2a** is spec text and also carries `size:exception`. The other slices aim at ≤ 400 changed lines.
 - **5** contains a spike: hardlink-mode and copy-mode renders must produce byte-identical masters. If they do not, stop and report before continuing.
 - **11** is not yours.
