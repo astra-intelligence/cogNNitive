@@ -1887,3 +1887,60 @@ worktree.
 
 ---
 
+## PR 28 — S5b.4 (branch `lac/s5b4`, base `lac/s5b3`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 5b.5b, 5b.8d.
+
+- `checkProvenanceBan` now takes the **blueprint's L1 pin** and fires only for a
+  document whose bluepriNNt pins `V_0-6-0`. This replaces S5a.3's model-URL
+  approximation and makes the ban precise: a document pinned to an older L1 stays
+  valid under that L1, exactly as versioning requires (A14 only repins `changes`,
+  `sidecar`, `visual-catalog`).
+- `validateKnowledge` passes `template.frontmatter.parent_spec.name`; the validator
+  unit test passes the pin explicitly.
+- `skills/nn-upgrade/scripts/migrate-domain.js`: its guidance now says the derived
+  `add_element` changes cite through `evidence`, not `sources::`.
+- Verification: FULL `node scripts/verify.js` green (including the empty-`HOME`
+  preflight, run as a separate pass with `HOME`/`USERPROFILE` pointing at an empty
+  directory); `npm run verify:fast` green; nn-core 2.110 tests green.
+
+### Deviations
+
+81. **The ~108-file `sources::` corpus is intentionally NOT stripped.** Those files are
+    samples, fixtures and docs pinned to `V_0-5-0`-era bluepriNNts; under A14 only
+    `changes`, `sidecar` and `visual-catalog` adopt `V_0-6-0`, and a document remains
+    valid under the L1 it pins. Stripping them would delete the demonstration of the
+    old syntax and break the fixtures that assert it (the console/validator transitional
+    reads exist for the same reason). A full L1 repin is a separate change, not this
+    one.
+82. `scripts/build-script-from-draft.mjs` does not exist in the repository; the only
+    emitter with `sources::` wording was `migrate-domain.js`, and it is updated.
+
+---
+
+## Handoff — start here next session (after PR 28)
+
+Chain state: `lac/s5b4` is the tip (PR 28). Next branch:
+`git switch lac/s5b4 && git switch -c lac/s5b5`.
+
+**PR 29 — S5b.5 (release event)** — tasks 5b.6, 5b.7, 5b.8e. **HARD STOP: ASK the
+maintainer before creating or re-pinning any `templates-v*` / `skills-v*` /
+`innfo-mcp` tag.** Everything up to the tag is in scope: bump `manifest/source.yaml`,
+`npm run sync:versions`, repin `channels.stable.refs`, regenerate
+`docs/use/manifest.md`, rehearse in a detached worktree
+(`node scripts/verify.js --release`, `node scripts/validate-manifest.mjs --channel
+stable`).
+
+**Then:** PR 30-32 (skills and docs), then S7 (full verify, empty-HOME preflight, the
+seven proposal criteria, then the tracker merge).
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+

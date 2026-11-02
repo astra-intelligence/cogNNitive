@@ -431,8 +431,8 @@ Goal: fixtures and corpora carry no `sources::`; migration and script emitters u
 Depends on: PR 27.
 Rollback: revert; no behavior change besides data.
 
-- [ ] 5b.5b [GREEN] [S] (was 5b.5, corpora part) Rebuild fixtures and docs corpora (~123 files with `sources::`) through `propose_changeset`/`apply_change` where behavior is checked, or mechanically where it is a plain corpus (mechanical lines counted separately in the PR body). Update `scripts/migrate-domain.js` and `scripts/build-script-from-draft.mjs` for the new emitters. Test coverage: the corpus-wide check from 5a.1 (now without the S5a.3 carve-out, if it was used) is the RED guard and is run first.
-- [ ] 5b.8d [S] (was 5b.8) Standard PR gate, preflight fixtures with empty `HOME`/`USERPROFILE`, mirrors. Open PR 28.
+- [x] 5b.5b [GREEN] [S] (was 5b.5, corpora part) Rebuild fixtures and docs corpora (~123 files with `sources::`) through `propose_changeset`/`apply_change` where behavior is checked, or mechanically where it is a plain corpus (mechanical lines counted separately in the PR body). Update `scripts/migrate-domain.js` and `scripts/build-script-from-draft.mjs` for the new emitters. Test coverage: the corpus-wide check from 5a.1 (now without the S5a.3 carve-out, if it was used) is the RED guard and is run first.
+- [x] 5b.8d [S] (was 5b.8) Standard PR gate, preflight fixtures with empty `HOME`/`USERPROFILE`, mirrors. Open PR 28.
 
 Files: fixtures, docs corpora, `scripts/migrate-domain.js`, `scripts/build-script-from-draft.mjs`.
 Verification: `npm run verify:fast`, `node scripts/verify.js`.
