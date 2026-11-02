@@ -59,7 +59,7 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 ## Slice 0a — Quick wins on the engine (V_0-14-x)
 
 - Branch: `feature/conntent-v1-0a` (base `feature/conntent-v1-d`)
-- PR: pending
+- PR: https://github.com/cogNNitive/cogNNitive/pull/467
 - TDD: RED first (`image-cache-key.test.mjs`, the new `render-formats` sections, `avatar-render-refusal.test.mjs`), then GREEN.
 - Changes:
   - `lib/image-options.mjs`: the image key now carries the cascaded `image_model` as `model` and no longer the display `title`. Release note: the first run after this change re-bills images once.
@@ -72,7 +72,7 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 ## Slice 0b — Quick wins on the console and the guard (V_0-14-3)
 
 - Branch: `feature/conntent-v1-0b` (base `feature/conntent-v1-0a`)
-- PR: pending
+- PR: https://github.com/cogNNitive/cogNNitive/pull/469
 - TDD: RED first (`draft-template-preset-only.test.mjs`, `unpriced-model-warning.test.mjs`), then GREEN.
 - Changes:
   - `draft-template.html`: the video parameter grid and the scene exception drawer are gone, so the preset selector is the only control. The script build no longer emits `background_audio`, `background_audio_volume` or `transition` overrides that no control can produce.
@@ -84,7 +84,7 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 ## Slice 1 — Core mirror target `coNNtent` (V_0-14-4)
 
 - Branch: `feature/conntent-v1-1` (base `feature/conntent-v1-0b`)
-- PR: pending
+- PR: https://github.com/cogNNitive/cogNNitive/pull/471
 - TDD: RED first (`test/core-mirror-coNNtent.test.mjs`), then GREEN.
 - Changes:
   - New bundler entry `scripts/core-mirrors/coNNtent.ts` re-exporting the nn-core scope fold, `parseKnowledge`, `slugify`, `serializeKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, plus nn-mcp's `executeChangesetApply` and `writeProposedChangeset`.
@@ -100,7 +100,7 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 ## Slice R — Rename the bluepriNNt to coNNtent (size:exception, mechanical)
 
 - Branch: `feature/conntent-v1-r` (base `feature/conntent-v1-1`)
-- PR: pending
+- PR: https://github.com/cogNNitive/cogNNitive/pull/473
 - Changes:
   - `git mv iNNfo/specs/bluepriNNts/video-script iNNfo/specs/bluepriNNts/coNNtent` and `git mv .../skills/nn-video-script .../skills/nn-conntent`; no alias, no redirect.
   - Swept 171 live files: `nn-video-script` → `nn-conntent`, blueprint path → `coNNtent`, `video-script_V_*` → `coNNtent_V_*`, and the bare blueprint id, while keeping OpenSpec capability names `video-script-model`, `video-script-review`, `video-script-skill` and the change id `2026-11-02-video-script-v1`.
