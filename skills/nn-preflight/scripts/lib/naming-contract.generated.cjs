@@ -34,6 +34,7 @@ __export(index_exports, {
   SPEC_FILENAME: () => SPEC_FILENAME,
   blueprintNameOf: () => blueprintNameOf,
   canonicalModelId: () => canonicalModelId,
+  changesetStampOf: () => changesetStampOf,
   checkNameInvariant: () => checkNameInvariant,
   checkPathBudget: () => checkPathBudget,
   compareMembers: () => compareMembers,
@@ -170,6 +171,13 @@ function familyOf(path) {
   if (parsed.kind !== "file") return null;
   const slash = normalized.lastIndexOf("/");
   return { dir: slash < 0 ? "" : normalized.slice(0, slash), key: parsed.key, ext: parsed.ext };
+}
+function changesetStampOf(nameOrPath) {
+  const parsed = parseName(baseOf(nameOrPath));
+  if (parsed.kind !== "nn" || parsed.sidecarOf !== void 0) return null;
+  if (!/_changes$/i.test(parsed.stem)) return null;
+  const m = STAMP_SUFFIX_RE.exec(parsed.stem.slice(0, -"_changes".length));
+  return m ? { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 } : null;
 }
 function compareMembers(a, b) {
   const pa = parseName(baseOf(a));

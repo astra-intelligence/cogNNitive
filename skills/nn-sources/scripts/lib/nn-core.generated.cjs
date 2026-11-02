@@ -7389,6 +7389,7 @@ __export(trannsformPrimitives_exports, {
   blueprintNameOf: () => blueprintNameOf,
   buildSidecar: () => buildSidecar,
   canonicalModelId: () => canonicalModelId,
+  changesetStampOf: () => changesetStampOf,
   checkLineageDrift: () => checkLineageDrift,
   checkNameInvariant: () => checkNameInvariant,
   checkPathBudget: () => checkPathBudget,
@@ -7604,6 +7605,13 @@ function familyOf(path4) {
   if (parsed.kind !== "file") return null;
   const slash = normalized.lastIndexOf("/");
   return { dir: slash < 0 ? "" : normalized.slice(0, slash), key: parsed.key, ext: parsed.ext };
+}
+function changesetStampOf(nameOrPath) {
+  const parsed = parseName(baseOf(nameOrPath));
+  if (parsed.kind !== "nn" || parsed.sidecarOf !== void 0) return null;
+  if (!/_changes$/i.test(parsed.stem)) return null;
+  const m = STAMP_SUFFIX_RE.exec(parsed.stem.slice(0, -"_changes".length));
+  return m ? { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 } : null;
 }
 function compareMembers(a, b) {
   const pa = parseName(baseOf(a));
@@ -10438,6 +10446,7 @@ async function importRaw(root, externalAbs, o = {}) {
   blueprintNameOf,
   buildSidecar,
   canonicalModelId,
+  changesetStampOf,
   checkLineageDrift,
   checkNameInvariant,
   checkPathBudget,

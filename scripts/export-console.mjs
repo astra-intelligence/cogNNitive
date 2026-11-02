@@ -1189,8 +1189,12 @@ export async function writeConsole(opts = {}) {
   // Change C: drift fingerprint — a field whose current value diverges from the `to` of
   // the last recorded change is reported here. The apply engine is the guard; this is
   // the detection of a hand/git edit made outside the change log.
-  if (Array.isArray(changesets) && changesets.length > 0 && payloadHelper.detectUnrecordedEdits) {
-    for (const d of payloadHelper.detectUnrecordedEdits(allElements, changesets)) {
+  const changeLog =
+    Array.isArray(changesets) && payloadHelper.buildChangeLogFromChangesets
+      ? payloadHelper.buildChangeLogFromChangesets(changesets)
+      : null
+  if (changeLog && payloadHelper.detectUnrecordedEdits) {
+    for (const d of payloadHelper.detectUnrecordedEdits(allElements, changeLog)) {
       process.stderr.write(`WARNING: [export-console] ${d.code}: ${d.message}\n`)
     }
   }

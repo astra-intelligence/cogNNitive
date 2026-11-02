@@ -187,8 +187,19 @@ export function familyOf(path: string): { dir: string; key: string; ext: string 
   return { dir: slash < 0 ? '' : normalized.slice(0, slash), key: parsed.key, ext: parsed.ext }
 }
 
-/** Name-only order within a family: unsuffixed first, then `(stamp, seq)` numerically. Never reads mtime. */
-export function compareMembers(a: string, b: string): number {
+/**
+ * The UTC stamp a changeset document name carries, `<prefix>_<stamp>_changes_NN.md`.
+ * `null` for any other name. The single definition of the changeset stamp.
+ */
+export function changesetStampOf(nameOrPath: string): UtcStamp | null {
+  const parsed = parseName(baseOf(nameOrPath))
+  if (parsed.kind !== 'nn' || parsed.sidecarOf !== undefined) return null
+  if (!/_changes$/i.test(parsed.stem)) return null
+  const m = STAMP_SUFFIX_RE.exec(parsed.stem.slice(0, -'_changes'.length))
+  return m ? { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 } : null
+}
+
+/** Name-only order within a family: unsuffixed first, then `(stamp, seq)` numerically. Never reads mtime. */export function compareMembers(a: string, b: string): number {
   const pa = parseName(baseOf(a))
   const pb = parseName(baseOf(b))
   const sa = pa.kind === 'file' ? pa.stamp : undefined

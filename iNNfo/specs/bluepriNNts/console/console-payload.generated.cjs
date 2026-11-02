@@ -7374,6 +7374,7 @@ __export(index_exports, {
   KNOWN_AGENT_TOOL_IDS: () => KNOWN_AGENT_TOOL_IDS,
   NORMALIZED_KNOWN_AGENT_TOOL_IDS: () => NORMALIZED_KNOWN_AGENT_TOOL_IDS,
   attachChangesetHistory: () => attachChangesetHistory,
+  buildChangeLogFromChangesets: () => buildChangeLogFromChangesets,
   buildConsolePayload: () => buildConsolePayload,
   buildConsoleSchemaSlot: () => buildConsoleSchemaSlot,
   canonicalJsonStringify: () => canonicalJsonStringify,
@@ -7399,7 +7400,6 @@ __export(index_exports, {
   isSidecarName: () => isSidecarName,
   latestOfFamily: () => latestOfFamily,
   loadChangesetRecords: () => loadChangesetRecords,
-  normalizeAddressKey: () => normalizeAddressKey,
   normalizeModelId: () => normalizeModelId,
   normalizeToolId: () => normalizeToolId,
   parentSpecNameOf: () => parentSpecNameOf,
@@ -7414,6 +7414,7 @@ __export(index_exports, {
   resolveEvidenceCitation: () => resolveEvidenceCitation,
   roleOf: () => roleOf,
   serializeConsoleSlot: () => serializeConsoleSlot,
+  splitUnit: () => splitUnit,
   unitAddress: () => unitAddress,
   unitHome: () => unitHome,
   writeOnce: () => writeOnce
@@ -8024,6 +8025,13 @@ function isExcludedPath(path2) {
   const segs = segmentsOf(path2);
   if (segs.length > 0 && IGNORED_DIRECTORIES.has(segs[0])) return true;
   return segs.some((s) => s === "archive" || s === "staging" || s.startsWith(".") && s !== "..");
+}
+function changesetStampOf(nameOrPath) {
+  const parsed = parseName(baseOf(nameOrPath));
+  if (parsed.kind !== "nn" || parsed.sidecarOf !== void 0) return null;
+  if (!/_changes$/i.test(parsed.stem)) return null;
+  const m = STAMP_SUFFIX_RE.exec(parsed.stem.slice(0, -"_changes".length));
+  return m ? { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 } : null;
 }
 function compareMembers(a, b) {
   const pa = parseName(baseOf(a));
@@ -9919,6 +9927,330 @@ function sectionOwnLines(content, slug) {
   return owned;
 }
 
+// iNNfo/packages/nn-core/src/changelog/order.ts
+function changeStamp(changeset) {
+  return changesetStampOf(String(changeset ?? ""))?.stamp ?? "";
+}
+function compareStrings(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+function compareChanges(a, b) {
+  const byAppliedAt = compareStrings(a.appliedAt ?? "", b.appliedAt ?? "");
+  if (byAppliedAt !== 0) return byAppliedAt;
+  const byStamp = compareStrings(changeStamp(a.changeset), changeStamp(b.changeset));
+  if (byStamp !== 0) return byStamp;
+  const byFile = compareStrings(a.changeset, b.changeset);
+  if (byFile !== 0) return byFile;
+  return a.index - b.index;
+}
+
+// iNNfo/packages/nn-core/src/changelog/index.ts
+function unitOf(change) {
+  return change.resolvedTarget ?? change.target;
+}
+var ChangeLogImpl = class {
+  all;
+  byUnit = /* @__PURE__ */ new Map();
+  constructor(changes) {
+    this.all = [...changes].sort(compareChanges);
+    for (const change of this.all) {
+      if (!change.applied) continue;
+      const unit = unitOf(change);
+      const bucket = this.byUnit.get(unit);
+      if (bucket) bucket.push(change);
+      else this.byUnit.set(unit, [change]);
+    }
+  }
+  history(unit) {
+    return this.byUnit.get(unit) ?? [];
+  }
+  origin(unit) {
+    const bucket = this.byUnit.get(unit);
+    return bucket && bucket.length > 0 ? bucket[bucket.length - 1] : void 0;
+  }
+  get tombstones() {
+    return [];
+  }
+};
+function createChangeLog(changes) {
+  return new ChangeLogImpl(changes);
+}
+
+// iNNfo/packages/nn-core/src/changeset/parser.ts
+var import_yaml7 = __toESM(require_dist(), 1);
+
+// iNNfo/packages/nn-core/src/changeset/types.ts
+var CHANGE_OPS = [
+  "update_field",
+  "add_element",
+  "remove_element",
+  "rename_element",
+  "rename_concept",
+  "update_matrix_cell",
+  "update_concept_text",
+  "update_concept_field",
+  "remove_matrix",
+  "add_matrix",
+  "comment",
+  "add_model",
+  "freeze_slugs",
+  "bump_version"
+];
+function isChangeStatus(val) {
+  return typeof val === "string" && ["proposed", "applied", "partially_applied", "rejected", "conflict"].includes(val);
+}
+function isChangeOp(val) {
+  return typeof val === "string" && CHANGE_OPS.includes(val);
+}
+function addModelProblems(change) {
+  if (change.op !== "add_model") return [];
+  const problems = [];
+  const id = change.id;
+  for (const key of ["from", "to", "base_hash"]) {
+    if (change[key] !== void 0) {
+      problems.push(`change "${id}": add_model must not carry "${key}"`);
+    }
+  }
+  if (change.concept !== void 0 || change.fields !== void 0 || change.slug !== void 0) {
+    problems.push(`change "${id}": add_model must not carry element payload (concept, slug, fields)`);
+  }
+  if (!change.blueprint_name) problems.push(`change "${id}": add_model requires "blueprint_name"`);
+  if (!change.blueprint_url) problems.push(`change "${id}": add_model requires "blueprint_url"`);
+  const target = change.target;
+  if (!target || target.includes("@") || target.includes("&") || target.includes("..") || /^[a-zA-Z]:/.test(target) || /[\\/]/.test(target)) {
+    problems.push(`change "${id}": add_model target must be a plain model id (no "@", "&", "..", path separators, or absolute path)`);
+  }
+  return problems;
+}
+
+// iNNfo/packages/nn-core/src/changeset/parser.ts
+function stripQuotes(str2) {
+  const trimmed = str2.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "string") return parsed;
+    } catch {
+    }
+    return trimmed.slice(1, -1);
+  }
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+function parseFieldsValue(str2) {
+  const trimmed = str2.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "object" && parsed !== null) {
+        const out = {};
+        for (const [k, v] of Object.entries(parsed)) {
+          out[k] = String(v);
+        }
+        return out;
+      }
+    } catch {
+    }
+  }
+  return void 0;
+}
+var CHANGESET_FRONTMATTER_INVALID = "CHANGESET_FRONTMATTER_INVALID";
+function invalidFrontmatter(detail) {
+  throw new Error(`${CHANGESET_FRONTMATTER_INVALID}: ${detail}`);
+}
+function validateFrontmatter(fm) {
+  if (fm.level !== 3) {
+    invalidFrontmatter("level must be 3");
+  }
+  const parent = fm.parent_spec;
+  if (typeof parent !== "object" || parent === null || Array.isArray(parent)) {
+    invalidFrontmatter("parent_spec must be an object with name and url");
+  }
+  const parentObj = parent;
+  if (parentObj.name !== "changes") {
+    invalidFrontmatter('parent_spec.name must be "changes"');
+  }
+  if (typeof parentObj.url !== "string" || parentObj.url.length === 0) {
+    invalidFrontmatter("missing parent_spec.url");
+  }
+  if (typeof fm.spec_version !== "string" || fm.spec_version.length === 0) {
+    invalidFrontmatter("missing spec_version");
+  }
+  if (typeof fm.blueprint_version !== "string" || fm.blueprint_version.length === 0) {
+    invalidFrontmatter("missing blueprint_version");
+  }
+  if (!isChangeStatus(fm.status)) {
+    invalidFrontmatter(
+      "status must be one of proposed|applied|partially_applied|rejected|conflict"
+    );
+  }
+  return fm;
+}
+function parseChangeset(rawContent) {
+  const frontmatterMatch = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(rawContent.trimStart());
+  if (!frontmatterMatch) {
+    invalidFrontmatter("missing frontmatter block");
+  }
+  const yamlText = frontmatterMatch[1];
+  const body = frontmatterMatch[2];
+  let parsedYaml;
+  try {
+    parsedYaml = (0, import_yaml7.parse)(yamlText);
+  } catch {
+    invalidFrontmatter("frontmatter is not valid YAML");
+  }
+  if (typeof parsedYaml !== "object" || parsedYaml === null || Array.isArray(parsedYaml)) {
+    invalidFrontmatter("missing frontmatter block");
+  }
+  const frontmatter = validateFrontmatter(parsedYaml);
+  const changeHeadingRegex = /^##\s+NN\s+Change:\s*(.+)$/i;
+  const lines = body.split(/\r?\n/);
+  const changes = [];
+  let currentChange = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headingMatch = changeHeadingRegex.exec(line.trim());
+    if (headingMatch) {
+      if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
+        changes.push(currentChange);
+      }
+      currentChange = {
+        id: headingMatch[1].trim()
+      };
+      continue;
+    }
+    if (!currentChange) continue;
+    const propMatch = /^([a-zA-Z0-9_-]+)::\s*(.*)$/.exec(line.trim());
+    if (!propMatch) continue;
+    const key = propMatch[1].trim();
+    const rawVal = propMatch[2].trim();
+    switch (key) {
+      case "op":
+        if (!isChangeOp(rawVal)) {
+          throw new Error(`Invalid changeset op: "${rawVal}"`);
+        }
+        currentChange.op = rawVal;
+        break;
+      case "target":
+        currentChange.target = rawVal;
+        break;
+      case "from":
+        currentChange.from = stripQuotes(rawVal);
+        break;
+      case "to":
+        currentChange.to = stripQuotes(rawVal);
+        break;
+      case "base_hash":
+        currentChange.base_hash = stripQuotes(rawVal);
+        break;
+      case "concept":
+        currentChange.concept = rawVal;
+        break;
+      case "name":
+        currentChange.name = stripQuotes(rawVal);
+        break;
+      case "slug":
+        currentChange.slug = rawVal;
+        break;
+      case "fields": {
+        const parsedObj = parseFieldsValue(rawVal);
+        if (parsedObj) {
+          currentChange.fields = parsedObj;
+        }
+        break;
+      }
+      case "author":
+        currentChange.author = stripQuotes(rawVal);
+        break;
+      case "notes":
+        currentChange.notes = stripQuotes(rawVal);
+        break;
+      case "evidence":
+        currentChange.evidence = stripQuotes(rawVal);
+        break;
+      case "blueprint_name":
+        currentChange.blueprint_name = stripQuotes(rawVal);
+        break;
+      case "blueprint_url":
+        currentChange.blueprint_url = stripQuotes(rawVal);
+        break;
+      case "knowledge_version":
+        currentChange.knowledge_version = stripQuotes(rawVal);
+        break;
+      case "applied_at":
+        currentChange.applied_at = stripQuotes(rawVal);
+        break;
+      case "batch":
+        currentChange.batch = stripQuotes(rawVal);
+        break;
+      case "status":
+        if (!isChangeStatus(rawVal)) {
+          throw new Error(`Invalid changeset status: "${rawVal}"`);
+        }
+        currentChange.status = rawVal;
+        break;
+      case "resolution":
+        currentChange.resolution = stripQuotes(rawVal);
+        break;
+      case "resolved_slug":
+        currentChange.resolved_slug = rawVal;
+        break;
+      default:
+        break;
+    }
+  }
+  if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
+    changes.push(currentChange);
+  }
+  const problems = changes.flatMap(addModelProblems);
+  if (problems.length > 0) {
+    throw new Error(`Invalid add_model change: ${problems.join("; ")}`);
+  }
+  return {
+    frontmatter,
+    changes,
+    rawContent
+  };
+}
+
+// iNNfo/packages/nn-core/src/changelog/load.ts
+function loggedChanges(cs) {
+  const changesetStatus = cs.status ?? "proposed";
+  return cs.changes.map((change, index) => {
+    const status = change.status ?? changesetStatus;
+    return {
+      id: change.id,
+      changeset: cs.path,
+      index,
+      status,
+      changesetStatus,
+      appliedAt: change.applied_at ?? cs.appliedAt,
+      batch: change.batch,
+      author: change.author ?? cs.author,
+      op: change.op,
+      target: change.target,
+      resolvedTarget: change.resolved_target,
+      evidence: change.evidence,
+      from: change.from,
+      to: change.to,
+      concept: change.concept,
+      name: change.name,
+      slug: change.slug,
+      notes: change.notes,
+      resolution: change.resolution,
+      fields: change.fields,
+      applied: status === "applied"
+    };
+  });
+}
+function buildChangeLogFromChangesets(changesets) {
+  const changes = [];
+  for (const cs of changesets) changes.push(...loggedChanges(cs));
+  return createChangeLog(changes);
+}
+
 // iNNfo/packages/nn-core/src/writeOnce/plan.ts
 function latestOfFamily(members) {
   let latest;
@@ -9934,14 +10266,14 @@ var path = __toESM(require("node:path"), 1);
 var import_node_crypto = require("node:crypto");
 
 // iNNfo/packages/nn-core/src/cognitivize/sidecar.ts
-var import_yaml7 = __toESM(require_dist(), 1);
+var import_yaml8 = __toESM(require_dist(), 1);
 var SIDECAR_SPEC_URL = `https://raw.githubusercontent.com/cogNNitive/cogNNitive-web/main/iNNfo/specs/bluepriNNts/${SIDECAR_BLUEPRINT}/${SPEC_FILENAME}`;
 var FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
 function parseSidecarFrontmatter(text) {
   const match = FRONTMATTER_RE.exec(text);
   if (!match) return null;
   try {
-    const value = (0, import_yaml7.parse)(match[1]);
+    const value = (0, import_yaml8.parse)(match[1]);
     return value && typeof value === "object" && !Array.isArray(value) ? value : null;
   } catch {
     return null;
@@ -10059,243 +10391,6 @@ async function writeOnce(root, t, bytes, o = {}) {
       stamp = { stamp: stamp.stamp, seq: stamp.seq + 1 };
     }
   }
-}
-
-// iNNfo/packages/nn-core/src/changeset/types.ts
-var CHANGE_OPS = [
-  "update_field",
-  "add_element",
-  "remove_element",
-  "rename_element",
-  "rename_concept",
-  "update_matrix_cell",
-  "update_concept_text",
-  "update_concept_field",
-  "remove_matrix",
-  "add_matrix",
-  "comment",
-  "add_model",
-  "freeze_slugs",
-  "bump_version"
-];
-function isChangeStatus(val) {
-  return typeof val === "string" && ["proposed", "applied", "partially_applied", "rejected", "conflict"].includes(val);
-}
-function isChangeOp(val) {
-  return typeof val === "string" && CHANGE_OPS.includes(val);
-}
-function addModelProblems(change) {
-  if (change.op !== "add_model") return [];
-  const problems = [];
-  const id = change.id;
-  for (const key of ["from", "to", "base_hash"]) {
-    if (change[key] !== void 0) {
-      problems.push(`change "${id}": add_model must not carry "${key}"`);
-    }
-  }
-  if (change.concept !== void 0 || change.fields !== void 0 || change.slug !== void 0) {
-    problems.push(`change "${id}": add_model must not carry element payload (concept, slug, fields)`);
-  }
-  if (!change.blueprint_name) problems.push(`change "${id}": add_model requires "blueprint_name"`);
-  if (!change.blueprint_url) problems.push(`change "${id}": add_model requires "blueprint_url"`);
-  const target = change.target;
-  if (!target || target.includes("@") || target.includes("&") || target.includes("..") || /^[a-zA-Z]:/.test(target) || /[\\/]/.test(target)) {
-    problems.push(`change "${id}": add_model target must be a plain model id (no "@", "&", "..", path separators, or absolute path)`);
-  }
-  return problems;
-}
-
-// iNNfo/packages/nn-core/src/changeset/parser.ts
-var import_yaml8 = __toESM(require_dist(), 1);
-function stripQuotes(str2) {
-  const trimmed = str2.trim();
-  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (typeof parsed === "string") return parsed;
-    } catch {
-    }
-    return trimmed.slice(1, -1);
-  }
-  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
-    return trimmed.slice(1, -1);
-  }
-  return trimmed;
-}
-function parseFieldsValue(str2) {
-  const trimmed = str2.trim();
-  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (typeof parsed === "object" && parsed !== null) {
-        const out = {};
-        for (const [k, v] of Object.entries(parsed)) {
-          out[k] = String(v);
-        }
-        return out;
-      }
-    } catch {
-    }
-  }
-  return void 0;
-}
-var CHANGESET_FRONTMATTER_INVALID = "CHANGESET_FRONTMATTER_INVALID";
-function invalidFrontmatter(detail) {
-  throw new Error(`${CHANGESET_FRONTMATTER_INVALID}: ${detail}`);
-}
-function validateFrontmatter(fm) {
-  if (fm.level !== 3) {
-    invalidFrontmatter("level must be 3");
-  }
-  const parent = fm.parent_spec;
-  if (typeof parent !== "object" || parent === null || Array.isArray(parent)) {
-    invalidFrontmatter("parent_spec must be an object with name and url");
-  }
-  const parentObj = parent;
-  if (parentObj.name !== "changes") {
-    invalidFrontmatter('parent_spec.name must be "changes"');
-  }
-  if (typeof parentObj.url !== "string" || parentObj.url.length === 0) {
-    invalidFrontmatter("missing parent_spec.url");
-  }
-  if (typeof fm.spec_version !== "string" || fm.spec_version.length === 0) {
-    invalidFrontmatter("missing spec_version");
-  }
-  if (typeof fm.blueprint_version !== "string" || fm.blueprint_version.length === 0) {
-    invalidFrontmatter("missing blueprint_version");
-  }
-  if (!isChangeStatus(fm.status)) {
-    invalidFrontmatter(
-      "status must be one of proposed|applied|partially_applied|rejected|conflict"
-    );
-  }
-  return fm;
-}
-function parseChangeset(rawContent) {
-  const frontmatterMatch = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(rawContent.trimStart());
-  if (!frontmatterMatch) {
-    invalidFrontmatter("missing frontmatter block");
-  }
-  const yamlText = frontmatterMatch[1];
-  const body = frontmatterMatch[2];
-  let parsedYaml;
-  try {
-    parsedYaml = (0, import_yaml8.parse)(yamlText);
-  } catch {
-    invalidFrontmatter("frontmatter is not valid YAML");
-  }
-  if (typeof parsedYaml !== "object" || parsedYaml === null || Array.isArray(parsedYaml)) {
-    invalidFrontmatter("missing frontmatter block");
-  }
-  const frontmatter = validateFrontmatter(parsedYaml);
-  const changeHeadingRegex = /^##\s+NN\s+Change:\s*(.+)$/i;
-  const lines = body.split(/\r?\n/);
-  const changes = [];
-  let currentChange = null;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const headingMatch = changeHeadingRegex.exec(line.trim());
-    if (headingMatch) {
-      if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
-        changes.push(currentChange);
-      }
-      currentChange = {
-        id: headingMatch[1].trim()
-      };
-      continue;
-    }
-    if (!currentChange) continue;
-    const propMatch = /^([a-zA-Z0-9_-]+)::\s*(.*)$/.exec(line.trim());
-    if (!propMatch) continue;
-    const key = propMatch[1].trim();
-    const rawVal = propMatch[2].trim();
-    switch (key) {
-      case "op":
-        if (!isChangeOp(rawVal)) {
-          throw new Error(`Invalid changeset op: "${rawVal}"`);
-        }
-        currentChange.op = rawVal;
-        break;
-      case "target":
-        currentChange.target = rawVal;
-        break;
-      case "from":
-        currentChange.from = stripQuotes(rawVal);
-        break;
-      case "to":
-        currentChange.to = stripQuotes(rawVal);
-        break;
-      case "base_hash":
-        currentChange.base_hash = stripQuotes(rawVal);
-        break;
-      case "concept":
-        currentChange.concept = rawVal;
-        break;
-      case "name":
-        currentChange.name = stripQuotes(rawVal);
-        break;
-      case "slug":
-        currentChange.slug = rawVal;
-        break;
-      case "fields": {
-        const parsedObj = parseFieldsValue(rawVal);
-        if (parsedObj) {
-          currentChange.fields = parsedObj;
-        }
-        break;
-      }
-      case "author":
-        currentChange.author = stripQuotes(rawVal);
-        break;
-      case "notes":
-        currentChange.notes = stripQuotes(rawVal);
-        break;
-      case "evidence":
-        currentChange.evidence = stripQuotes(rawVal);
-        break;
-      case "blueprint_name":
-        currentChange.blueprint_name = stripQuotes(rawVal);
-        break;
-      case "blueprint_url":
-        currentChange.blueprint_url = stripQuotes(rawVal);
-        break;
-      case "knowledge_version":
-        currentChange.knowledge_version = stripQuotes(rawVal);
-        break;
-      case "applied_at":
-        currentChange.applied_at = stripQuotes(rawVal);
-        break;
-      case "batch":
-        currentChange.batch = stripQuotes(rawVal);
-        break;
-      case "status":
-        if (!isChangeStatus(rawVal)) {
-          throw new Error(`Invalid changeset status: "${rawVal}"`);
-        }
-        currentChange.status = rawVal;
-        break;
-      case "resolution":
-        currentChange.resolution = stripQuotes(rawVal);
-        break;
-      case "resolved_slug":
-        currentChange.resolved_slug = rawVal;
-        break;
-      default:
-        break;
-    }
-  }
-  if (currentChange && currentChange.id && currentChange.op && currentChange.target) {
-    changes.push(currentChange);
-  }
-  const problems = changes.flatMap(addModelProblems);
-  if (problems.length > 0) {
-    throw new Error(`Invalid add_model change: ${problems.join("; ")}`);
-  }
-  return {
-    frontmatter,
-    changes,
-    rawContent
-  };
 }
 
 // iNNfo/packages/nn-core/src/changeset/serializer.ts
@@ -10569,6 +10664,71 @@ function citationFieldsFor(conceptName, fields, schema) {
 // iNNfo/packages/nn-core/src/console/element-history.ts
 var import_promises = require("node:fs/promises");
 var import_node_path = require("node:path");
+
+// iNNfo/packages/nn-core/src/console/provenance.ts
+function hopOf(change) {
+  return {
+    changeId: change.id,
+    batch: change.batch,
+    op: change.op,
+    author: change.author,
+    evidence: change.evidence,
+    appliedAt: change.appliedAt,
+    from: change.from,
+    to: change.to
+  };
+}
+function deriveValueHistory(log, unit) {
+  return log.history(unit).map(hopOf);
+}
+function deriveFieldOrigin(log, unit) {
+  const change = log.origin(unit);
+  if (!change) return null;
+  const { changeId, batch, author, evidence, appliedAt, from, to } = hopOf(change);
+  return { changeId, batch, author, evidence, appliedAt, from, to };
+}
+function splitUnit(unit) {
+  const at = String(unit ?? "").indexOf("@");
+  if (at === -1) return { modelPart: "", elementPart: "" };
+  const rest = String(unit).slice(at + 1);
+  const amp = rest.indexOf("&");
+  if (amp === -1) return { modelPart: String(unit).slice(0, at), elementPart: rest };
+  const elementPart = rest.slice(0, amp);
+  const field = rest.slice(amp + 1);
+  if (!elementPart || !field || field.includes("&") || field === "#body") {
+    return { modelPart: String(unit).slice(0, at), elementPart };
+  }
+  return { modelPart: String(unit).slice(0, at), elementPart, field };
+}
+function detectUnrecordedEdits(elements, log) {
+  const lastChange = /* @__PURE__ */ new Map();
+  for (const change of log.all) {
+    if (!change.applied) continue;
+    const unit = unitOf(change);
+    const { elementPart, field } = splitUnit(unit);
+    if (!elementPart || !field) continue;
+    lastChange.set(`${elementPart.toLowerCase()}\0${field.toLowerCase()}`, change);
+  }
+  const out = [];
+  for (const el of elements) {
+    if (!el.fields) continue;
+    const elementPart = el.slug ?? el.id;
+    for (const [field, current] of Object.entries(el.fields)) {
+      const origin = lastChange.get(`${elementPart.toLowerCase()}\0${field.toLowerCase()}`);
+      if (!origin || origin.to === void 0) continue;
+      if (String(current ?? "") === String(origin.to ?? "")) continue;
+      out.push({
+        code: "EDITED_WITHOUT_RECORD",
+        severity: "warning",
+        path: `${elementPart}&${field}`,
+        message: `field "${field}" of "${elementPart}" is "${String(current ?? "")}" but the last applied change sets it to "${origin.to}"; record the change or revert`
+      });
+    }
+  }
+  return out;
+}
+
+// iNNfo/packages/nn-core/src/console/element-history.ts
 function isChangesetFile(name) {
   if (!isNNName(name) || isSidecarName(name)) return false;
   const parsed = parseName(name);
@@ -10583,8 +10743,15 @@ function parseChangesetTarget(target) {
     elementPart: rest.split("&")[0].trim()
   };
 }
-function normalizeAddressKey(value) {
-  return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+function fieldOfUnit(unit) {
+  const at = String(unit).indexOf("@");
+  if (at === -1) return void 0;
+  const rest = String(unit).slice(at + 1);
+  const amp = rest.indexOf("&");
+  if (amp === -1) return void 0;
+  const field = rest.slice(amp + 1);
+  if (!field || field.includes("&")) return void 0;
+  return field;
 }
 function stripWrappingQuotes(value) {
   if (typeof value !== "string") return value;
@@ -10632,6 +10799,8 @@ async function loadChangesetRecords(rootDir) {
         evidence: c.evidence,
         applied_at: c.applied_at,
         batch: c.batch,
+        // Stamped by apply from S1b on; the console reads a persisted changeset.
+        resolved_target: c.resolved_target,
         from: c.from,
         to: c.to,
         concept: c.concept,
@@ -10643,36 +10812,50 @@ async function loadChangesetRecords(rootDir) {
   }
   return records;
 }
+function historyItem(change, resolveEvidence) {
+  return {
+    id: change.id,
+    op: change.op,
+    target: unitOf(change),
+    author: change.author,
+    timestamp: change.appliedAt,
+    notes: stripWrappingQuotes(change.notes),
+    status: change.status,
+    evidence: change.evidence,
+    ...change.evidence && resolveEvidence ? { evidenceCitation: resolveEvidence(change.evidence) } : {},
+    from: change.from,
+    to: change.to,
+    concept: change.concept,
+    name: change.name,
+    fields: change.fields ? { ...change.fields } : void 0,
+    resolution: change.resolution
+  };
+}
 function attachChangesetHistory(elements, changesets, resolveEvidence) {
   if (!Array.isArray(changesets) || changesets.length === 0) return;
-  for (const cs of changesets) {
-    for (const change of cs.changes) {
-      const { elementPart } = parseChangesetTarget(change.target);
-      if (!elementPart) continue;
-      const key = normalizeAddressKey(elementPart);
-      for (const el of elements) {
-        if (normalizeAddressKey(el.id) !== key && normalizeAddressKey(el.name) !== key) continue;
-        const item = {
-          id: change.id,
-          op: change.op,
-          target: change.target,
-          author: change.author || cs.author,
-          timestamp: change.applied_at || cs.appliedAt,
-          notes: stripWrappingQuotes(change.notes),
-          status: change.status || cs.status,
-          evidence: change.evidence,
-          ...change.evidence && resolveEvidence ? { evidenceCitation: resolveEvidence(change.evidence) } : {},
-          from: change.from,
-          to: change.to,
-          concept: change.concept,
-          name: change.name,
-          fields: change.fields,
-          resolution: change.resolution
-        };
-        if (!el.history) el.history = [];
-        el.history.push(item);
-      }
+  const log = buildChangeLogFromChangesets(changesets);
+  if (log.all.length === 0) return;
+  for (const el of elements) {
+    const keys = new Set(
+      [el.slug, el.id, el.name].filter((value) => typeof value === "string" && value.length > 0).map((value) => value.toLowerCase())
+    );
+    if (keys.size === 0) continue;
+    const provenance = {};
+    for (const change of log.all) {
+      const unit = unitOf(change);
+      const { elementPart } = parseChangesetTarget(unit);
+      if (!elementPart || !keys.has(elementPart.toLowerCase())) continue;
+      if (!el.history) el.history = [];
+      el.history.push(historyItem(change, resolveEvidence));
+      if (!change.applied) continue;
+      const field = fieldOfUnit(unit);
+      if (!field || provenance[field]) continue;
+      provenance[field] = {
+        history: deriveValueHistory(log, unit),
+        origin: deriveFieldOrigin(log, unit)
+      };
     }
+    if (Object.keys(provenance).length > 0) el.provenance = provenance;
   }
 }
 
@@ -11032,90 +11215,6 @@ function buildConsolePayload(options) {
   };
 }
 
-// iNNfo/packages/nn-core/src/console/provenance.ts
-function changeFieldPart(target) {
-  const { elementPart } = parseChangesetTarget(target);
-  const amp = String(target).indexOf("&");
-  if (amp === -1) return null;
-  const field = String(target).slice(amp + 1);
-  if (field.includes("&")) return null;
-  if (!elementPart || !field) return null;
-  return { elementPart, field };
-}
-function hopAppliedAt(change, cs) {
-  return change.applied_at || cs.appliedAt || "";
-}
-function deriveValueHistory(changes, target) {
-  const wanted = changeFieldPart(target);
-  if (!wanted) return [];
-  const key = `${normalizeAddressKey(wanted.elementPart)}\0${wanted.field.toLowerCase()}`;
-  const hops = [];
-  for (const cs of changes) {
-    for (const change of cs.changes) {
-      const part = changeFieldPart(change.target);
-      if (!part) continue;
-      if (`${normalizeAddressKey(part.elementPart)}\0${part.field.toLowerCase()}` !== key) continue;
-      hops.push({
-        changeId: change.id,
-        batch: change.batch,
-        op: change.op,
-        author: change.author || cs.author,
-        evidence: change.evidence,
-        appliedAt: hopAppliedAt(change, cs),
-        from: change.from,
-        to: change.to
-      });
-    }
-  }
-  hops.sort((a, b) => a.appliedAt < b.appliedAt ? -1 : a.appliedAt > b.appliedAt ? 1 : 0);
-  return hops;
-}
-function deriveFieldOrigin(changes, element, field) {
-  const hops = deriveValueHistory(changes, `${element}@${element}&${field}`);
-  if (hops.length === 0) return null;
-  const last = hops[hops.length - 1];
-  return {
-    changeId: last.changeId,
-    batch: last.batch,
-    author: last.author,
-    evidence: last.evidence,
-    appliedAt: last.appliedAt,
-    from: last.from,
-    to: last.to
-  };
-}
-function detectUnrecordedEdits(elements, changes) {
-  const lastTo = /* @__PURE__ */ new Map();
-  for (const cs of changes) {
-    for (const change of cs.changes) {
-      if (change.status !== "applied") continue;
-      if (change.to === void 0) continue;
-      const part = changeFieldPart(change.target);
-      if (!part) continue;
-      const key = `${normalizeAddressKey(part.elementPart)}\0${part.field.toLowerCase()}`;
-      lastTo.set(key, change.to);
-    }
-  }
-  const out = [];
-  for (const el of elements) {
-    if (!el.fields) continue;
-    for (const [field, current] of Object.entries(el.fields)) {
-      const key = `${normalizeAddressKey(el.id)}\0${field.toLowerCase()}`;
-      if (!lastTo.has(key)) continue;
-      const expected = lastTo.get(key);
-      if (String(current ?? "") !== String(expected ?? "")) {
-        out.push({
-          code: "EDITED_WITHOUT_RECORD",
-          severity: "warning",
-          path: `${el.id}&${field}`,
-          message: `field "${field}" of "${el.id}" is "${String(current ?? "")}" but the last recorded change sets it to "${expected}"; record the change or revert`
-        });
-      }
-    }
-  }
-  return out;
-}
-
 // iNNfo/packages/nn-core/src/console/schema-resolution.ts
 var import_node_path3 = require("node:path");
 var import_node_fs3 = require("node:fs");
@@ -11461,6 +11560,7 @@ function unitHome(address) {
   KNOWN_AGENT_TOOL_IDS,
   NORMALIZED_KNOWN_AGENT_TOOL_IDS,
   attachChangesetHistory,
+  buildChangeLogFromChangesets,
   buildConsolePayload,
   buildConsoleSchemaSlot,
   canonicalJsonStringify,
@@ -11486,7 +11586,6 @@ function unitHome(address) {
   isSidecarName,
   latestOfFamily,
   loadChangesetRecords,
-  normalizeAddressKey,
   normalizeModelId,
   normalizeToolId,
   parentSpecNameOf,
@@ -11501,6 +11600,7 @@ function unitHome(address) {
   resolveEvidenceCitation,
   roleOf,
   serializeConsoleSlot,
+  splitUnit,
   unitAddress,
   unitHome,
   writeOnce

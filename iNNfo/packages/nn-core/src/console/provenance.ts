@@ -1,18 +1,17 @@
 /**
- * Derived provenance (provenance-as-changes, change C).
+ * Derived provenance for the console payload.
  *
- * The change is the ONLY provenance of a mutation. A knowledge unit carries no
- * provenance of its own: a field's origin and a target's history are DERIVED from
- * the changes whose `target` points at it — `changes.filter(target).sort(applied_at)`.
- *
- * These functions are pure: they take the parsed changeset records (see
- * `./element-history.ts`) plus the model elements, and compute the origin, the value
- * timeline, and the "edited without record" drift fingerprint.
+ * The change is the ONLY provenance of a knowledge unit: a field's origin and a
+ * unit's history are derived from the change log (change-provenance), never from
+ * a field of the model. `deriveValueHistory` and `deriveFieldOrigin` are the
+ * production callers of the log's `history`/`origin`; `detectUnrecordedEdits` is
+ * the transitional console drift fingerprint (the validator's `checkProvenance`
+ * owns drift from S2a on).
  */
-import type { ChangesetRecord } from './element-history.js'
-import { normalizeAddressKey, parseChangesetTarget } from './element-history.js'
+import type { ChangeLog, LoggedChange } from '../changelog/index.js'
+import { unitOf } from '../changelog/index.js'
 
-/** One hop of a target's value timeline, in `applied_at` order. */
+/** One hop of a target's value timeline, in the shared order. */
 export interface ValueHop {
   changeId: string
   batch?: string
@@ -25,7 +24,7 @@ export interface ValueHop {
   to?: string
 }
 
-/** The last change that touched a field: its author, evidence and resulting value. */
+/** The last change that touched a unit: its author, evidence and resulting value. */
 export interface FieldOrigin {
   changeId: string
   batch?: string
@@ -36,7 +35,7 @@ export interface FieldOrigin {
   to?: string
 }
 
-/** A drift fingerprint: a field whose value does not match the last recorded change. */
+/** A drift fingerprint: a field whose value does not match the last applied change. */
 export interface DriftDiagnostic {
   code: 'EDITED_WITHOUT_RECORD'
   severity: 'warning'
@@ -44,123 +43,101 @@ export interface DriftDiagnostic {
   message: string
 }
 
-/** A model element as this module needs it (id/slug and current field values). */
+/** A model element as this module needs it. */
 export interface ProvenanceElement {
   id: string
+  /** Element slug as the engine resolves it; falls back to `id`. */
+  slug?: string
+  /** Canonical model id of the element's model, when the caller knows it. */
+  modelId?: string
   name?: string
   fields?: Record<string, unknown>
 }
 
-/** Splits a D5 address `model@element&field`; returns null for a matrix cell or a bare target. */
-function changeFieldPart(target: string): { elementPart: string; field: string } | null {
-  const { elementPart } = parseChangesetTarget(target)
-  const amp = String(target).indexOf('&')
-  if (amp === -1) return null
-  const field = String(target).slice(amp + 1)
-  // A matrix cell (`model@matrix&row&col`) is not a field; a field has one `&`.
-  if (field.includes('&')) return null
-  if (!elementPart || !field) return null
-  return { elementPart, field }
-}
-
-function hopAppliedAt(change: ChangesetRecord['changes'][number], cs: ChangesetRecord): string {
-  return change.applied_at || cs.appliedAt || ''
-}
-
-/**
- * The full value timeline of a target (`model@element&field`), oldest first. Matches
- * by the element&field part (case/separator-insensitive), like element history, so a
- * domain console aggregating several models still finds the hops.
- */
-export function deriveValueHistory(changes: ReadonlyArray<ChangesetRecord>, target: string): ValueHop[] {
-  const wanted = changeFieldPart(target)
-  if (!wanted) return []
-  const key = `${normalizeAddressKey(wanted.elementPart)}\u0000${wanted.field.toLowerCase()}`
-  const hops: ValueHop[] = []
-  for (const cs of changes) {
-    for (const change of cs.changes) {
-      const part = changeFieldPart(change.target)
-      if (!part) continue
-      if (`${normalizeAddressKey(part.elementPart)}\u0000${part.field.toLowerCase()}` !== key) continue
-      hops.push({
-        changeId: change.id,
-        batch: change.batch,
-        op: change.op,
-        author: change.author || cs.author,
-        evidence: change.evidence,
-        appliedAt: hopAppliedAt(change, cs),
-        from: change.from,
-        to: change.to,
-      })
-    }
-  }
-  hops.sort((a, b) => (a.appliedAt! < b.appliedAt! ? -1 : a.appliedAt! > b.appliedAt! ? 1 : 0))
-  return hops
-}
-
-/**
- * The origin of a field: the LAST change that touched it (its author, evidence and
- * resulting value), or null when no change targets it.
- */
-export function deriveFieldOrigin(
-  changes: ReadonlyArray<ChangesetRecord>,
-  element: string,
-  field: string,
-): FieldOrigin | null {
-  const hops = deriveValueHistory(changes, `${element}@${element}&${field}`)
-  if (hops.length === 0) return null
-  const last = hops[hops.length - 1]
+function hopOf(change: LoggedChange): ValueHop {
   return {
-    changeId: last.changeId,
-    batch: last.batch,
-    author: last.author,
-    evidence: last.evidence,
-    appliedAt: last.appliedAt,
-    from: last.from,
-    to: last.to,
+    changeId: change.id,
+    batch: change.batch,
+    op: change.op,
+    author: change.author,
+    evidence: change.evidence,
+    appliedAt: change.appliedAt,
+    from: change.from,
+    to: change.to,
   }
 }
 
+/** The full value timeline of a unit address (`model@element&field`), oldest first. */
+export function deriveValueHistory(log: ChangeLog, unit: string): ValueHop[] {
+  return log.history(unit).map(hopOf)
+}
+
+/** The origin of a unit address: the last applied change that set it, or null. */
+export function deriveFieldOrigin(log: ChangeLog, unit: string): FieldOrigin | null {
+  const change = log.origin(unit)
+  if (!change) return null
+  const { changeId, batch, author, evidence, appliedAt, from, to } = hopOf(change)
+  return { changeId, batch, author, evidence, appliedAt, from, to }
+}
+
 /**
- * The drift fingerprint: a field whose current value is not equal to the `to` of the
- * last applied change targeting it. A field with no targeting change emits nothing.
- * Hand/git edits cannot be prevented, only detected — this is the enforcement of the
- * "change via the agent/changeset, not by hand" stance.
+ * Splits a unit address `model@element&field` into its element part and field.
+ * A cell (`model@matrix&row&col`) or a body (`model@slug&#body`) yields no field.
+ */
+export function splitUnit(unit: string): { modelPart: string; elementPart: string; field?: string } {
+  const at = String(unit ?? '').indexOf('@')
+  if (at === -1) return { modelPart: '', elementPart: '' }
+  const rest = String(unit).slice(at + 1)
+  const amp = rest.indexOf('&')
+  if (amp === -1) return { modelPart: String(unit).slice(0, at), elementPart: rest }
+  const elementPart = rest.slice(0, amp)
+  const field = rest.slice(amp + 1)
+  if (!elementPart || !field || field.includes('&') || field === '#body') {
+    return { modelPart: String(unit).slice(0, at), elementPart }
+  }
+  return { modelPart: String(unit).slice(0, at), elementPart, field }
+}
+
+/**
+ * The console drift fingerprint: a field whose current value differs from the
+ * `to` of the last applied change targeting it. A field with no targeting change
+ * emits nothing.
+ *
+ * The domain console aggregates elements from several models whose authored
+ * target model parts vary, so this transitional fingerprint matches on the
+ * element part of the unit address — exact, never punctuation-stripped, so
+ * `a-b` and `ab` never collide. `checkProvenance` (change-provenance) owns the
+ * model-scoped drift from S2a on and replaces this function.
  */
 export function detectUnrecordedEdits(
   elements: ReadonlyArray<ProvenanceElement>,
-  changes: ReadonlyArray<ChangesetRecord>,
+  log: ChangeLog,
 ): DriftDiagnostic[] {
-  // Last applied `to` per element&field.
-  const lastTo = new Map<string, string>()
-  for (const cs of changes) {
-    for (const change of cs.changes) {
-      if (change.status !== 'applied') continue
-      if (change.to === undefined) continue
-      const part = changeFieldPart(change.target)
-      if (!part) continue
-      const key = `${normalizeAddressKey(part.elementPart)}\u0000${part.field.toLowerCase()}`
-      lastTo.set(key, change.to)
-    }
+  const lastChange = new Map<string, LoggedChange>()
+  for (const change of log.all) {
+    if (!change.applied) continue
+    const unit = unitOf(change)
+    const { elementPart, field } = splitUnit(unit)
+    if (!elementPart || !field) continue
+    lastChange.set(`${elementPart.toLowerCase()}\u0000${field.toLowerCase()}`, change)
   }
 
   const out: DriftDiagnostic[] = []
   for (const el of elements) {
     if (!el.fields) continue
+    const elementPart = el.slug ?? el.id
     for (const [field, current] of Object.entries(el.fields)) {
-      const key = `${normalizeAddressKey(el.id)}\u0000${field.toLowerCase()}`
-      if (!lastTo.has(key)) continue
-      const expected = lastTo.get(key)!
-      if (String(current ?? '') !== String(expected ?? '')) {
-        out.push({
-          code: 'EDITED_WITHOUT_RECORD',
-          severity: 'warning',
-          path: `${el.id}&${field}`,
-          message:
-            `field "${field}" of "${el.id}" is "${String(current ?? '')}" but the last recorded change ` +
-            `sets it to "${expected}"; record the change or revert`,
-        })
-      }
+      const origin = lastChange.get(`${elementPart.toLowerCase()}\u0000${field.toLowerCase()}`)
+      if (!origin || origin.to === undefined) continue
+      if (String(current ?? '') === String(origin.to ?? '')) continue
+      out.push({
+        code: 'EDITED_WITHOUT_RECORD',
+        severity: 'warning',
+        path: `${elementPart}&${field}`,
+        message:
+          `field "${field}" of "${elementPart}" is "${String(current ?? '')}" but the last applied change ` +
+          `sets it to "${origin.to}"; record the change or revert`,
+      })
     }
   }
   return out

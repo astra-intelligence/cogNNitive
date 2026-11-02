@@ -27,6 +27,7 @@ import { inheritConceptValues } from '../schema/field-values.js'
 import { resolveBlueprintSchema } from '../schema/compose.js'
 import { attachChangesetHistory } from './element-history.js'
 import type { ChangesetRecord, ElementHistoryItem } from './element-history.js'
+import type { UnitProvenance } from './element-history.js'
 
 export { computeSha256 }
 
@@ -54,6 +55,8 @@ export interface ConsolePayloadElement {
   relations?: ConsolePayloadElementRelation[]
   citations?: Record<string, Omit<ResolvedCitation, 'field'>[]>
   history?: ElementHistoryItem[]
+  /** Per field with an applied change: its applied history and origin. */
+  provenance?: Record<string, UnitProvenance>
 }
 
 export interface ConsoleMatrixHeadEntry {
