@@ -321,7 +321,7 @@ Tasks: 1b.11, 1b.12, 1b.13c.
 
 ## PR 8 — S1b.4 (branch `lac/s1b4`, base `lac/s1b3`)
 
-Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+Applied: 2026-11-02. Status: implemented, green, pushed; PR #450 opened.
 
 Tasks: 1b.5, 1b.6, 1b.13d.
 
@@ -393,6 +393,39 @@ Tasks: 1b.5, 1b.6, 1b.13d.
     keeping it parseable lets the apply engine produce a specific `INVALID_OPERATION`
     /`rejected` record instead of silently dropping the key. `PROPOSAL_KEYS` already
     excludes it (PR 4). Removing the type field can follow once the corpora are rebuilt.
+
+---
+
+## Handoff — start here next session (after PR 8)
+
+Chain state: `lac/s1b4` is the tip (PR 8, #450). Next branch:
+`git switch lac/s1b4 && git switch -c lac/s2a1`.
+
+**PR 9 — S2a.1 (fold engine: fold and units)** — tasks 2a.1 [RED], 2a.2 [GREEN], 2a.9a.
+
+- Create `core/changelog/fold.ts` and `core/changelog/units.ts`; `buildChangeLog`
+  folds APPLIED changes into `Map<UnitKey, UnitState>` in O(C+U), with the epoch cut
+  (a new element reusing a slug starts empty) and lazy relink events.
+- One test case per row of design A4 (`openspec/changes/lineage-as-changes/design.md`,
+  section A4): `add_element` (alive, no units), `update_field` (`to`; `''` removes),
+  prose/concept/cell updates (empty equals absent), `rename_element` relink (plain
+  wikilinks, bodies, schema reference fields via `updateReferenceString`; cell keys
+  unaffected; cell values not relinked; origin unchanged), `rename_concept` rekey and
+  relink, `remove_element` tombstones (fields, body, cells by row or col slug),
+  `remove_matrix`, epoch reuse, non-applied ignored, `produce_artifact` is an artifact
+  unit not a model unit.
+- Compare serialized forms with `formatPropertyValue(parsePropertyValue(x))`.
+- Tests in `core-tests/changelog/fold.test.ts`. Verification:
+  `vitest run changelog` (core) + `npm run verify:fast`; regenerate mirrors and the
+  console payload only if a mirrored export changes.
+- The fold is additive: PR 10 (`checkProvenance`) and PR 11 (evidence index, legacy
+  matching deleted) consume it. Do not wire it into tools yet.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
 
 ---
 
