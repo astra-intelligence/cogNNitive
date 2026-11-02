@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Console Payload Builder.
  * THE single payload builder shared by the CLI exporter and compile procedures.
  */
@@ -27,6 +27,44 @@ import { inheritConceptValues } from '../schema/field-values.js'
 import { resolveBlueprintSchema } from '../schema/compose.js'
 import { attachChangesetHistory } from './element-history.js'
 import type { ChangesetRecord, ElementHistoryItem } from './element-history.js'
+import type {
+  FileCategory,
+  FileSidecarStatus,
+  FileInventoryEntry,
+  WatchRootDescriptor,
+  FilesStats,
+  ArtifactReverseLineageEntry,
+  ConsolePayloadFiles,
+  FileLineageArtifact,
+  FileLineageChangeset,
+  FileLineageElement,
+} from './files-inventory.js'
+
+export type {
+  FileCategory,
+  FileSidecarStatus,
+  FileInventoryEntry,
+  WatchRootDescriptor,
+  FilesStats,
+  ArtifactReverseLineageEntry,
+  ConsolePayloadFiles,
+  FileLineageArtifact,
+  FileLineageChangeset,
+  FileLineageElement,
+}
+export {
+  classifyFileCategory,
+  computeFileSha256,
+  mimeTypeFromPath,
+  isSidecarPath,
+  isSourceLike,
+  isTextMime,
+  parseAndValidateSidecar,
+  resolveArtifactReverseLineage,
+  sidecarPathFor,
+  sidecarSubjectPath,
+  calculateFilesStats,
+} from './files-inventory.js'
 
 export { computeSha256 }
 
@@ -108,6 +146,8 @@ export interface ConsolePayload {
     meta: ConsolePayloadMeta
     elements: ConsolePayloadElement[]
     matrices: ConsolePayloadMatrix[]
+    changes?: ChangesetRecord[]
+    files?: ConsolePayloadFiles
   }
 }
 
