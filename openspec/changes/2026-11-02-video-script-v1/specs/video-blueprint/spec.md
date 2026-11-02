@@ -6,7 +6,7 @@ Change `2026-11-02-video-script-v1`. The blueprint is bumped to the breaking ver
 
 ### Requirement: Blueprint Is V_1-0-0 And Episodes Pin It
 
-This change MUST set `blueprint_version` to `V_1-0-0` in `spec_NN.md`, set the package defaults `parent_spec` to the same version, regenerate both `catalog.json` files in the same slice, regenerate the field registry, and bump the skill `version:` once. A V_1-0-0 episode MUST pin `video-script_V_1-0-0` through its `parent_spec`.
+This change MUST set `blueprint_version` to `V_1-0-0` in `spec_NN.md`, set the package defaults `parent_spec` to the same version, regenerate both `catalog.json` files in the same slice, regenerate the field registry, and bump the skill `version:` once. A V_1-0-0 episode MUST pin the version in its frontmatter `blueprint_version: V_1-0-0`, and `produce` MUST refuse any other value.
 
 Source: D7, proposal Scope.
 
@@ -25,12 +25,12 @@ Source: D7, proposal Scope.
 #### Scenario: Episode carries the pin
 
 - GIVEN a new episode document
-- WHEN its `parent_spec` is read
-- THEN it names `video-script_V_1-0-0`
+- WHEN its frontmatter is read
+- THEN `blueprint_version` is `V_1-0-0`
 
 ### Requirement: Blueprint Text Describes The Declared Master
 
-The `video-script` blueprint `spec_NN.md` MUST describe the Video `master` field as the episode's master sized by the `master` entry of `output_formats`, and the Layer `position` field as an overlay anchor inside the central safe square, and MUST NOT contain the 16:9 `center 12%` wording, a native dual-master description or the literal file name `<slug>_1920x1920.mp4` as a fixed rule.
+The `video-script` blueprint `spec_NN.md` MUST describe the Video `master` field as the episode's master sized by the first entry of `output_formats`, and the Layer `position` field as an overlay anchor inside the central safe square, and MUST NOT contain the 16:9 `center 12%` wording, a native dual-master description or the literal file name `<slug>_1920x1920.mp4` as a fixed rule.
 
 Source: D4.
 
@@ -46,15 +46,15 @@ Source: D4.
 - WHEN it is searched for `center 12%`, `dual` and `master_resolution`
 - THEN no match is found
 
-### Requirement: Blueprint Ships The Catalog And Scene Kind Concepts
+### Requirement: Blueprint Ships The Catalog, Scene Kind, Chrome And Variant Concepts
 
-The blueprint MUST define the Concept `Scene Kind` (see capability `video-scene-kinds`) and the catalog Concepts `Provider`, `Model` and `Voice` (see capability `video-model-catalog`), and the package MUST ship the reference catalog document.
+The blueprint MUST define the Concepts `Scene Kind` and `Chrome` (see capability `video-scene-kinds`), `Variant` (see `video-script-review`) and the catalog Concepts `Provider`, `Model` and `Voice` (see `video-model-catalog`), and the package MUST ship the reference catalog document.
 
 #### Scenario: Concepts are defined
 
 - GIVEN the blueprint
 - WHEN its Concepts are listed
-- THEN `Scene Kind`, `Provider`, `Model` and `Voice` are present
+- THEN `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` and `Voice` are present
 
 #### Scenario: Catalog document ships
 
@@ -66,14 +66,14 @@ The blueprint MUST define the Concept `Scene Kind` (see capability `video-scene-
 
 ### Requirement: Native L2 Video-Script Blueprint
 
-The Level 2 blueprint `video-script` MUST define the Concepts and Fields for a native video script (`Video`, `Scene`, `Layer`, `Preset`, plus `Video Defaults`, `Series`, `Scene Kind`, `Provider`, `Model` and `Voice`) using iNNfo `::` field syntax, and MUST be the schema an L3 script document adopts via `parent_spec`. The blueprint MUST NOT define VUS `scene_*` or `layer_*` fields.
-(Previously: the Concept list had no `Scene Kind`, `Provider`, `Model` or `Voice`.)
+The Level 2 blueprint `video-script` MUST define the Concepts and Fields for a native video script (`Video`, `Scene`, `Layer`, `Preset`, plus `Video Defaults`, `Series`, `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` and `Voice`) using iNNfo `::` field syntax, and MUST be the schema an L3 script document adopts via `parent_spec`. The blueprint MUST NOT define VUS `scene_*` or `layer_*` fields.
+(Previously: the Concept list had no `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` or `Voice`.)
 
 #### Scenario: Blueprint defines the native concepts
 
 - GIVEN the Level 2 `video-script` blueprint
 - WHEN it is inspected
-- THEN it defines `Video`, `Scene`, `Layer`, `Preset`, `Scene Kind`, `Provider`, `Model` and `Voice` Concepts with `::` Fields
+- THEN it defines `Video`, `Scene`, `Layer`, `Preset`, `Scene Kind`, `Chrome`, `Variant`, `Provider`, `Model` and `Voice` Concepts with `::` Fields
 - AND it defines no `Template` Concept and no `scene_*` or `layer_*` fields
 
 #### Scenario: An L3 script adopts the blueprint

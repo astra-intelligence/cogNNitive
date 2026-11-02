@@ -2,6 +2,38 @@
 
 Change `2026-11-02-video-script-v1`. Decisions D1 to D4, D9, D11, D12. Defaults named below (`language`, `budget`, `output_formats`, `script_review`) are spec-level assumptions recorded as open items in the change summary.
 
+## ADDED Requirements
+
+### Requirement: Scene Owns Variants And A Review Verdict
+
+The blueprint MUST define the Concept `Variant` as a child of `Scene`, with the Field `for` and a prose body holding the candidate value, and the Scene Field `review` (`approved` or `needs-change`). A `Variant` MUST NOT exist at `Video` level. After the episode reaches `approved`, no `Variant` element MUST remain. Representation and lifecycle are specified by capability `video-script-review`.
+
+Source: D4, design A3.
+
+#### Scenario: Variant under a Scene
+
+- GIVEN a Scene with two `Variant` children declaring `for:: narration`
+- WHEN the script is validated
+- THEN it validates with no schema errors
+
+#### Scenario: Variant outside a Scene
+
+- GIVEN a `Variant` directly under the Video
+- WHEN the script is validated
+- THEN validation fails naming the Variant
+
+#### Scenario: Variant left after approval
+
+- GIVEN an episode with `status:: approved` that still holds a `Variant`
+- WHEN the check runs
+- THEN it fails naming the Variant
+
+#### Scenario: Invalid verdict
+
+- GIVEN a Scene with `review:: maybe`
+- WHEN the script is validated
+- THEN validation fails because the value is not an option of the Field
+
 ## MODIFIED Requirements
 
 ### Requirement: Universal Parameter Cascade
@@ -9,11 +41,11 @@ Change `2026-11-02-video-script-v1`. Decisions D1 to D4, D9, D11, D12. Defaults 
 Every video parameter that is valid at more than one level MUST resolve through one resolver with the precedence, most specific first:
 
 ```
-cli > layer > scene > video > kind > series > domain > blueprint
+layer > scene > video > kind > series > domain > blueprint
 ```
 
-`series` is the episode's `Series` document; `kind` is the `Scene Kind` element of the Series named by the scene's `kind::` (absent for `Libre` scenes and when resolving at video level); `domain` is the domain-root `Video Defaults` document; `blueprint` is the `Video Defaults` document shipped in the bluepriNNt package. The parameter MUST carry the same Field name at every level, and a level MUST be overridable only when that parameter's Field Definition lists the level's Concept. Default values MUST be blueprint data, never engine code. The resolver MUST report the level that supplied the value. `cli` applies only to model ids and, when used, MUST be recorded in the plan. List parameters (`components`, `sounds`, `output_formats`) hold `key=name` items and MUST resolve per key. Each of `domain`, `series`, `kind`, `video` and `scene` MAY list `presets`, which expand directly beneath that level's explicit fields as specified by video-presets "Per-Level Additive Expansion Order".
-(Previously: the order had no `kind` level and `presets` expanded at `domain`, `series`, `video` and `scene` only.)
+The fold runs from outermost to innermost: blueprint, domain, series, kind, video, scene; `layer` holds explicit fields only. `series` is the episode's `Series` document; `kind` is the `Scene Kind` element of the Series named by the scene's `kind::` (absent for `Libre` scenes and when resolving at video level); `domain` is the domain-root `Video Defaults` document; `blueprint` is the `Video Defaults` document shipped in the bluepriNNt package. The parameter MUST carry the same Field name at every level, and a level MUST be overridable only when that parameter's Field Definition lists the level's Concept. Default values MUST be blueprint data, never engine code. The resolver MUST report the level that supplied the value. There MUST be no `cli` level: no command-line flag supplies a parameter. List parameters (`components`, `sounds`) hold `key=name` items and MUST resolve per key. Each of `domain`, `series`, `kind`, `video` and `scene` MAY list `presets`, which expand directly before that level's explicit node as specified by video-presets "Per-Level Additive Expansion Order"; at the `kind` level `presets` is the only contribution.
+(Previously: the order began with `cli`, had no `kind` level, `output_formats` did not exist, and `presets` expanded at `domain`, `series`, `video` and `scene` only.)
 
 #### Scenario: Most specific level wins and is named
 
@@ -45,11 +77,11 @@ cli > layer > scene > video > kind > series > domain > blueprint
 - WHEN they are searched for default values of cascade parameters
 - THEN none is found
 
-#### Scenario: CLI override is auditable
+#### Scenario: There is no cli level
 
-- GIVEN a run with `--avatar-model X`
-- WHEN the plan is produced
-- THEN the resolved avatar model is X with source `cli`
+- GIVEN the engine CLI
+- WHEN it is run with a flag that would set a model id or an output size
+- THEN it exits non-zero with a usage that does not list the flag
 
 #### Scenario: Preset value is named by its source
 
@@ -59,25 +91,25 @@ cli > layer > scene > video > kind > series > domain > blueprint
 
 #### Scenario: Kind sits between series and video
 
-- GIVEN the Series sets `transition:: wipe`, the Scene Kind `Noticia` sets `transition:: fade`, and a scene of kind `Noticia` sets none
+- GIVEN the Series sets `transition:: wipe`, the Scene Kind `Noticia` lists `presets:: [K]` where `K` sets `transition:: fade`, and a scene of kind `Noticia` sets none
 - WHEN its transition is resolved
-- THEN the value is `fade` with source `kind`
+- THEN the value is `fade` with source `kind:preset:K`
 
 #### Scenario: Video beats kind
 
-- GIVEN the Scene Kind sets `voice:: kind-voice` and the Video sets `voice:: video-voice`
+- GIVEN the Scene Kind lists a preset setting `voice:: kind-voice` and the Video sets `voice:: video-voice`
 - WHEN a scene of that kind resolves `voice`
 - THEN the value is `video-voice` with source `video`
 
 #### Scenario: Libre has no kind level
 
-- GIVEN a Scene Kind setting `transition:: fade` and a `Libre` scene
+- GIVEN a Scene Kind listing a preset setting `transition:: fade` and a `Libre` scene
 - WHEN the scene resolves `transition`
 - THEN no value comes from `kind`
 
 ### Requirement: Video Defaults Concept
 
-The blueprint MUST define a top-level `Video Defaults` Concept carrying every cascade parameter: `presets`, `voice`, `voice_model`, `voice_speed`, `voice_emotion`, `avatar`, `avatar_model`, `intro`, `image_model`, `background_audio`, `background_audio_volume`, `transition`, `fit`, `frame`, `components`, `sounds`, `language`, `budget`, `output_formats` and `script_review`. The bluepriNNt package MUST ship one instance at `defaults/video-defaults_NN.md` holding every baseline value, and that instance MUST NOT declare `presets`, `voice_speed` or `voice_emotion`, and MUST NOT contain a Preset. A domain MAY hold one instance at its root, `video-defaults_NN.md`; when absent, the `domain` level is skipped. Changing the package instance MUST bump `blueprint_version`.
+The blueprint MUST define a top-level `Video Defaults` Concept carrying every cascade parameter: `presets`, `voice`, `voice_model`, `voice_speed`, `voice_emotion`, `avatar`, `avatar_model`, `intro`, `image_model`, `image_size`, `background_audio`, `background_audio_volume`, `transition`, `fit`, `frame`, `components`, `sounds`, `language`, `budget`, `daily_budget`, `output_formats` and `script_review`. The bluepriNNt package MUST ship one instance at `defaults/video-defaults_NN.md` holding every baseline value, and that instance MUST NOT declare `presets`, `voice_speed` or `voice_emotion`, and MUST NOT contain a Preset. A domain MAY hold one instance at its root, `video-defaults_NN.md`; when absent, the `domain` level is skipped. Changing the package instance MUST bump `blueprint_version`.
 (Previously: the carried set included `voice_tone` and the declaration `master_resolution`, and had no `language`, `budget`, `output_formats` or `script_review`.)
 
 Source: D4.
@@ -105,24 +137,25 @@ Source: D4.
 
 - GIVEN the package `defaults/video-defaults_NN.md`
 - WHEN it is inspected
-- THEN it declares `output_formats` with `master=1920x1920`, `vertical=1080x1920`, `horizontal=1920x1080` and `square=1080x1080`
+- THEN it declares `output_formats:: [1920x1920, 1080x1920, 1920x1080, 1080x1080]`, whose first entry is the master size
 
 #### Scenario: Delivery defaults are declared
 
 - GIVEN the package `defaults/video-defaults_NN.md`
 - WHEN it is inspected
-- THEN it declares `script_review:: required`, `budget:: 0` and a `language` value
+- THEN it declares `script_review:: required`, `budget:: 0`, an `image_size` and a `language` value
+- AND `daily_budget` is settable only in a `Video Defaults` document (domain or blueprint level)
 
 ### Requirement: Series Concept
 
-The blueprint MUST define a top-level `Series` Concept for real series only, carrying the cascade parameters of `Video Defaults`, including `presets`, `avatar`, `intro`, `language`, `budget`, `output_formats` and `script_review`, plus `title`, the `Scene Kind` elements and the chrome of capability video-scene-kinds. A series folder MUST hold at most one scope document `<s>_scope_NN.md` (frontmatter `scope: true`). The series level MUST come only from a series root strictly below the domain root; an episode outside a series folder MUST have no series level.
-(Previously: the carried set excluded `master_resolution` and the Series declared no kinds or chrome.)
+The blueprint MUST define a top-level `Series` Concept for real series only, carrying the cascade parameters of `Video Defaults`, including `presets`, `avatar`, `intro`, `language`, `budget`, `output_formats` and `script_review`, plus `title`, but not `daily_budget`, together with the `Scene Kind` and `Chrome` elements of capability video-scene-kinds. A series folder MUST hold at most one Series document `<s>_series_NN.md` (frontmatter `scope: true`), recognised by the frontmatter marker and never by file name. The series level MUST come only from a series root strictly below the domain root; an episode outside a series folder MUST have no series level.
+(Previously: the carried set excluded `master_resolution`, the Series declared no kinds or chrome, and the document was named `<s>_scope_NN.md`.)
 
 Source: D9.
 
 #### Scenario: Series document supplies the series level
 
-- GIVEN `s_scope_NN.md` in the series folder declaring `transition:: fade`
+- GIVEN `s_series_NN.md` in the series folder declaring `transition:: fade`
 - WHEN a Scene in that series without `transition::` is compiled
 - THEN its transition is `fade` with source `series`
 
@@ -134,13 +167,13 @@ Source: D9.
 
 #### Scenario: Series supplies avatar and intro through the cascade
 
-- GIVEN `s_scope_NN.md` declaring `avatar:: lucas.png` and `intro:: intro.mp4`
+- GIVEN `s_series_NN.md` declaring `avatar:: lucas.png` and `intro:: intro.mp4`
 - WHEN a Scene without those fields is resolved
 - THEN `avatar` and `intro` resolve to the Series values with source `series`
 
 #### Scenario: Legacy series_NN.md supplies nothing
 
-- GIVEN a series folder holding `series_NN.md` declaring `transition:: wipe` and no scope document
+- GIVEN a series folder holding `series_NN.md` declaring `transition:: wipe` and no Series document with `scope: true`
 - WHEN a Scene without `transition::` is compiled
 - THEN the series level is absent and the value comes from a lower level
 
@@ -152,7 +185,7 @@ Source: D9.
 
 ### Requirement: Shared Field Definitions
 
-Each cascade parameter MUST have exactly one Field Definition whose `concept::` lists every Concept where it is settable, with the names, Concepts, types, options and blueprint defaults of the table below. Every parameter that lists `Scene` MUST also list `Scene Kind`. The field `master_resolution` MUST NOT exist.
+Each cascade parameter MUST have exactly one Field Definition whose `concept::` lists every Concept where it is settable, with the names, Concepts, types, options and blueprint defaults of the table below. Only `presets` is settable on `Scene Kind`; no other cascade parameter lists it. The fields `master_resolution` and `voice_tone` MUST NOT exist.
 
 | Field | concept:: | type / options | Blueprint default |
 |---|---|---|---|
@@ -160,38 +193,42 @@ Each cascade parameter MUST have exactly one Field Definition whose `concept::` 
 | title | Video, Series | string | none |
 | description, script, master, thumbnail | Video | unchanged | none |
 | status | Video | select `idea`, `draft`, `approved`, `produced`, `published`, `archived` | `idea` |
-| publication_url | Video | string (URL) | none |
+| published_url | Video | string (URL) | none |
 | kind | Scene | select, options from the Series kinds plus `Libre` | none |
+| review | Scene | select `approved`, `needs-change` | none |
+| for | Variant | string (a Scene field name or `narration`) | none |
 | presets | Video, Scene, Scene Kind, Series, Video Defaults | select, multiple, no options | none |
-| voice, voice_model, voice_speed, voice_emotion | Video, Scene, Scene Kind, Preset, Series, Video Defaults | string (`voice_speed` numeric) | `voice` `default`; `voice_model` `minimax/speech-2.8-hd`; others none |
-| avatar | Video, Scene, Scene Kind, Preset, Series, Video Defaults | file | none |
-| avatar_model | Layer, Scene, Scene Kind, Video, Preset, Series, Video Defaults | string | `wavespeed-ai/infinitetalk-fast` |
+| voice, voice_model, voice_speed, voice_emotion | Video, Scene, Preset, Series, Video Defaults | string (`voice_speed` numeric) | `voice` `default`; `voice_model` `minimax/speech-2.8-hd`; others none |
+| avatar | Video, Scene, Preset, Series, Video Defaults | file | none |
+| avatar_model | Layer, Scene, Video, Preset, Series, Video Defaults | string | `wavespeed-ai/infinitetalk-fast` |
 | avatar_resolution | Layer | select `480p`, `720p`, `768p` | none |
 | intro | Video, Preset, Series, Video Defaults | file | none |
-| image_model | Video, Scene, Scene Kind, Preset, Series, Video Defaults | string | `wavespeed-ai/z-image/turbo` |
-| background_audio | Video, Scene, Scene Kind, Preset, Series, Video Defaults | file | none |
-| background_audio_volume | Video, Scene, Scene Kind, Preset, Series, Video Defaults | string (0 to 1) | `0.2` |
-| transition | Video, Scene, Scene Kind, Preset, Series, Video Defaults | select `fade`, `slide-left`, `slide-right`, `wipe`, `none` | `none` |
-| frame | Video, Scene, Scene Kind, Preset, Series, Video Defaults | string | `neutral` |
-| fit | Layer, Scene, Scene Kind, Video, Preset, Series, Video Defaults | select `cover`, `contain` | `cover` |
+| image_model | Video, Scene, Preset, Series, Video Defaults | string | `wavespeed-ai/z-image/turbo` |
+| image_size | Video, Scene, Preset, Series, Video Defaults | string `<W>x<H>`, one of the resolved image model's catalog `sizes` | `1024x1024` |
+| background_audio | Video, Scene, Preset, Series, Video Defaults | file | none |
+| background_audio_volume | Video, Scene, Preset, Series, Video Defaults | string (0 to 1) | `0.2` |
+| transition | Video, Scene, Preset, Series, Video Defaults | select `fade`, `slide-left`, `slide-right`, `wipe`, `none` | `none` |
+| frame | Video, Scene, Preset, Series, Video Defaults | string | `neutral` |
+| fit | Layer, Scene, Video, Preset, Series, Video Defaults | select `cover`, `contain` | `cover` |
 | components | Video, Preset, Series, Video Defaults | select, multiple, keyed | current list |
 | sounds | Video, Preset, Series, Video Defaults | select, multiple, keyed | `[scene-boundary=whoosh]` |
 | language | Video, Series, Video Defaults | string (language code) | `en` |
-| budget | Video, Series, Video Defaults | number (domaiNN currency) | `0` |
-| output_formats | Video, Series, Video Defaults | select, multiple, keyed `name=<W>x<H>` with required key `master` | `[master=1920x1920, vertical=1080x1920, horizontal=1920x1080, square=1080x1080]` |
-| script_review | Video, Scene Kind, Series, Video Defaults | select `required`, `skip` | `required` |
+| budget | Video, Series, Video Defaults | number (domaiNN currency, per episode) | `0` |
+| daily_budget | Video Defaults | number (domaiNN currency) | none (no daily cap) |
+| output_formats | Video, Series, Video Defaults | list of `<W>x<H>`; the first entry is the master size | `[1920x1920, 1080x1920, 1920x1080, 1080x1080]` |
+| script_review | Video, Series, Video Defaults | select `required`, `skip` | `required` |
 | type, asset, prompt, text, position, enter_animation, exit_animation | Layer | unchanged | none |
 | z_index | Layer | string (number) | none |
 
-(Previously: the table had `master_resolution`, `voice_tone` and the old `status` options, and no `kind`, `publication_url`, `language`, `budget`, `output_formats`, `script_review` or `Scene Kind` column entries.)
+(Previously: the table had `master_resolution`, `voice_tone` and the old `status` options, and no `kind`, `review`, `for`, `published_url`, `image_size`, `language`, `budget`, `daily_budget`, `output_formats` or `script_review`.)
 
 Source: D4.
 
 #### Scenario: One definition reaches every listed Concept
 
-- GIVEN the Field Definition `background_audio_volume` listing Video, Scene, Scene Kind, Preset, Series and Video Defaults
+- GIVEN the Field Definition `background_audio_volume` listing Video, Scene, Preset, Series and Video Defaults
 - WHEN the blueprint schema is resolved
-- THEN those Concepts carry `background_audio_volume` and `Layer` does not
+- THEN those Concepts carry `background_audio_volume` and `Layer` and `Scene Kind` do not
 
 #### Scenario: Presets field is not on Layer or Preset
 
@@ -203,19 +240,31 @@ Source: D4.
 
 - GIVEN the package `defaults/video-defaults_NN.md`
 - WHEN its values are read
-- THEN `voice_model` is `minimax/speech-2.8-hd`, `background_audio_volume` is `0.2`, `transition` is `none`, `frame` is `neutral`, `fit` is `cover`, `sounds` is `[scene-boundary=whoosh]`, `script_review` is `required`, `budget` is `0` and `output_formats` holds the four default entries
+- THEN `voice_model` is `minimax/speech-2.8-hd`, `background_audio_volume` is `0.2`, `transition` is `none`, `frame` is `neutral`, `fit` is `cover`, `sounds` is `[scene-boundary=whoosh]`, `script_review` is `required`, `budget` is `0`, `image_size` is `1024x1024` and `output_formats` holds the four default entries
 
-#### Scenario: output_formats requires a master
+#### Scenario: output_formats is replaced as a whole
 
-- GIVEN a Series declaring `output_formats:: [vertical=1080x1920]` and nothing else supplying `master`
-- WHEN the keyed list is resolved across levels
-- THEN `master` still resolves from the blueprint and the check passes
+- GIVEN a Series declaring `output_formats:: [1280x1280, 720x1280]`
+- WHEN an episode of that Series resolves it
+- THEN the value is exactly those two entries with source `series` and the master size is `1280x1280`
 
 #### Scenario: Malformed format size
 
-- GIVEN `output_formats:: [master=wide]`
+- GIVEN `output_formats:: [wide]`
 - WHEN the document is validated
-- THEN validation fails because the value does not match `<W>x<H>`
+- THEN validation fails because the entry does not match `<W>x<H>`
+
+#### Scenario: image_size must be a size of the model
+
+- GIVEN a scene resolving an image model whose catalog `sizes` exclude `4096x4096` and `image_size:: 4096x4096`
+- WHEN the estimate is built
+- THEN it fails before spend naming the field, the size and the model
+
+#### Scenario: image_size cascades
+
+- GIVEN a Series declaring `image_size:: 1920x1080` and a scene setting none
+- WHEN the scene resolves `image_size`
+- THEN the value is `1920x1080` with source `series`
 
 #### Scenario: Retired parameter has no definition
 
@@ -250,8 +299,8 @@ Every Field Definition of the blueprint MUST follow one naming convention: field
 
 ### Requirement: Cascade Parameters Are Settable Where Meaningful
 
-Each cascade parameter MUST be settable at every level where it has meaning, so `avatar` MUST be settable on `Video`, `Scene`, `Scene Kind`, `Preset`, `Series` and `Video Defaults`, the voice delivery parameters `voice_speed` and `voice_emotion` MUST cascade like `voice`, and `avatar` MUST NOT be Series-only.
-(Previously: `voice_tone` was among the delivery parameters and `Scene Kind` was not a level.)
+Each cascade parameter MUST be settable at every level where it has meaning, so `avatar` MUST be settable on `Video`, `Scene`, `Preset`, `Series` and `Video Defaults`, the voice delivery parameters `voice_speed` and `voice_emotion` MUST cascade like `voice`, and `avatar` MUST NOT be Series-only.
+(Previously: `voice_tone` was among the delivery parameters.)
 
 #### Scenario: Avatar is set on a Scene
 
@@ -273,10 +322,10 @@ Each cascade parameter MUST be settable at every level where it has meaning, so 
 
 ### Requirement: The Video Concept Carries The Episode Record
 
-The `video-script` blueprint's `Video` concept MUST also declare the episode's catalogue and delivery fields `description` (markdown_inline), `status` (select of `idea`/`draft`/`approved`/`produced`/`published`/`archived`), `publication_url` (string), `script` (file), `master` (video) and `thumbnail` (image), so that one L3 document of the blueprint is both the episode's record and its script; `slug` is the reserved iNNfo identity property and MUST NOT be redeclared as a Field Definition of this blueprint.
+The `video-script` blueprint's `Video` concept MUST also declare the episode's catalogue and delivery fields `description` (markdown_inline), `status` (select of `idea`/`draft`/`approved`/`produced`/`published`/`archived`), `published_url` (string), `script` (file), `master` (video) and `thumbnail` (image), so that one L3 document of the blueprint is both the episode's record and its script; `slug` is the reserved iNNfo identity property and MUST NOT be redeclared as a Field Definition of this blueprint.
 
-Each file-backed field MUST hold exactly one filename resolved under the owning model's directory, `master` MUST name the episode's master `<slug>_<W>x<H>.mp4` where `<W>x<H>` is the `master` entry of the resolved `output_formats`, and a `Video` element MUST NOT carry a field for a derived format variant: the other formats and the thumbnail variants are derived from `master` and are never stored.
-(Previously: `status` had the options `draft`/`scripting`/`rendering`/`published`/`archived`, there was no `publication_url`, and `master` was tied to the file name `<slug>_1920x1920.mp4`.)
+Each file-backed field MUST hold exactly one filename resolved under the owning model's directory, `master` MUST name the episode's master `<slug>_<W>x<H>.mp4` where `<W>x<H>` is the first entry of the resolved `output_formats`, and a `Video` element MUST NOT carry a field for a derived format variant: the other formats and the thumbnail variants are derived from `master` and are never stored.
+(Previously: `status` had the options `draft`/`scripting`/`rendering`/`published`/`archived`, there was no `published_url`, and `master` was tied to the file name `<slug>_1920x1920.mp4`.)
 
 Source: D4, D5.
 
@@ -295,7 +344,7 @@ Source: D4, D5.
 
 #### Scenario: Master name follows the declared size
 
-- GIVEN `output_formats` with `master=1280x1280`
+- GIVEN `output_formats:: [1280x1280, 720x1280]`
 - WHEN the master is named
 - THEN `master` is `<slug>_1280x1280.mp4`
 
@@ -344,7 +393,7 @@ The blueprint MUST NOT define the retired Fields and Concept names `template`, `
 
 ### Requirement: Master And Position Descriptions Describe The Declared Master
 
-The Field Definition `master` of `Video` MUST be described as "The episode's master `<slug>_<W>x<H>.mp4`, sized by the `master` entry of `output_formats`. Delivery formats are derived from it and never modeled." and the Field Definition `position` of `Layer` MUST be described as "Overlay anchor inside the central safe square (the central 1080x1080 of the default square master).", with their types, options and concepts unchanged.
+The Field Definition `master` of `Video` MUST be described as "The episode's master `<slug>_<W>x<H>.mp4`, sized by the first entry of `output_formats`. Delivery formats are derived from it and never modeled." and the Field Definition `position` of `Layer` MUST be described as "Overlay anchor inside the central safe square (the central 1080x1080 of the default square master).", with their types, options and concepts unchanged.
 (Previously: the master was described as the square master `<slug>_1920x1920.mp4` derived by `render-formats`.)
 
 Source: D4.
@@ -365,5 +414,5 @@ Source: D4.
 
 ### Requirement: Master Resolution Is A Declared Video Default
 
-(Reason: the single-option `master_resolution` field is replaced by the keyed `output_formats` field, whose `master` entry declares the master size; see "Shared Field Definitions".)
-(Migration: declare `output_formats:: [master=<W>x<H>, ...]`; a document declaring `master_resolution` fails as a retired key.)
+(Reason: the single-option `master_resolution` field is replaced by the `output_formats` list, whose first entry declares the master size; see "Shared Field Definitions".)
+(Migration: declare `output_formats:: [<W>x<H>, ...]`; a document declaring `master_resolution` fails as a retired key.)

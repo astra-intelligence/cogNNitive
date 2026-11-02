@@ -8,8 +8,8 @@ Change `2026-11-02-video-script-v1`. Decision D3: a kind says what a scene IS, a
 
 The `video-script` blueprint MUST define a top-level `Preset` Concept that has no Field of its own, so that a `# NN Preset` element MAY carry only the preset parameters (the Fields whose `concept::` lists `Preset`) and the global `tags` Field (D2).
 
-The preset parameters are `voice`, `voice_model`, `voice_speed`, `voice_emotion`, `avatar`, `avatar_model`, `intro`, `image_model`, `background_audio`, `background_audio_volume`, `transition`, `frame`, `fit`, `components` and `sounds`. A Preset MUST NOT contain `Layer` elements. `tags` characterise a Preset and MUST NOT affect any resolved value. The reserved `slug` identity key that every element carries is exempt from the `preset-field` check and is not a preset parameter; migrated Presets keep their `slug::`.
-(Previously: the list of preset parameters included `voice_tone`.)
+The preset parameters are `voice`, `voice_model`, `voice_speed`, `voice_emotion`, `avatar`, `avatar_model`, `intro`, `image_model`, `image_size`, `background_audio`, `background_audio_volume`, `transition`, `frame`, `fit`, `components` and `sounds`. A Preset MUST NOT contain `Layer` elements. `tags` characterise a Preset and MUST NOT affect any resolved value. The reserved `slug` identity key that every element carries is exempt from the `preset-field` check and is not a preset parameter; migrated Presets keep their `slug::`.
+(Previously: the list of preset parameters included `voice_tone` and had no `image_size`.)
 
 #### Scenario: Preset with parameters only is valid
 
@@ -102,8 +102,8 @@ The blueprint MUST define an optional `presets` Field of `type:: select` with `m
 
 Each of the `domain`, `series`, `kind`, `video` and `scene` levels MUST expand its own `presets` in list order directly beneath that level's explicit fields, so that the existing most-specific-first fold yields: the last Preset of a list wins, a level's explicit fields beat its own Presets, and a nearer level beats every outer level including that level's explicit fields (D4).
 
-`presets` lists MUST be additive across levels and MUST NOT replace each other. `layer` and `cli` MUST have explicit fields only. When several series folders supply a series level, their lists MUST be concatenated from outermost to innermost. A Preset that omits a parameter MUST NOT reset it; the value supplied by the previous Preset or outer level remains.
-(Previously: there was no `kind` level between `series` and `video`.)
+`presets` lists MUST be additive across levels and MUST NOT replace each other. `layer` MUST have explicit fields only, and there is no `cli` level. The `kind` level contributes only its expanded `presets` (a Scene Kind has no explicit parameter fields), and a `Libre` scene contributes no `kind` node. When several series folders supply a series level, their lists MUST be concatenated from outermost to innermost. A Preset that omits a parameter MUST NOT reset it; the value supplied by the previous Preset or outer level remains.
+(Previously: there was no `kind` level between `series` and `video`, and `layer` and `cli` had explicit fields only.)
 
 #### Scenario: Last preset wins
 
@@ -183,11 +183,11 @@ Each of the `domain`, `series`, `kind`, `video` and `scene` levels MUST expand i
 - WHEN a scene of that kind resolves `voice`
 - THEN the value is `from-a`, and without the Video preset it is `from-k`
 
-#### Scenario: Kind explicit field beats its own preset
+#### Scenario: Libre scene skips kind presets
 
-- GIVEN a Scene Kind with `transition:: fade` and `presets:: [K]` where K sets `transition:: wipe`
-- WHEN a scene of that kind without its own value resolves `transition`
-- THEN the value is `fade` with source `kind`
+- GIVEN a Scene Kind with `presets:: [K]` where K sets `transition:: wipe`, and a `Libre` scene
+- WHEN the scene resolves `transition`
+- THEN no value has source `kind:preset:K`
 
 ## REMOVED Requirements
 

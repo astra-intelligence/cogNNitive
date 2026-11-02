@@ -6,23 +6,23 @@ Change `2026-11-02-video-script-v1`. Decisions D2, D12.
 
 ### Requirement: Series Scope Document Declares Kinds And Chrome
 
-A series scope document `<s>_scope_NN.md` MUST be the only place where a Series declares its `Scene Kind` elements and its chrome (including per-language chrome texts), and the engine MUST read them from it through the scope chain. A series folder with no scope document MUST have no kinds, and an episode there MAY use only `kind:: Libre`.
+The Series document `<s>_series_NN.md` (frontmatter `scope: true`) MUST be the only place where a Series declares its `Scene Kind` and `Chrome` elements (one `Chrome` element per language), and the engine MUST read them from it through the scope chain. A series folder with no Series document MUST have no kinds, and an episode there MAY use only `kind:: Libre`.
 
 #### Scenario: Kinds read from the scope document
 
-- GIVEN `s_scope_NN.md` declaring `Scene Kind` elements and chrome
+- GIVEN `s_series_NN.md` declaring `Scene Kind` and `Chrome` elements
 - WHEN an episode in that series is produced
 - THEN the engine applies those kinds and chrome
 
 #### Scenario: Folder without a scope document
 
-- GIVEN a series folder with no scope document and an episode scene of kind `Noticia`
+- GIVEN a series folder with no Series document and an episode scene of kind `Noticia`
 - WHEN the script is checked
 - THEN `unknown-kind` is reported
 
 #### Scenario: Kinds are not read from legacy files
 
-- GIVEN a stale `series_rules.md` describing a scene grammar and a scope document without kinds
+- GIVEN a stale `series_rules.md` describing a scene grammar and a Series document without kinds
 - WHEN an episode scene states `kind:: Hook`
 - THEN `unknown-kind` is reported and the legacy file supplies nothing
 
@@ -30,8 +30,8 @@ A series scope document `<s>_scope_NN.md` MUST be the only place where a Series 
 
 ### Requirement: Series, Domain And Episode Extension Folders
 
-A series folder MAY contain one scope document `<s>_scope_NN.md` with frontmatter `scope: true` (the `series` cascade level); the domain root MUST NOT be treated as a series. The domain root MAY contain one `video-defaults_NN.md` (the `domain` level). The episode, series and domain folders MAY each contain `components/<name>.html`, `sounds/<name>.*` and `frames/<name>.md`, where `<name>` is a cascade value, never an event or slot convention. File lookup MUST be episode, then series, then domain, then the skill fallback, by a nearest-folder walk from the script's folder; a nearer file MUST win. Named sounds MUST be looked up only in `sounds/` folders: `shared/audio/` and `audio/` MUST NOT be searched. All folders and documents are optional. No scaffolder creates them: the domain Video Defaults is a copy of the package's `defaults/video-defaults_NN.md` made on adoption (SKILL.md step), and a new series writes its own scope document.
-(Previously: unchanged in behaviour; restated here because the scope document now also carries kinds and chrome, see "Series Scope Document Declares Kinds And Chrome".)
+A series folder MAY contain one Series document `<s>_series_NN.md` with frontmatter `scope: true` (the `series` cascade level), recognised by the marker and never by name; the domain root MUST NOT be treated as a series. The domain root MAY contain one `video-defaults_NN.md` (the `domain` level). The episode, series and domain folders MAY each contain `components/<name>.html`, `sounds/<name>.*` and `frames/<name>.md`, where `<name>` is a cascade value, never an event or slot convention. File lookup MUST be episode, then series, then domain, then the skill fallback, by a nearest-folder walk from the script's folder; a nearer file MUST win. Named sounds MUST be looked up only in `sounds/` folders: `shared/audio/` and `audio/` MUST NOT be searched. All folders and documents are optional. No scaffolder creates them: the domain Video Defaults is a copy of the package's `defaults/video-defaults_NN.md` made on adoption (SKILL.md step), and a new series writes its own scope document.
+(Previously: the document was named `<s>_scope_NN.md`; restated here because the Series document now also carries kinds and chrome, see "Series Scope Document Declares Kinds And Chrome".)
 
 Source: D9, settled defaults 5 and 7.
 
@@ -67,6 +67,6 @@ Source: D9, settled defaults 5 and 7.
 
 #### Scenario: Scope document defines the series level
 
-- GIVEN `s_scope_NN.md` with `scope: true` declaring `frame:: brand`
+- GIVEN `s_series_NN.md` with `scope: true` declaring `frame:: brand`
 - WHEN a Scene in that series resolves `frame`
 - THEN the value is `brand` with source `series`

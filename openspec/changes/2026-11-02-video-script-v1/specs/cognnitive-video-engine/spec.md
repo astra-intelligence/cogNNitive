@@ -4,10 +4,10 @@ Change `2026-11-02-video-script-v1`. Requirements marked `Slice: 0` ship first o
 
 | Slice 0 item | Requirement | Disposition at V_1-0-0 |
 |---|---|---|
-| 1 image cache key | Cache Identity Image Options Never Gain Size | durable |
+| 1 image cache key | Image Cache Key Follows The Cascaded Model | durable (V_1-0-0 extends it with `image_size`, see "Image Size Is A Cascade Field And Cache Input") |
 | 3 avatar clip refusal | Render Refuses Missing Avatar Clips | durable |
-| 4 unpriced models | Allowed Models Must Be Priced | interim, superseded by video-model-catalog "Unpriced Or Unknown Models Fail Loudly" (drop at archive of slice 1) |
-| 4 infinitetalk | video-model-catalog "Blocked Models Are Not Allowlisted (pending Q7)" | durable once confirmed |
+| 4 unpriced models | Allowed Models Must Be Priced | interim, superseded by video-model-catalog "Unpriced Allowed Models Block, Unknown Models Fail" (drop at archive of slice 3) |
+| 4 infinitetalk | video-model-catalog "infinitetalk Stays Active With A Warning Until Confirmed" | durable; the block applies once the maintainer confirms (Q7) |
 | 5 crop fill | Blur Fill Is Opt-In And Suffixed | durable |
 | 2 console controls | video-console-views "No Control Without Effect" | durable |
 
@@ -31,27 +31,75 @@ Slice: 0 (V_0-14-x, interim).
 - WHEN a run loads the guard
 - THEN no pricing warning is emitted
 
+### Requirement: Image Cache Key Follows The Cascaded Model
+
+The image cache key MUST be computed from the prompt and the options `{provider, model, accentColor, modelOverride?}`, where `model` is the cascaded `image_model` of the scene, and MUST NOT contain the scene or layer display title. Changing the resolved `image_model` MUST change the key; renaming a scene or layer MUST NOT.
+
+Source: D3, cache-key audit. Slice: 0 (V_0-14-x, quick win 1). Accepted consequence: the first run after the change re-bills images once.
+
+#### Scenario: Changing the image model changes the key
+
+- GIVEN a scene compiled with `image_model:: A` and again with `image_model:: B`
+- WHEN the two image keys are compared
+- THEN they differ and the second compile is a cache miss
+
+#### Scenario: Renaming a scene does not re-bill
+
+- GIVEN a scene whose display name changes and nothing else
+- WHEN the image key is recomputed
+- THEN it is equal and the compile is a cache hit
+
+#### Scenario: Golden key
+
+- GIVEN a committed golden image key for a scene under this option set
+- WHEN the scene is compiled
+- THEN the image key equals the golden
+
+### Requirement: Image Size Is A Cascade Field And Cache Input
+
+The image size MUST come from the cascaded `image_size`, validated against the `sizes` of the resolved catalog image Model, and MUST be part of the image cache key in addition to the options of "Image Cache Key Follows The Cascaded Model". A size the model does not offer MUST fail before spend. The engine MUST NOT hard-code an image size.
+
+Source: design A7 (resolves Q5).
+
+#### Scenario: Size changes the key
+
+- GIVEN a scene compiled with `image_size:: 1024x1024` and again with `image_size:: 1920x1080`
+- WHEN the two image keys are compared
+- THEN they differ and the second compile is a cache miss
+
+#### Scenario: Unsupported size
+
+- GIVEN `image_size:: 4096x4096` and an image model whose `sizes` exclude it
+- WHEN the estimate is built
+- THEN it fails before spend naming the size and the model
+
+#### Scenario: Adapter receives the size
+
+- GIVEN a resolved `image_size`
+- WHEN the image request is built
+- THEN the model's adapter translates it into the provider's size parameter
+
 ### Requirement: Master Size Comes From output_formats
 
-The compiler MUST take the master pixel size from the `master` entry of the cascaded `output_formats` parsed as `^(\d+)x(\d+)$`, MUST emit a manifest whose width and height are that size, and MUST fail before any spend with `unsupported-master-resolution` when the entry is missing or does not match. Engine code MUST NOT default a width, height or orientation, and the master file name MUST be `<slug>_<W>x<H>.mp4` from that size. `isHorizontal` and the `center 12%` headroom MUST NOT exist.
+The compiler MUST take the master pixel size from the first entry of the cascaded `output_formats` parsed as `^(\d+)x(\d+)$`, MUST emit a manifest whose width and height are that size, and MUST fail before any spend with `unsupported-master-resolution` when the entry is missing or does not match. Engine code MUST NOT default a width, height or orientation, and the master file name MUST be `<slug>_<W>x<H>.mp4` from that size. `isHorizontal` and the `center 12%` headroom MUST NOT exist.
 
 Source: D4 and exploration §4 (master size from the declared field).
 
 #### Scenario: Manifest takes the declared size
 
-- GIVEN the package default `output_formats` with `master=1920x1920`
+- GIVEN the package default `output_formats` whose first entry is `1920x1920`
 - WHEN a script is compiled
 - THEN the manifest width and height are 1920 and 1920 and the master is named `<slug>_1920x1920.mp4`
 
 #### Scenario: Another declared size
 
-- GIVEN a Series declaring `output_formats:: [master=1280x1280]`
+- GIVEN a Series declaring `output_formats:: [1280x1280]`
 - WHEN a script is compiled
 - THEN the manifest is 1280 by 1280 and the master is named `<slug>_1280x1280.mp4`
 
 #### Scenario: Malformed value stops before spend
 
-- GIVEN `output_formats:: [master=wide]`
+- GIVEN `output_formats:: [wide]`
 - WHEN `compile` runs
 - THEN it fails with `unsupported-master-resolution`
 - AND no provider request is made and no ledger entry is written
@@ -64,11 +112,11 @@ Source: D4 and exploration §4 (master size from the declared field).
 
 ### Requirement: Delivery Formats Come From output_formats
 
-The format step MUST derive exactly the formats declared by the entries of the cascaded `output_formats` other than `master`, named `<slug>_<W>x<H>.mp4`. For the default square master the derivation rules of "Delivery Formats Are Derived From The Master By Crop" apply unchanged. The crop geometry for a different master size is fixed by design.
+The format step MUST derive exactly the formats declared by the entries of the cascaded `output_formats` after the first, named `<slug>_<W>x<H>.mp4` and written under `formats/` of the episode folder. For the default square master the derivation rules of "Delivery Formats Are Derived From The Master By Crop" apply unchanged. The crop geometry for a different master size is fixed by design.
 
 #### Scenario: Only declared formats are derived
 
-- GIVEN `output_formats:: [master=1920x1920, vertical=1080x1920]`
+- GIVEN `output_formats:: [1920x1920, 1080x1920]`
 - WHEN the format step runs
 - THEN only `<slug>_1080x1920.mp4` is written
 
@@ -80,9 +128,9 @@ The format step MUST derive exactly the formats declared by the entries of the c
 
 ### Requirement: Assets Are Linked, Not Copied
 
-The engine MUST make provider cache assets available to the HyperFrames project as hardlinks to the cache entries, and MUST NOT copy them under content-addressed names (`stageAsset` copies). After a produce run no hash-named duplicate of a cache entry MUST remain in the episode folder. When a hardlink cannot be created (for example across volumes) the engine MUST apply the fallback fixed by design (Q1) and MUST report which mechanism was used; it MUST NOT fall back silently to permanent copies.
+The engine MUST make provider cache assets available to the HyperFrames project as hardlinks to the cache entries, and MUST NOT copy them under content-addressed names (`stageAsset` copies). When the hardlink fails with `EXDEV`, `EPERM` or `ENOTSUP`, the engine MUST fall back to a file copy (clone-on-write where supported), MUST record the `link_mode` (`link` or `copy`) in the timing rows, MUST warn once, and, in copy mode, MUST delete `hyperframes/assets/` after a successful render. No stage MUST open a staged asset for writing, and cache files MUST be read-only after they are written. After a produce run no hash-named duplicate of a cache entry MUST remain in the episode folder.
 
-Source: D8.
+Source: D8, design A1 and A2.
 
 #### Scenario: Staged asset is a link
 
@@ -96,15 +144,27 @@ Source: D8.
 - WHEN the episode folder is listed
 - THEN no file named `<base>_<sha12>` duplicates a cache entry
 
-#### Scenario: Link failure is reported
+#### Scenario: Link failure falls back to copy
 
-- GIVEN a cache on another volume than the episode
+- GIVEN a link function that fails with `EXDEV`
 - WHEN the project is emitted
-- THEN the report names the fallback used and the run does not leave permanent duplicates
+- THEN the assets are copied, `link_mode` is `copy`, one warning is printed, and the masters of a link run and a copy run are byte-identical
+
+#### Scenario: Copy mode cleans up
+
+- GIVEN a run in copy mode that renders successfully
+- WHEN the episode folder is listed
+- THEN `hyperframes/assets/` no longer exists
+
+#### Scenario: Cache is protected
+
+- GIVEN a staged asset in link mode
+- WHEN any stage tries to open it for write
+- THEN the attempt fails and the cache entry is unchanged
 
 ### Requirement: Engine Project Lives In The Episode Folder
 
-The engine MUST write its manifest and HyperFrames project inside the episode folder, under names fixed by design, and MUST NOT create a `build/` directory, a `public/` directory or an `audio/` handoff. The `--output` and `--out` options MUST NOT exist.
+The engine MUST write its manifest and the HyperFrames project (`index.html`, `compositions/`, `assets/`, `vendor/`, `manifest.json`) inside `hyperframes/` of the episode folder, and the temporary render file inside that folder, and MUST NOT create a `build/` directory, a `public/` directory or an `audio/` handoff. The `--output` and `--out` options MUST NOT exist. The `hyperframes/` folder is regenerable and gitignored; when an authored folder whose name differs from `hyperframes` only by case exists in the episode folder, the engine MUST fail naming the collision.
 
 Source: D8.
 
@@ -112,7 +172,13 @@ Source: D8.
 
 - GIVEN a clean episode
 - WHEN `produce` completes
-- THEN no `build/` or `public/` directory exists in the episode folder
+- THEN no `build/` or `public/` directory exists in the episode folder and the project is under `hyperframes/`
+
+#### Scenario: Case collision with an authored folder
+
+- GIVEN an episode folder holding an authored `Hyperframes/` folder
+- WHEN the engine emits its project
+- THEN it fails naming the collision and writes nothing
 
 #### Scenario: Output option is refused
 
@@ -122,7 +188,9 @@ Source: D8.
 
 ### Requirement: Render Is Hermetic
 
-The emitted project MUST NOT load GSAP or any other script, font or asset from a network URL at render time. GSAP MUST be vendored with the project or the skill, with a pinned version; the mechanism is fixed by design (Q6).
+The emitted project MUST NOT load GSAP or any other script, font or asset from a network URL at render time. `gsap` MUST be pinned as an exact dependency of the skill and installed by the runtime provisioner (`ensure-hyperframes.mjs`, whose `--check` MUST report it); the engine MUST link its minified build into `hyperframes/vendor/` and the project MUST reference `vendor/gsap.min.js`. A missing GSAP file MUST fail the emission loudly. No GSAP copy is committed.
+
+Source: design A8.
 
 #### Scenario: No network at render
 
@@ -135,6 +203,12 @@ The emitted project MUST NOT load GSAP or any other script, font or asset from a
 - GIVEN a host with no network and a full cache
 - WHEN the render stage runs
 - THEN it succeeds
+
+#### Scenario: Missing GSAP fails loudly
+
+- GIVEN a skill install without the pinned `gsap` dependency
+- WHEN the project is emitted
+- THEN emission fails naming `gsap` and the provisioner command
 
 ## MODIFIED Requirements
 
@@ -212,8 +286,8 @@ The system MUST resolve every media reference emitted by the compiler — `layer
 
 ### Requirement: Spend Guard Is Gate-Only
 
-The spend guard MUST gate spend: it decides whether a resolved model is allowed by the domaiNN allowlist of the merged model catalog and whether the run fits the cascaded `budget` and any daily cap. It MUST NOT select a model id, MUST NOT hold an allowlist or price of its own, and MUST NOT supply any cascade level.
-(Previously: the guard's own `allowedModels` list decided which models were allowed.)
+The spend guard MUST gate spend: it decides whether a resolved model is allowed by the domaiNN overlay (`allowed::`) of the merged model catalog and whether the run fits the cascaded `budget` (per episode) and `daily_budget`. It MUST NOT select a model id, MUST NOT hold an allowlist or price of its own, and MUST NOT supply any cascade level. `video-guard.json` MUST NOT exist.
+(Previously: the guard's own `video-guard.json` `allowedModels` list decided which models were allowed, and budget came from the guard configuration.)
 
 #### Scenario: Blocked resolved model is refused before spend
 
@@ -231,7 +305,13 @@ The spend guard MUST gate spend: it decides whether a resolved model is allowed 
 
 - GIVEN the merged model catalog
 - WHEN the guard allowlist is read
-- THEN it equals the domaiNN allowlist of the catalog
+- THEN it equals the models allowed by the domaiNN overlay
+
+#### Scenario: Daily budget stops the run
+
+- GIVEN `daily_budget:: 5`, ledger rows of the current day summing to 4.50 and an estimate of 1.00
+- WHEN `produce` runs
+- THEN it fails before the first charge naming the daily budget
 
 ### Requirement: Voice Parameters Resolve Through The Cascade
 
@@ -317,7 +397,7 @@ Source: D5, settled default 2. Slice: 0 (V_0-14-x, quick win 5).
 
 ### Requirement: Render Compiles Every Time And Writes The Master In Place
 
-The `render` command MUST accept only a script (`render <manifest.json>` MUST NOT exist), MUST compile on every run, MUST render to a temporary file in the episode folder and MUST then rename it on the same volume to `<slug>_<W>x<H>.mp4`, so that exactly one master exists per episode.
+The `render` command MUST accept only a script (`render <manifest.json>` MUST NOT exist), MUST compile on every run, MUST render to a temporary file inside `hyperframes/` and MUST then rename it on the same volume to `<slug>_<W>x<H>.mp4` in the episode folder, so that exactly one master exists per episode.
 (Previously: the temporary file was `E/build/render.tmp.mp4` and the master `E/<slug>_1920x1920.mp4`.)
 
 Source: D2.
@@ -373,54 +453,35 @@ Source: D8. Slice: 0 (V_0-14-x, quick win 3).
 - WHEN `render <script>` runs
 - THEN the render proceeds
 
-### Requirement: Plan Boilerplate Is Truthful
+### Requirement: Cache Identity Is Layout-Independent
 
-The plan document MUST list the stamped resolved model ids instead of a `- [ ]` checklist, MUST NOT contain a hard-coded "Recommended" tier or "Speech 2.5 HD", and any approval instruction it shows MUST be the one the engine accepts, tied to the plan hash; the `checkApproval` hint MUST use the same instruction.
-(Previously: the plan was required to show the in-chat phrase `approve the plan <hash8>`.)
+No cache key (TTS, image or avatar) MUST contain a path, folder name, output name or the pixel dimension of the master or of a delivery format, so that moving an episode, renaming an output or changing `output_formats` never changes a key. The image key MAY contain the resolved `image_size`, which is an input of image generation and not a layout property.
+(Previously: no cache key could contain any pixel dimension.)
 
-Source: D10.
+Source: D1, cache-key audit, invariants 1 to 12.
 
-#### Scenario: Plan lists resolved models
+#### Scenario: Keys survive a layout change
 
-- GIVEN a script whose TTS model resolves to `minimax/speech-2.8-hd`
-- WHEN the plan is generated
-- THEN it lists that id and contains neither "Speech 2.5 HD" nor "Recommended"
+- GIVEN TTS, image and avatar identities computed on a fixture
+- WHEN the fixture is moved to the canonical layout and the identities are recomputed
+- THEN every identity is equal
 
-#### Scenario: Approval hint matches
+#### Scenario: Output name is not an input
 
-- GIVEN a missing approval of an over-budget plan
-- WHEN `checkApproval` fails
-- THEN its hint contains the same instruction as the plan and names the plan hash
+- GIVEN two compiles of one scene whose episode folder names differ
+- WHEN the keys are compared
+- THEN they are equal
 
-### Requirement: Cache Identity Image Options Never Gain Size
+#### Scenario: Changing output formats changes no key
 
-The image `mediaOptions` MUST NOT include a `size` key or any key derived from the master resolution. The image key MUST be computed from the prompt and the options `{provider, model, accentColor, modelOverride?}`, where `model` is the cascaded `image_model` of the scene, and MUST NOT contain the scene or layer display title. Changing the resolved `image_model` MUST change the key; renaming a scene or layer MUST NOT.
-(Previously: `model` did not follow the cascade `image_model`, and the options included `title: "<scene.name> — <layer.name>"`.)
-
-Source: D3, cache-key audit. Slice: 0 (V_0-14-x, quick win 1). Accepted consequence: the first run after the change re-bills images once.
-
-#### Scenario: Square master adds nothing to the image key
-
-- GIVEN a committed golden image key for a scene under the new option set
-- WHEN the scene is compiled with the 1920x1920 master
-- THEN the image key equals the golden
-
-#### Scenario: Changing the image model changes the key
-
-- GIVEN a scene compiled with `image_model:: A` and again with `image_model:: B`
-- WHEN the two image keys are compared
-- THEN they differ and the second compile is a cache miss
-
-#### Scenario: Renaming a scene does not re-bill
-
-- GIVEN a scene whose display name changes and nothing else
-- WHEN the image key is recomputed
-- THEN it is equal and the compile is a cache hit
+- GIVEN a script compiled with two different `output_formats`
+- WHEN the TTS, image and avatar keys are compared
+- THEN they are equal
 
 ### Requirement: Cache Identity Location And Domain Root Are Unchanged
 
-The cache MUST stay at `<findDomainRoot>/.cognnitive/cache/video/{tts,images,temp}` where the domain root is the nearest `domaiNN_NN.md`, the episode folder MUST NOT change the domain root, and the ledger, the timing log, `pending-predictions.jsonl`, `locks/` and `video-guard.json` MUST stay at the domain root.
-(Previously: scenarios were phrased around a `build/` folder, and the timing log did not exist.)
+The cache MUST stay at `<findDomainRoot>/.cognnitive/cache/video/{tts,images,temp}` where the domain root is the nearest `domaiNN_NN.md`, the episode folder MUST NOT change the domain root, and `pending-predictions.jsonl` and `locks/` MUST stay at the domain root. The facts files live under `.cognnitive/video/` (capability `video-run-facts`).
+(Previously: scenarios were phrased around a `build/` folder, the ledger lived at the domain root and `video-guard.json` was kept there.)
 
 Source: D2, cache-key audit, invariants 1 and 10.
 
@@ -435,9 +496,19 @@ Source: D2, cache-key audit, invariants 1 and 10.
 - GIVEN `domaiNN_NN.md` two levels above an episode
 - WHEN the domain root is resolved from the script and from the emitted project folder
 - THEN both resolve to the folder holding `domaiNN_NN.md`
-- AND the ledger, timing log, locks and `video-guard.json` are read from there
+- AND `pending-predictions.jsonl` and `locks/` are read from there and the facts from `.cognnitive/video/` beneath it
 
 ## REMOVED Requirements
+
+### Requirement: Plan Boilerplate Is Truthful
+
+(Reason: there is no plan document and no typed approval; the estimate output lists resolved models with price provenance, and approval is `--approve <plan_hash>` at the budget gate (video-script-review).)
+(Migration: None.)
+
+### Requirement: Cache Identity Image Options Never Gain Size
+
+(Reason: `image_size` is now a cascade field and an input of the image key, and the key follows the cascaded `image_model`; replaced by "Image Cache Key Follows The Cascaded Model" and "Image Size Is A Cascade Field And Cache Input".)
+(Migration: the first run re-bills images once.)
 
 ### Requirement: Engine Output Is Written Only Under build/
 
@@ -452,4 +523,4 @@ Source: D2, cache-key audit, invariants 1 and 10.
 ### Requirement: Single Square Master Declared By master_resolution
 
 (Reason: `master_resolution` is retired; replaced by "Master Size Comes From output_formats".)
-(Migration: declare `output_formats:: [master=<W>x<H>, ...]`.)
+(Migration: declare `output_formats:: [<W>x<H>, ...]`, whose first entry is the master.)

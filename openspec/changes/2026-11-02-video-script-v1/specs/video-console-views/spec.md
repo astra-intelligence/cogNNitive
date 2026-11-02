@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines the two domaiNN console views of the video workflow (Episode review and Series) registered through the existing view registry, the removal of the standalone console, and the rule that no control may exist without effect. Decision D10 of change `2026-11-02-video-script-v1`. The registry contract is capability `console-view-registry`, consumed unchanged unless the size budget conflicts (design).
+Defines the two domaiNN console views of the video workflow (Episode review and Series) registered through the view registry, the removal of the standalone console, and the rule that no control may exist without effect. Decision D10 of change `2026-11-02-video-script-v1`. The registry gains a generic data hook (design.md A12), specified in the delta for `console-view-registry`.
 
 ## Requirements
 
@@ -30,7 +30,7 @@ The Episode review and Series views MUST be registered through `registerView` as
 
 ### Requirement: Episode Review View
 
-The view MUST present the proposed changeset of one episode: scenes in order with kind, variants, narration editing, verdict and comment per scene, one ordered preset selector listing the Presets visible from the episode (reusing the selector behaviour of the former console), and the estimated cost against the budget. Its edits MUST be written as changeset operations, as specified by capability `video-script-review`.
+The view MUST present the proposed changeset of one episode: scenes in order with kind, variants, narration editing, verdict and comment per scene, one ordered preset selector listing the Presets visible from the episode (reusing the selector behaviour of the former console), and the estimated cost against the budget. Its edits MUST be written as changeset operations (`update_field` for chosen variants, edited narration and verdicts; `comment` for reasons), as specified by capability `video-script-review`. The view MUST ship as `console-view-episode-review.js` in the bluepriNNt `assets/`.
 
 #### Scenario: Scenes and verdicts shown
 
@@ -58,7 +58,7 @@ The view MUST present the proposed changeset of one episode: scenes in order wit
 
 ### Requirement: Series View
 
-The view MUST list the Series' episodes by state, and for each episode and for the Series the real cost from the ledger, the stage timings from the timing log, and a comparison of runs across machine fingerprints. Data MUST be read from the JSONL facts, not recomputed from estimates.
+The view MUST list the Series' episodes by state, and for each episode and for the Series the real cost from the ledger, the stage timings from the timing log, and a comparison of runs across machine fingerprints. Data MUST be read from the JSONL facts, not recomputed from estimates, and MUST reach the view only through `ctx.viewData` collected by the view's data hook (capability `console-view-registry` "View Data Collection Hook"). The view MUST ship as `console-view-series.js` with `console-view-series.data.mjs` in the bluepriNNt `assets/`. Stale prices MUST be flagged in the view.
 
 #### Scenario: Episodes by state
 
@@ -77,6 +77,18 @@ The view MUST list the Series' episodes by state, and for each episode and for t
 - GIVEN two runs of the same stage on different fingerprints
 - WHEN the view opens
 - THEN both durations are shown side by side with their fingerprints
+
+#### Scenario: Several machines
+
+- GIVEN ledger and timing files from two machines collected at export time
+- WHEN the view opens
+- THEN both machines' runs appear, distinguished by fingerprint
+
+#### Scenario: Stale price flagged
+
+- GIVEN a ledger row whose `price_date` exceeds the staleness threshold
+- WHEN the view opens
+- THEN the row is flagged as stale and still counted
 
 #### Scenario: No facts yet
 
@@ -104,7 +116,7 @@ Slice: 0 (V_0-14-x), then carried by the registered views.
 
 ### Requirement: Views Stay Within The Registry Budget
 
-The views MUST satisfy the registry size budget of `console-view-registry`. When they cannot, they MUST be split into smaller views rather than exceed it.
+The exported console with the views MUST stay under the 5 MB warning threshold of `console-view-registry`. When it cannot, the views MUST be split into smaller views rather than exceed the failure threshold.
 
 #### Scenario: Budget respected
 

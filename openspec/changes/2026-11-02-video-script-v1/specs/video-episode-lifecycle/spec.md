@@ -16,7 +16,7 @@ An episode record MUST hold exactly one `status` from `idea`, `draft`, `approved
 | `draft` | engine | the agent proposed the script |
 | `approved` | engine | review done or skipped, budget gate passed |
 | `produced` | engine | master and formats written |
-| `published` | user | with `publication_url` |
+| `published` | user | with `published_url` |
 | `archived` | user | the episode is discarded |
 
 The previous values `scripting` and `rendering` MUST NOT exist.
@@ -29,9 +29,9 @@ The previous values `scripting` and `rendering` MUST NOT exist.
 
 #### Scenario: Engine sets draft
 
-- GIVEN an `idea` episode and an applied proposed script changeset
-- WHEN the changeset is applied
-- THEN the status is `draft` and the engine is the writer
+- GIVEN an `idea` episode and a valid sealed proposed script changeset
+- WHEN `produce` applies it
+- THEN a separate engine changeset sets the status to `draft` and the engine is the writer
 
 ### Requirement: An Idea Holds Only Its Seed
 
@@ -45,7 +45,7 @@ An episode in `idea` MUST carry only a title, its Series and linked Sources (nn-
 
 ### Requirement: Transitions Are Checked
 
-The check MUST enforce: `approved` and `produced` require a script; `produced` requires the `master` file to exist beside the episode; `published` requires `publication_url`; `archived` is reachable from any state. A script change to an episode in `approved` or `produced` MUST return it to `draft`.
+The check MUST enforce: `approved` and `produced` require a script; `produced` requires the `master` file to exist beside the episode; `published` requires `published_url`; `archived` is reachable from any state. A script change to an episode in `approved` or `produced` MUST return it to `draft`.
 
 #### Scenario: Produced without master
 
@@ -55,9 +55,9 @@ The check MUST enforce: `approved` and `produced` require a script; `produced` r
 
 #### Scenario: Published without URL
 
-- GIVEN `status:: published` and no `publication_url`
+- GIVEN `status:: published` and no `published_url`
 - WHEN the check runs
-- THEN it fails naming `publication_url`
+- THEN it fails naming `published_url`
 
 #### Scenario: Script edit demotes
 
@@ -67,13 +67,13 @@ The check MUST enforce: `approved` and `produced` require a script; `produced` r
 
 ### Requirement: Episodes Pin The Blueprint Version
 
-Every V_1-0-0 episode MUST record the blueprint version it was authored against. A tool run on an episode whose pin differs from the installed blueprint MUST fail with a named error and MUST NOT convert, alias or reinterpret it.
+Every V_1-0-0 episode MUST record the blueprint version it was authored against in its frontmatter `blueprint_version`. A tool run on an episode whose pin differs from the installed blueprint MUST fail with a named error and MUST NOT convert, alias or reinterpret it.
 
 #### Scenario: Pin recorded
 
 - GIVEN a new episode created under `video-script_V_1-0-0`
 - WHEN its record is read
-- THEN it names `video-script_V_1-0-0`
+- THEN its frontmatter has `blueprint_version: V_1-0-0`
 
 #### Scenario: Mismatch fails
 

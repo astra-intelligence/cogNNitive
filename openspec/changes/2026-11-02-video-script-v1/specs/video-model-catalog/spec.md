@@ -2,21 +2,21 @@
 
 ## Purpose
 
-Defines the Provider, Model and Voice catalog as kNNowledge: the dated reference catalog shipped by the `video-script` bluepriNNt, the domaiNN allowlist and price override, the merged catalog that is the single source for the spend guard, estimator, picklists and adapters, and per-model intent adapters. Decision D5 of change `2026-11-02-video-script-v1`. Open questions Q4 (stale price reporting) and Q7 (`infinitetalk`) are recorded in the requirements that depend on them.
+Defines the Provider, Model and Voice catalog as kNNowledge: the dated reference catalog shipped by the `video-script` bluepriNNt, the domaiNN overlay (allowlist, additions, invoice prices), the merged catalog that is the single source for the spend guard, estimator, picklists and adapters, and per-model intent adapters. Decision D5 of change `2026-11-02-video-script-v1`, aligned to design.md A9, A14 and the data shapes.
 
 ## Requirements
 
 ### Requirement: Blueprint Ships A Dated Reference Catalog
 
-The bluepriNNt MUST ship a catalog as kNNowledge with three Concepts. `Provider` carries an id and its request path. `Model` carries a unique canonical id, its provider, one capability (`tts`, `image`, `avatar` or `video`), its declared controls, a reference price with unit and currency, and the price date. `Voice` carries an id, its model, languages and display name. Every Model MUST declare a price and a price date. The catalog MUST NOT contain two ids for the same model.
+The bluepriNNt MUST ship a catalog as kNNowledge with three Concepts. `Provider` carries `name` and `api_base`. `Model` carries a unique slug, its `provider`, `api_id`, one `capability` (`tts`, `image`, `avatar` or `video`), `controls` (a subset of `speed`, `emotion`, `size`, `resolution`), `sizes` (for image models), `adapter`, `price`, `price_unit` (`per_1k_chars`, `per_image` or `per_second`), `price_date` and `status` (`active` or `blocked`). `Voice` carries `model`, `voice_id` and `language`. The catalog MUST NOT contain two entries for the same model.
 
 #### Scenario: Catalog validates
 
 - GIVEN the shipped catalog
 - WHEN it is validated against the blueprint
-- THEN every Model has a capability, a price and a price date and no id is duplicated
+- THEN every Model has a capability, price, price unit, price date and adapter and no model is duplicated
 
-#### Scenario: Unpriced model in the catalog
+#### Scenario: Unpriced model in the reference catalog
 
 - GIVEN a catalog Model with no price
 - WHEN the catalog is validated
@@ -24,35 +24,35 @@ The bluepriNNt MUST ship a catalog as kNNowledge with three Concepts. `Provider`
 
 #### Scenario: Id spelling is reconciled
 
-- GIVEN a script naming `wavespeed/z-image/turbo` while the catalog id is `wavespeed-ai/z-image/turbo`
+- GIVEN a script naming `wavespeed/z-image/turbo` while the catalog model is `wavespeed-ai/z-image/turbo`
 - WHEN the script is checked
 - THEN `unknown-model` names the id and no silent alias is applied
 
-### Requirement: The DomaiNN Allowlists Models And Overrides Prices
+### Requirement: The DomaiNN Overlay Allowlists Models And Overrides Prices
 
-A domaiNN MUST be able to declare which catalog models are allowed, add its own Provider, Model and Voice entries, and override a model's price with an invoice price and date. A model not allowed by the domaiNN MUST NOT be used by any run. The domaiNN MUST declare one currency, and every price in the merged catalog MUST use it.
+A domaiNN MUST be able to hold one overlay document `model-catalog_NN.md` whose `Model` elements set `allowed`, `price`, `price_date` and `price_source:: invoice`, merged per Model slug with the overlay winning. A Model defined only in the overlay MUST declare every Model field and name an existing adapter. A model not allowed by the overlay MUST NOT be used by any run. The domaiNN MUST use one currency, and every price in the merged catalog MUST use it.
 
 #### Scenario: Override beats reference price
 
-- GIVEN a catalog price of 0.01 and a domaiNN override of 0.012 for the same model
+- GIVEN a catalog price of 0.01 and an overlay invoice price of 0.012 for the same model
 - WHEN the merged catalog is read
-- THEN the model's price is 0.012 with source `domain` and the override date
+- THEN the model's price is 0.012 with `price_source` `invoice` and the overlay date
 
 #### Scenario: Disallowed model is refused before spend
 
-- GIVEN a scene resolving a catalog model the domaiNN does not allow
+- GIVEN a scene resolving a catalog model the overlay does not allow
 - WHEN `produce` runs
 - THEN it fails before any charge naming the model and the allowlist
 
-#### Scenario: Domain adds its own model
+#### Scenario: Overlay-only model is complete
 
-- GIVEN a domaiNN entry for a model absent from the reference catalog, with price and date
-- WHEN it is allowed and resolved
-- THEN the guard, estimator and picklists treat it like a catalog model
+- GIVEN an overlay Model absent from the reference catalog that omits `adapter`
+- WHEN the merged catalog is built
+- THEN it fails naming the model and the missing field
 
 ### Requirement: One Merged Catalog Feeds Every Consumer
 
-The spend guard, the cost estimator, the console picklists and the intent adapters MUST read the same merged catalog (reference catalog plus domaiNN allowlist, additions and overrides). No model id, price, allowlist or capability MUST be defined in engine code, and capability MUST come from the catalog's declared capability, never from matching a substring of the id.
+The spend guard, the cost estimator, the console picklists and the intent adapters MUST read the same merged catalog (reference catalog plus overlay). No model id, price, allowlist or capability MUST be defined in engine code or in a guard file, and capability MUST come from the Model's declared capability, never from matching a substring of the id.
 
 #### Scenario: Consumers agree
 
@@ -64,7 +64,7 @@ The spend guard, the cost estimator, the console picklists and the intent adapte
 
 - GIVEN an avatar model whose id contains no known vendor string
 - WHEN the engine selects its request mode
-- THEN the mode follows the declared controls of the Model
+- THEN the mode follows the declared adapter and controls of the Model
 
 #### Scenario: No literals in code
 
@@ -72,9 +72,9 @@ The spend guard, the cost estimator, the console picklists and the intent adapte
 - WHEN they are searched for catalog model ids and price constants
 - THEN none is found outside test fixtures
 
-### Requirement: Unpriced Or Unknown Models Fail Loudly
+### Requirement: Unpriced Allowed Models Block, Unknown Models Fail
 
-A run MUST fail before any spend when a resolved model is not in the merged catalog (`unknown-model`), is not allowed, or has no price (`unpriced-model`). The engine MUST NOT apply a fallback rate.
+A run MUST fail before any spend when a resolved model is not in the merged catalog (`unknown-model`), is not allowed, is `status:: blocked`, or has no price after merging (`unpriced-model`). The engine MUST NOT apply a fallback rate.
 
 #### Scenario: Allowed but unpriced
 
@@ -89,45 +89,69 @@ A run MUST fail before any spend when a resolved model is not in the merged cata
 - WHEN the estimate is built
 - THEN it fails with `unknown-model`
 
-### Requirement: Estimates Report Price Provenance
+#### Scenario: Blocked status
 
-Every priced line of an estimate MUST state the price, its source (`blueprint` or `domain`) and its date. When a price is older than the staleness threshold, the estimate MUST flag it with a staleness warning; the threshold and its configuration are fixed by design (Q4). A stale price MUST NOT stop a run.
+- GIVEN a Model with `status:: blocked`
+- WHEN a scene resolves it
+- THEN the run fails before spend naming the model
+
+### Requirement: Stale Prices Warn And Never Block
+
+Every priced line of an estimate MUST state the price, its source (`blueprint` or `invoice`) and its `price_date`. The catalog MUST carry a `stale_after_days` value (default 90). A price older than that MUST produce a staleness warning in the estimate and in the Series view, and MUST NOT stop a run.
 
 #### Scenario: Provenance shown
 
-- GIVEN an estimate with one blueprint-priced and one domain-priced model
+- GIVEN an estimate with one blueprint-priced and one invoice-priced model
 - WHEN it is printed
 - THEN each line shows price, source and date
 
 #### Scenario: Stale price warns
 
-- GIVEN a model price dated beyond the threshold
+- GIVEN a model price dated 120 days ago and `stale_after_days` 90
 - WHEN the estimate is printed
 - THEN that line carries a staleness warning and the estimate is still produced
 
 ### Requirement: Intent Adapters Translate Intent Fields
 
-For each model the engine MUST translate the intent fields `voice_speed` and `voice_emotion` into provider parameters using the model's declared controls. When a resolved intent field has no declared control on the resolved model, the run MUST fail before spend with `unsupported-control` naming the field and the model. Intent values MUST NOT be passed raw to a provider.
+Each Model MUST name an adapter (`scripts/adapters/<id>.mjs`) exporting its `controls` and a `translate(intent, model)` function that turns the intent fields (`voice_speed`, `voice_emotion`, `image_size`, and the avatar resolution) into provider parameters. A test MUST assert that each adapter's `controls` equal the Model's declared `controls`. A non-default intent value for a control the resolved model does not declare MUST fail at estimate, before any spend, with `unsupported-control` naming the field and the model. Intent values MUST NOT be passed raw to a provider.
 
 #### Scenario: Speed is translated
 
-- GIVEN a TTS model declaring a speed control with a range
-- WHEN a scene resolves `voice_speed:: 1.1`
-- THEN the provider request carries the model's own parameter for speed, derived by the adapter
+- GIVEN a TTS model declaring `speed` and a scene resolving `voice_speed:: 1.1`
+- WHEN the request is built
+- THEN it carries the provider's own speed parameter derived by the adapter
 
 #### Scenario: Control not declared
 
-- GIVEN a TTS model declaring no emotion control and a scene resolving `voice_emotion:: calm`
-- WHEN `produce` runs
+- GIVEN a TTS model declaring no `emotion` control and a scene resolving `voice_emotion:: calm`
+- WHEN the estimate is built
 - THEN it fails with `unsupported-control` naming `voice_emotion` and the model
 - AND no request is made
 
-### Requirement: Blocked Models Are Not Allowlisted (pending Q7)
+#### Scenario: Default value needs no control
 
-Once the maintainer confirms that `infinitetalk` is blocked, the reference catalog or the domaiNN allowlist MUST NOT allow `wavespeed-ai/infinitetalk`, and a run resolving it MUST be refused before spend. Until confirmation the model's status is recorded as an open item.
+- GIVEN a model declaring no `speed` control and a scene resolving no `voice_speed`
+- WHEN the estimate is built
+- THEN no error is reported
 
-#### Scenario: Blocked model is refused
+#### Scenario: Adapter and catalog agree
 
-- GIVEN `infinitetalk` not allowed after confirmation
-- WHEN a presenter Layer resolves it as `avatar_model`
-- THEN the run fails before spend with the allowlist error
+- GIVEN an adapter whose `controls` differ from the catalog Model's
+- WHEN the contract test runs
+- THEN it fails naming the model
+
+### Requirement: infinitetalk Stays Active With A Warning Until Confirmed
+
+Until the maintainer confirms that `infinitetalk` is blocked (open item Q7), the reference catalog MUST ship it with `status:: active`, and every run that resolves it MUST emit a warning naming it. After confirmation its status MUST become `blocked` and the blocked-status behaviour above applies.
+
+#### Scenario: Warning while active
+
+- GIVEN `infinitetalk` with `status:: active` and a presenter Layer that resolves it
+- WHEN `produce` runs
+- THEN a warning names the model and the run continues
+
+#### Scenario: Blocked after confirmation
+
+- GIVEN `infinitetalk` with `status:: blocked`
+- WHEN a presenter Layer resolves it
+- THEN the run fails before spend

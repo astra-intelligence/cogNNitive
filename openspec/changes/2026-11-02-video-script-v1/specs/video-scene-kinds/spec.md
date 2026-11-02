@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Defines how a Series declares the scene grammar of its format (Scene Kind elements), how an episode scene states its kind, the `Libre` escape hatch, engine-inserted fixed scenes, and series chrome applied per kind. Decisions D1, D2, D3, D12 of change `2026-11-02-video-script-v1`. Field names below are provisional until design.md fixes the Field Definitions; behaviour is normative.
+Defines how a Series declares the scene grammar of its format (Scene Kind elements) and its chrome, how an episode scene states its kind, the `Libre` escape hatch, engine-inserted fixed scenes, and chrome applied per kind. Decisions D1, D2, D3, D12 of change `2026-11-02-video-script-v1`, aligned to design.md A5 and A6.
 
 ## Requirements
 
 ### Requirement: Series Declares Scene Kinds
 
-A Series scope document MUST be able to declare zero or more `Scene Kind` elements, each with a unique name and these properties: `role` (free text), `narration` (`on` or `off`), `max_duration` (seconds, optional), `variants` (positive integer, default 1) and `fixed` (engine-inserted scene, default false). A Scene Kind MAY also list `presets` and any cascade parameter whose Field Definition lists `Scene Kind`.
+The Series document (`<s>_series_NN.md`, frontmatter `scope: true`) MUST be able to declare zero or more `Scene Kind` elements, each with a unique name and these properties: `role` (free text), `narration` (`on` or `off`), `max_duration` (seconds, optional), `variants` (positive integer, default 1), `fixed` (`none`, `first`, `last` or `after:<kind>`, default `none`), `asset` (the media of a fixed scene, only valid when `fixed` is not `none`), `chrome` (list of chrome item names that apply to the kind) and `presets`. A Scene Kind carries no other cascade parameter: its effect on the cascade is its expanded `presets`. Kinds MUST live only in the Series document; no sibling kinds file exists.
 
 #### Scenario: Kinds are read from the Series
 
@@ -28,9 +28,15 @@ A Series scope document MUST be able to declare zero or more `Scene Kind` elemen
 - WHEN an episode scene states `kind:: Libre`
 - THEN the episode validates, and any other kind name fails with `unknown-kind`
 
+#### Scenario: Asset on a non-fixed kind
+
+- GIVEN a Scene Kind with `fixed:: none` and an `asset`
+- WHEN the Series is checked
+- THEN the check fails naming the kind
+
 ### Requirement: Every Scene States Its Kind
 
-Every `Scene` of a V_1-0-0 episode MUST state `kind::` with the name of a Scene Kind of its Series or the reserved name `Libre`. A scene's content MUST be its narration body plus an optional visual asset reference or image prompt; the engine, not the episode, derives the layers of a non-`Libre` scene from its kind and the Series chrome. An unknown kind name MUST fail the pre-compile check with `unknown-kind`, naming the scene, the name and the kinds available, before any spend.
+Every `Scene` of a V_1-0-0 episode MUST state `kind::` with the name of a Scene Kind of its Series or the reserved name `Libre`. A scene's content MUST be its narration body plus its `Layer` elements (for example a background, b-roll or presenter with an asset or an image prompt). An unknown kind name MUST fail the pre-compile check with `unknown-kind`, naming the scene, the name and the kinds available, before any spend.
 
 #### Scenario: Known kind validates
 
@@ -53,7 +59,7 @@ Every `Scene` of a V_1-0-0 episode MUST state `kind::` with the name of a Scene 
 
 ### Requirement: Kind Rules Are Enforced
 
-For a non-`Libre` scene the engine MUST apply its kind's rules. `narration:: off` MUST mean no TTS request is made and a non-empty narration body is a `narration-not-allowed` error. `max_duration` MUST be compared with the estimated duration before spend and with the measured duration after TTS; an overrun MUST be reported as a warning naming the scene, the limit and the duration. `variants` MUST be the number of narration alternatives the agent proposes for that scene (see capability `video-script-review`).
+For a non-`Libre` scene the engine MUST apply its kind's rules. `narration:: off` MUST mean no TTS request is made and a non-empty narration body is a `narration-not-allowed` error. `max_duration` MUST be compared with the estimated duration before spend and with the measured duration after TTS; an overrun MUST be reported as a warning naming the scene, the limit and the duration. `variants` MUST be the maximum number of `Variant` candidates the agent proposes per target field of that scene (see capability `video-script-review`); more MUST fail the check with `too-many-variants`.
 
 #### Scenario: Silent kind makes no TTS call
 
@@ -73,20 +79,32 @@ For a non-`Libre` scene the engine MUST apply its kind's rules. `narration:: off
 - WHEN the run summary is produced
 - THEN a warning names the scene, 8 s and 11 s and the run is not stopped
 
+#### Scenario: Too many variants
+
+- GIVEN a kind with `variants:: 3` and a scene proposing 4 narration candidates
+- WHEN the proposal is validated
+- THEN `too-many-variants` names the scene
+
 ### Requirement: Fixed Scenes Are Inserted By The Engine
 
-A Scene Kind with `fixed:: true` MUST describe a scene the engine inserts without the episode declaring it, with a declared placement (`start`, `end`, or `after <kind>` meaning after the first scene of that kind). The episode MUST NOT need to contain such a scene, and the inserted scene MUST appear in the manifest, the estimate and the chapters in its placed order.
+A Scene Kind whose `fixed` is not `none` MUST describe a scene the engine inserts without the episode declaring it, at the placement `first`, `last`, or `after:<kind>` (after the first scene of that kind), using the kind's `asset`. The episode MUST NOT need to contain such a scene, and the inserted scene MUST appear in the manifest, the estimate and the chapters in its placed order.
 
 #### Scenario: Bumper is inserted
 
-- GIVEN a fixed kind `Intro` placed `after Gancho` and an episode with scenes `Gancho`, `Noticia`, `Cierre`
+- GIVEN a kind `Intro` with `fixed:: after:Gancho` and an episode with scenes `Gancho`, `Noticia`, `Cierre`
 - WHEN the manifest is compiled
 - THEN the scene order is `Gancho`, `Intro`, `Noticia`, `Cierre`
 - AND the episode document holds no `Intro` scene
 
+#### Scenario: First and last
+
+- GIVEN fixed kinds with `first` and `last`
+- WHEN the manifest is compiled
+- THEN they are the first and the last scene
+
 #### Scenario: Missing anchor kind
 
-- GIVEN a fixed kind placed `after Gancho` and an episode with no `Gancho` scene
+- GIVEN a fixed kind `after:Gancho` and an episode with no `Gancho` scene
 - WHEN the manifest is compiled
 - THEN the fixed scene is not inserted and one warning names the kind and the missing anchor
 
@@ -102,19 +120,19 @@ An episode MAY reorder, remove or repeat scenes of any kind. The engine MUST NOT
 
 ### Requirement: Libre Inherits No Kind Rules
 
-A scene with `kind:: Libre` MUST inherit no kind rules, no kind presets and no kind-scoped chrome. It MAY declare hand-authored `Layer` elements or an `animation` Layer pointing at its own HyperFrames project. A non-`Libre` scene MUST NOT declare `Layer` elements (error `layers-not-allowed`, naming the scene and its kind). Cascade levels other than `kind` still apply to a `Libre` scene.
+A scene with `kind:: Libre` MUST inherit no kind rules (narration setting, maximum duration, variant limit), no kind presets and no kind chrome, and MUST contribute no node to the cascade at the `kind` level. It MAY declare any `Layer` elements, including an `animation` Layer pointing at its own HyperFrames project. Every other cascade level still applies to a `Libre` scene.
 
-#### Scenario: Libre with its own layers
+#### Scenario: Libre with its own animation
 
 - GIVEN a `Libre` scene with an `animation` Layer
 - WHEN the script is checked and compiled
 - THEN it validates and none of the Series' kind rules or chrome is applied to it
 
-#### Scenario: Layers on a ruled kind
+#### Scenario: Libre has no kind node
 
-- GIVEN a scene of kind `Noticia` with a nested `Layer`
-- WHEN the script is checked
-- THEN `layers-not-allowed` names the scene and `Noticia`
+- GIVEN a kind with `presets:: [K]` and a `Libre` scene
+- WHEN the scene's values are resolved
+- THEN no value has source `kind`
 
 #### Scenario: Libre still gets series values
 
@@ -124,25 +142,25 @@ A scene with `kind:: Libre` MUST inherit no kind rules, no kind presets and no k
 
 ### Requirement: Series Chrome Is Declared Once And Applied Per Kind
 
-A Series MUST be able to declare chrome: persistent or per-kind elements such as a watermark, bumper, call to action, background audio and avatar, each with the kinds it applies to (default: all non-`Libre` kinds). Chrome text MUST be declarable per language. The engine MUST apply chrome to every applicable scene without the episode repeating it. A chrome text with per-language variants MUST resolve with the cascaded `language`; a missing variant for that language MUST fail before spend with `missing-chrome-language` naming the chrome item and language. A chrome text declared once without variants is language-neutral.
+A Series MUST be able to declare one `Chrome` element per language, each with `language` and any of `watermark`, `cta`, `bumper` and `music`. A Scene Kind's `chrome` list names the items applied to its scenes. The engine MUST apply those items to every scene of the kind, using the `Chrome` element for the cascaded `language`, without the episode repeating them. When a kind lists a chrome item and no `Chrome` element for the resolved language declares it, the run MUST fail before spend with `missing-chrome-language` naming the item and the language.
 
 #### Scenario: Watermark follows the language
 
-- GIVEN a Series watermark declared as `es: generado con IA` and `en: made with AI`, and an episode with `language:: en`
+- GIVEN `Chrome` elements `es` (`watermark: generado con IA`) and `en` (`watermark: made with AI`), a kind listing `watermark`, and an episode with `language:: en`
 - WHEN the manifest is compiled
-- THEN every applicable scene carries the watermark overlay with `made with AI`
+- THEN every scene of that kind carries the watermark overlay with `made with AI`
 
-#### Scenario: Chrome applies only to listed kinds
+#### Scenario: Chrome applies only to listing kinds
 
-- GIVEN a chrome call to action applying only to kind `Cierre`
+- GIVEN a `cta` chrome item listed only by kind `Cierre`
 - WHEN the manifest is compiled
 - THEN only `Cierre` scenes carry it
 
 #### Scenario: Missing language variant
 
-- GIVEN a watermark with only an `es` variant and `language:: en`
+- GIVEN a kind listing `watermark`, a `Chrome` element for `es` only and `language:: en`
 - WHEN `produce` runs
-- THEN it fails with `missing-chrome-language` naming the watermark and `en`
+- THEN it fails with `missing-chrome-language` naming `watermark` and `en`
 - AND nothing is spent
 
 ### Requirement: Language Is A Cascade Field

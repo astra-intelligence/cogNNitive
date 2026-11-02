@@ -6,7 +6,7 @@ Change `2026-11-02-video-script-v1`. Decisions D6, D10, D13. The agent does crea
 
 ### Requirement: Draft Procedure Emits A Proposed Changeset
 
-The skill MUST provide a draft procedure that an agent follows to produce, for one episode, a proposed changeset containing only creative work: narration and its variants (up to each kind's `variants`), the scene kind of every scene, visual asset selection, image prompts, and the publication description prose. The changeset MUST be validated against the field registry, the Series kinds and the merged catalog before it is delivered, and MUST be applied through the changeset mechanism (setting the episode to `draft`). The agent MUST NOT write `status` or `master`, select models outside the cascade, apply chrome, or sequence engine steps.
+The skill MUST provide a draft procedure that an agent follows to produce, for one episode, a proposed changeset containing only creative work: narration and its variants (up to each kind's `variants`), the scene kind of every scene, visual asset selection, image prompts, and the publication description prose. The agent MUST deliver it as a sealed proposed changeset (written with `writeProposedChangeset`), which MUST pass validation against the field registry, the Series kinds and the merged catalog by a dry apply before it is applied. `produce` applies it and sets the episode to `draft` (capability `video-produce-command` "Intake Applies The Proposed Changeset"); the agent MUST NOT apply it itself. Alternatives for a field MUST be written as `Variant` elements. The agent MUST NOT write `status` or `master`, select models outside the cascade, apply chrome, or sequence engine steps.
 
 Source: D6, D13.
 
@@ -14,8 +14,8 @@ Source: D6, D13.
 
 - GIVEN an `idea` episode with linked Sources in a Series with kinds
 - WHEN the agent completes the draft procedure
-- THEN a proposed changeset exists whose scenes each state a known `kind::`
-- AND it passes the registry and catalog checks
+- THEN a sealed proposed changeset exists whose scenes each state a known `kind::`
+- AND it passes the registry and catalog checks and is not yet applied
 
 #### Scenario: Invalid proposal is not delivered
 
@@ -33,11 +33,11 @@ Source: D6, D13.
 
 - GIVEN a scene marked `needs-change` with a comment
 - WHEN the agent runs the procedure for that scene
-- THEN only that scene's proposal changes (see video-script-review)
+- THEN the new proposed changeset addresses only that scene (see video-script-review)
 
 ### Requirement: Produce Is The Single Entry Command
 
-SKILL.md MUST document `produce <episode>` as the only command an agent runs after a script is proposed, and MUST document the two stops (review gate, budget gate) and how to continue from each. It MUST NOT document a sequence of `compile`, `synthesize-avatar`, `render` or finalize steps for the agent to run.
+SKILL.md MUST document `produce <episode>` as the only command an agent runs after a script is proposed, and MUST document the two stops (exit 10 review gate, exit 11 budget gate with `--approve <plan_hash>`) and how to continue from each. It MUST NOT document a sequence of `compile`, `synthesize-avatar`, `render` or finalize steps for the agent to run.
 
 Source: D6.
 
@@ -51,17 +51,35 @@ Source: D6.
 
 - GIVEN SKILL.md
 - WHEN the section on `produce` is read
-- THEN it names the review-gate and budget-gate stops and what resumes each
+- THEN it names the review-gate (10) and budget-gate (11) stops and what resumes each
 
 ### Requirement: Retired V_0 Tooling Is Absent
 
-The skill and `scripts/dev` MUST NOT contain `draft-template.html`, `build-draft-html.mjs`, `build-script-from-draft.mjs`, `finalize-video.mjs`, `reviewed.json`, `draft.json`, `review_console.html`, `stageAsset` or the in-chat approval phrase `approve the plan` outside `openspec/changes/archive/`.
+The skill and `scripts/dev` MUST NOT contain `draft-template.html`, `build-draft-html.mjs`, `build-script-from-draft.mjs`, `finalize-video.mjs`, `approve-plan.mjs`, `video-guard.json`, `lib/knowledge-model.mjs`, `lib/video-scope.mjs`, `lib/legacy-draft-keys.mjs`, `reviewed.json`, `draft.json`, `review_console.html`, `stageAsset` or the in-chat approval phrase `approve the plan` outside `openspec/changes/archive/`.
 
 #### Scenario: Scan is clean
 
 - GIVEN the repository after the last slice
 - WHEN the retired-tooling scan runs
 - THEN it reports no match outside `archive/`
+
+### Requirement: Skill Reaches nn-core And The Apply Engine Through A Mirror
+
+The skill MUST obtain the scope fold, `parseKnowledge`, `parseChangeset`, `serializeChangeset`, `computeProposalSha`, `executeChangesetApply` and `writeProposedChangeset` from one generated, drift-guarded mirror (`lib/nn-core.generated.cjs`, built by the `video-script` target of `build-core-mirrors.mjs`), and MUST NOT keep a parser or writer of its own. `verify.js` MUST run the mirror `--check`.
+
+Source: design A10 (bundle size to be measured in the first slice).
+
+#### Scenario: Stale mirror fails
+
+- GIVEN a change to a mirrored nn-core source without regenerating the mirror
+- WHEN the mirror `--check` runs
+- THEN it exits non-zero naming the mirror
+
+#### Scenario: No private parser
+
+- GIVEN the skill's `scripts/`
+- WHEN it is searched for a private frontmatter or knowledge parser
+- THEN none is found
 
 ## MODIFIED Requirements
 
@@ -106,7 +124,7 @@ Source: D2.
 
 ### Requirement: Skill Scripts Use The Scope-Anchored Series Root
 
-The skill scripts `video-engine-cli.mjs` and `render-thumbnail.mjs` MUST locate the series through `findSeriesRoot` of capability `video-folder-contract`, and the thumbnail tool MUST read the series title from the scope document.
+The skill scripts `produce.mjs` and `render-thumbnail.mjs` MUST locate the series through `findSeriesRoot` of capability `video-folder-contract`, and the thumbnail tool MUST read the series title from the scope document.
 (Previously: `build-script-from-draft.mjs` and `build-draft-html.mjs` were also listed and the script builder read the series title.)
 
 Source: D9.
