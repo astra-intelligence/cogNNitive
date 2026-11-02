@@ -16,6 +16,7 @@ const ROOT = path.resolve(import.meta.dirname, '..')
 const SKILLS = [
   path.join(ROOT, 'skills', 'nn-sources', 'SKILL.md'),
   path.join(ROOT, 'skills', 'nn', 'SKILL.md'),
+  path.join(ROOT, 'skills', 'nn-innfo', 'SKILL.md'),
 ]
 
 const FORBIDDEN = [
