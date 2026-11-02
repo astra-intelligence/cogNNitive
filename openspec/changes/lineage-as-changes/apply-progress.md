@@ -1214,3 +1214,69 @@ worktree.
 
 ---
 
+## PR 18 — S3b.2 (branch `lac/s3b2`, base `lac/s3b1`)
+
+Applied: 2026-11-02. Status: implemented, green, pushed; PR opened.
+
+Tasks: 3b.5, 3b.6, 3b.7b.
+
+- `skills/nn-sources/scripts/lib/producer-payload.js` (new):
+  `buildProduceArtifactPayload({ artifactPath, evidence, author })` returns a ready
+  `propose_changeset` payload with exactly ONE `produce_artifact` operation, and
+  `printProduceArtifactPayload` prints it in a marked block plus the reminder that
+  nothing was applied.
+- `scripts/index.js`: `--curate-csv` prints the payload for the curated artifact
+  (target = `artifacts/curated/<key>.csv`, evidence = the raw input, author =
+  `curate-csv`); `--converge` (human mode only, never `--json`/`--plan` so those stay
+  machine-parseable) prints it for the converged source member
+  (target = `to.relPath`, evidence = `from.relPath`, author = `converge`).
+- New suite `skills/nn-sources/test/unit/test-producer-payloads.js` (8 assertions:
+  marked payload, one `produce_artifact`, artifact target, procedure author, nothing
+  applied, `--scan` emits none), registered in `test/run.js`.
+- Size: ~130 hand-authored lines (~60 source, ~70 tests). Inside the budget.
+- Verification: `npm --prefix skills/nn-sources test` 670 passed / 0 failed;
+  `npm run verify:fast` fully green (202 steps).
+
+### Deviations
+
+55. `--normalize-file` emits NO payload: normalizing a source writes a sidecar (the
+    source's normalized content), not an artifact. The task's "when it produces an
+    artifact" condition is never true today, so no branch was added for it.
+56. The converge payload is printed only in human mode: `--json` and `--plan` are
+    machine contracts that existing CLI tests parse with `JSON.parse(stdout)`; adding
+    a second JSON document would break them.
+57. The task says `core/writeOnce/plan.ts` stops writing `derived_from`. It never wrote
+    it: `inputs` is only a hash guard (`writeOnce/fs.ts`). `derived_from` is written by
+    the lineage RECORD renderer, which dies in S4b — nothing to change here.
+
+---
+
+## Handoff — start here next session (after PR 18)
+
+Chain state: `lac/s3b2` is the tip (PR 18). Next branch:
+`git switch lac/s3b2 && git switch -c lac/s4a`.
+
+**PR 19 — S4a (nn-sources consumers, journal and watch roots)** — tasks 4.1a [RED],
+4.2 [RED], 4.3 [GREEN], 4.4a [GREEN], 4.6a [REFACTOR], 4.7a.
+
+- Gate tests first: `--lineage|--provenance|--check` become unknown options and nothing
+  refreshes a lineage after `--scan`, `--normalize-file`, `--cognitivize`,
+  `--curate-csv`, `--unlink`; no `extractDeclaredCitations` or journal append.
+- Watch roots move to the `domaiNN_NN.md` entrypoint (`## NN External Watch Roots`) in
+  `external-scanner.js`, `domain-probe.js`, `bootstrap.js`; `RECORD_TOKENS` goes.
+- Delete `sources/provenance*.js`, `lineage-check.js`, the `# NN Procedures` journal and
+  the three flags; delete ~1,000 lines of record tests.
+- Verification: `npm --prefix skills/nn-sources test`, `npm run verify:fast`.
+
+**Then:** PR 20 (S4b) deletes `core/lineage/{record,render,drift}.ts`, `sync_lineage`,
+`LINEAGE_DRIFT` and `check_domain.lineage` (run the FULL `node scripts/verify.js`
+there); PR 21 (S4c) removes the `cogNNitive` bluepriNNt, manifest entry and vocabulary.
+
+Environment reminders (unchanged): no local bin shims, so run
+`node ../../../node_modules/vitest/vitest.mjs run <filter>` from the package dir, run
+typecheck with `node ../../../node_modules/typescript/bin/tsc`, push with
+`--no-verify` and say so in the PR body, and never `npm ci`/`npm install` in the
+worktree.
+
+---
+

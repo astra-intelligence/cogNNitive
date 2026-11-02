@@ -281,9 +281,9 @@ Goal: producers print ready `produce_artifact` payloads and apply nothing.
 Depends on: PR 17.
 Rollback: revert; the journal path still exists until S4a.
 
-- [ ] 3b.5 [RED] [P] Producer payload snapshots: `curate-csv`, `normalize-file` (when it produces an artifact) and `converge` print a ready `propose_changeset` JSON payload with exactly one `produce_artifact` change (target, evidence, author = procedure) and apply nothing; `--scan`, cognitivize and import emit none. (apc: Producers emit ready payloads)
-- [ ] 3b.6 [GREEN] [S] Edit `sources/curate-csv.js`, `index.js` (payload printing, same pattern as `--converge --plan`), `core/writeOnce/plan.ts` (`derived_from` no longer written).
-- [ ] 3b.7b [S] (was 3b.7) Mirrors, `npm --prefix skills/nn-sources test`, standard PR gate. Open PR 18.
+- [x] 3b.5 [RED] [P] Producer payload snapshots: `curate-csv`, `normalize-file` (when it produces an artifact) and `converge` print a ready `propose_changeset` JSON payload with exactly one `produce_artifact` change (target, evidence, author = procedure) and apply nothing; `--scan`, cognitivize and import emit none. (apc: Producers emit ready payloads)
+- [x] 3b.6 [GREEN] [S] Edit `sources/curate-csv.js`, `index.js` (payload printing, same pattern as `--converge --plan`), `core/writeOnce/plan.ts` (`derived_from` no longer written).
+- [x] 3b.7b [S] (was 3b.7) Mirrors, `npm --prefix skills/nn-sources test`, standard PR gate. Open PR 18.
 
 Files: `sources/curate-csv.js`, `sources/index.js`, `core/writeOnce/plan.ts`, matching tests.
 Verification: `npm --prefix skills/nn-sources test`, `npm --workspace=@cognnitive/nn-core test -- writeOnce`, `npm run verify:fast`.
