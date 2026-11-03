@@ -17,7 +17,7 @@ import path from 'node:path';
 import { estimateScriptCost, formatAssetPlanMarkdown } from '../scripts/asset-cost-estimator.mjs';
 import { SceneCompiler } from '../scripts/scene-compiler.mjs';
 import { loadKnowledgeModel } from '../scripts/lib/knowledge-model.mjs';
-import { loadCascadeBags, withScriptPresets } from '../scripts/lib/video-scope.mjs';
+import { loadCascadeBags, resolve, withScriptPresets } from '../scripts/lib/video-scope.mjs';
 import { CacheManager } from '../scripts/cache-manager.mjs';
 import { buildTtsVoiceOptions, resolveRegisteredVoice } from '../scripts/lib/tts-options.mjs';
 import { buildImageOptions } from '../scripts/lib/image-options.mjs';
@@ -89,20 +89,32 @@ function setup(source) {
 /** The lowered script exactly as the estimator and compile see it (no CLI overrides). */
 function lower(scriptPath) {
   const model = loadKnowledgeModel(scriptPath);
-  const bags = withScriptPresets({ ...loadCascadeBags(path.dirname(scriptPath)), cli: {} }, model, scriptPath);
+  const bags = withScriptPresets(loadCascadeBags(path.dirname(scriptPath)), model, scriptPath);
   return new SceneCompiler({}).lowerKnowledgeModel(model, { bags });
 }
 
+/** The model/size the cascade resolves for the episode, exactly as compile reads them. */
+function resolvedModels(scriptPath) {
+  const model = loadKnowledgeModel(scriptPath);
+  const bags = withScriptPresets(loadCascadeBags(path.dirname(scriptPath)), model, scriptPath);
+  return {
+    image: resolve('image_model', bags).value,
+    imageSize: resolve('image_size', bags).value,
+    tts: resolve('voice_model', bags).value,
+    avatar: resolve('avatar_model', bags).value,
+  };
+}
+
 const config = { voices: {} };
-const ttsKey = (cm, sc) => cm.computeHash(sc.narration.trim(), resolveRegisteredVoice(buildTtsVoiceOptions(sc, {}, {}), config));
+const ttsKey = (cm, sc, models = {}) => cm.computeHash(sc.narration.trim(), resolveRegisteredVoice(buildTtsVoiceOptions(sc, models, {}), config));
 const seedTts = (writer, scriptPath) => {
   const sc = lower(scriptPath).scenes[0];
-  return writer.putSync(ttsKey(writer, sc), 'mp3', Buffer.from('tts-bytes'), 'tts');
+  return writer.putSync(ttsKey(writer, sc, resolvedModels(scriptPath)), 'mp3', Buffer.from('tts-bytes'), 'tts');
 };
 const seedImage = (writer, scriptPath) => {
   const sc = lower(scriptPath).scenes[0];
   const layer = sc.layers.find((l) => l.properties.layer_prompt);
-  return writer.putSync(writer.computeHash(layer.properties.layer_prompt, buildImageOptions(sc, layer, {})), 'png', Buffer.from('img'), 'images');
+  return writer.putSync(writer.computeHash(layer.properties.layer_prompt, buildImageOptions(sc, layer, resolvedModels(scriptPath))), 'png', Buffer.from('img'), 'images');
 };
 const listing = (dir) => fs.readdirSync(dir, { recursive: true }).sort();
 const done = (dir) => fs.rmSync(dir, { recursive: true, force: true });
@@ -153,12 +165,12 @@ test('changing narration, voice or voice_model makes the entry a miss again', ()
   }
 });
 
-test('a --tts-model override joins the key: the default-key entry no longer matches', () => {
+test('no option supplies a model: a retired defaultTtsModel option no longer touches the key', () => {
   const { dir, scriptPath, cacheDir, writer } = setup(doc());
   try {
     seedTts(writer, scriptPath);
     const est = estimateScriptCost(scriptPath, { cacheDir, defaultTtsModel: 'minimax/speech-2.8-turbo' });
-    assert.ok(est.summary.totalTtsCost > 0);
+    assert.equal(est.summary.totalTtsCost, 0);
   } finally {
     done(dir);
   }

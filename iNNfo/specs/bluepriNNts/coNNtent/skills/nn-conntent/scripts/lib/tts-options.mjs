@@ -14,7 +14,7 @@ import { resolve } from './video-scope.mjs';
 /**
  * @param {{ properties?: Record<string, any> }} sc Lowered scene
  * @param {{ tts?: string }} [models] Explicitly chosen models (a chosen TTS model changes the output, so it joins the key)
- * @param {Record<string, Record<string, unknown>>} [bags] Cascade bags (`cli`/`series`/`domain`/`blueprint`) for the fallbacks
+ * @param {Record<string, Record<string, unknown>>} [bags] Cascade bags (`series`/`domain`/`blueprint`) for the fallbacks
  * @returns {Record<string, unknown>}
  */
 export function buildTtsVoiceOptions(sc, models = {}, _bags = {}) {
@@ -31,7 +31,9 @@ export function buildTtsVoiceOptions(sc, models = {}, _bags = {}) {
   // Only declared values are added: the provider defaults stay out of the key.
   if (p.scene_voice_speed !== undefined && p.scene_voice_speed !== null) voiceOptions.speed = p.scene_voice_speed;
   if (p.scene_voice_emotion) voiceOptions.emotion = p.scene_voice_emotion;
-  if (models.tts) voiceOptions.modelOverride = models.tts;
+  // A cascaded model that resolves to the scene's own value is not an override:
+  // adding it would fork the key of identical audio.
+  if (models.tts && models.tts !== p.scene_voice_model) voiceOptions.modelOverride = models.tts;
   return voiceOptions;
 }
 

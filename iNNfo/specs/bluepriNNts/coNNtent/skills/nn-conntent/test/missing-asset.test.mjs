@@ -34,8 +34,8 @@ test('a user-level name with no file throws naming the name, the level and every
   );
 });
 
-test('every user level fails: cli, layer, scene, video, series, domain', () => {
-  for (const source of ['cli', 'layer', 'scene', 'video', 'series', 'domain']) {
+test('every user level fails: layer, scene, video, kind, series, domain', () => {
+  for (const source of ['layer', 'scene', 'video', 'kind', 'series', 'domain']) {
     assert.throws(
       () => checkMissingAsset({ kind: 'sound', name: 'click', source, searched: ['/x/sounds/click.*'] }),
       MissingAssetError,

@@ -8,8 +8,7 @@
  * Commands:
  *   compile <script.md> [--fps <n>] [--cache-dir <dir>]
  *           [--dry-run] [--allow-model <name>]... [--approval <approved.json>]
- *           [--image-model <m>] [--tts-model <m>] [--avatar-model <m>]
- *   render  <script.md> [--fps <n>] [--concurrency <n>]   (writes <slug>_1920x1920.mp4 next to the script)
+ *   render  <script.md> [--fps <n>] [--concurrency <n>]   (writes <slug>_<W>x<H>.mp4 next to the script)
  *
  * Zero external mandatory runtime dependencies for compilation. ESM module.
  */
@@ -355,7 +354,6 @@ export function resolveMediaLayers(manifest, opts) {
  * @property {boolean} [dryRun=false] List uncached billable work + estimated total; spend nothing, write nothing.
  * @property {string[]} [allowModels] Models explicitly unlocked past the guard blocklist/allowlist (--allow-model).
  * @property {string} [approvalPath] Approved-plan artifact (defaults to <scriptDir>/asset_plan.approved.json).
- * @property {{ image?: string, tts?: string, avatar?: string }} [models] Chosen models, as passed to the cost estimator (part of plan_hash).
  * @property {(file: string) => Promise<{ seconds?: number }>} [soundProbe] Test seam for the `video-end` sound-length probe.
  * @property {Record<string, unknown>} [synthesizerOptions] Extra AssetSynthesizer options (test seam: env, fetch, sleep).
  * @property {(e: object) => void} [onProgress] Progress listener: `plan` (totals + estimated USD)
@@ -376,7 +374,6 @@ export function resolveMediaLayers(manifest, opts) {
  * @property {boolean} [allowMock=false] Write a mock MP4 when the renderer is unavailable.
  * @property {string[]} [allowModels] See VideoCompileOptions (used when rendering from a script).
  * @property {string} [approvalPath] See VideoCompileOptions.
- * @property {{ image?: string, tts?: string, avatar?: string }} [models] See VideoCompileOptions.
  * @property {(e: object) => void} [onProgress] See VideoCompileOptions (also covers render phases).
  */
 
@@ -399,7 +396,7 @@ export function resolveMediaLayers(manifest, opts) {
  * `ref` to its estimated USD (cache hits cost 0, so `spentUsd` is real accumulated spend).
  * @param {any} parsed Parsed script (layers receive `layer_asset_source` for real runs).
  * @param {AssetSynthesizer} synthesizer
- * @param {{ image?: string, tts?: string, avatar?: string }} models Chosen models (same flags as the estimator).
+ * @param {{ image?: string, tts?: string, avatar?: string }} models Cascade-resolved models (part of plan_hash).
  * @param {(e: object) => void} [onProgress]
  * @param {Map<string, number>} [costByRef]
  */
@@ -492,18 +489,20 @@ export async function compileVideo(options) {
   const scriptDir = path.dirname(scriptPath);
   const loaded = loadGuard(scriptDir);
   warnUnpricedAllowedModels(loaded.config);
-  const models = options.models || {};
   const allowModels = options.allowModels || [];
   const approvalPath = options.approvalPath ? path.resolve(options.approvalPath) : path.join(scriptDir, APPROVAL_FILENAME);
-  const checkNow = () => checkApproval({ scriptContent, models, approvalPath, allowModels, allowDelegated: loaded.config.allowDelegatedApproval === true });
   // Default cache lives at the workspace root so it is shared across series and cwd-independent.
   const cacheDir = options.cacheDir || resolveDefaultCacheDir(scriptDir);
-  // One cascade: the CLI model flags are the most specific level, the script's
-  // series/domain/blueprint documents the rest (design D10). No default id here.
-  const bags = {
-    ...(options.bags || loadCascadeBags(scriptDir)),
-    cli: { image_model: models.image, voice_model: models.tts, avatar_model: models.avatar },
+  // One cascade and no `cli` level: every model id comes from the documents
+  // (layer > scene > video > kind > series > domain > blueprint). No flag and no
+  // default id supplies one.
+  const bags = options.bags || loadCascadeBags(scriptDir);
+  const models = {
+    image: normalizeModelId(resolve('image_model', bags).value),
+    tts: normalizeModelId(resolve('voice_model', bags).value),
+    avatar: normalizeModelId(resolve('avatar_model', bags).value),
   };
+  const checkNow = () => checkApproval({ scriptContent, models, approvalPath, allowModels, allowDelegated: loaded.config.allowDelegatedApproval === true });
   const synthOptions = { defaultModels: models, bags, ...(options.synthesizerOptions || {}) };
   const makeGuard = (dryRun) =>
     new SpendGuard({ config: loaded.config, root: loaded.root, allowModels, dryRun, approval: checkNow });
@@ -777,7 +776,6 @@ export async function renderVideo(options) {
       modelPath: options.modelPath,
       allowModels: options.allowModels,
       approvalPath: options.approvalPath,
-      models: options.models,
       onProgress,
     });
     recordStage(options.facts, {
@@ -961,8 +959,7 @@ function printDryRun(result) {
 const FLAG_SPEC = {
   boolean: ['dry-run', 'allow-mock'],
   value: [
-    'script', 'manifest', 'fps', 'concurrency',
-    'cache-dir', 'approval', 'image-model', 'tts-model', 'avatar-model',
+    'script', 'manifest', 'fps', 'concurrency', 'cache-dir', 'approval',
   ],
   repeatable: ['allow-model'],
 };
@@ -971,9 +968,8 @@ const USAGE = [
   'Usage: node video-engine-cli.mjs <compile|render> [options]',
   '  compile <script.md> [--fps n] [--cache-dir dir]',
   '          [--dry-run] [--approval approved.json] [--allow-model name]...',
-  '          [--image-model id] [--tts-model id] [--avatar-model id]',
   '  render  <script.md> [--fps n] [--concurrency n] [--cache-dir dir]',
-  '          [--allow-mock] [--approval approved.json] [--allow-model name]... [--image-model id] [--tts-model id] [--avatar-model id]',
+  '          [--allow-mock] [--approval approved.json] [--allow-model name]...',
   '          [-- <hyperframes render flags>]   e.g. -- --workers 2 --low-memory-mode (forwarded verbatim)',
   '  --dry-run (compile only): list uncached billable work and the estimated total; spends and writes nothing.',
   '  --approval: approved plan (default <script dir>/asset_plan.approved.json); --allow-model unlocks a blocked',
@@ -1030,7 +1026,6 @@ async function main() {
         dryRun: Boolean(args['dry-run']),
         allowModels: args.allowModels,
         approvalPath: typeof args.approval === 'string' ? args.approval : undefined,
-        models: { image: args['image-model'], tts: args['tts-model'], avatar: args['avatar-model'] },
         onProgress: cliReporter,
       });
       if (result.dryRun) {
@@ -1040,7 +1035,7 @@ async function main() {
       console.log(`✅ [video-engine-cli] Compiled manifest (${result.manifest.totalDurationInFrames} frames, ${result.manifest.totalDurationInSeconds.toFixed(2)}s)`);
       console.log(`   Cached assets: ${result.cachedAssetsUsed}, New assets: ${result.newAssetsSynthesized}, Spent: $${result.spentUsd.toFixed(4)} of $${result.plannedTotalUsd.toFixed(4)} estimated`);
       if (result.avatarVideos.applied + result.avatarVideos.missing > 0) {
-        console.log(`   Avatar clips: ${result.avatarVideos.applied} picked up from cache, ${result.avatarVideos.missing} still missing (run synthesize-avatar.mjs; never ad-hoc API calls). If clips exist but were not found, check that --avatar-model/--tts-model match the synthesize-avatar run.`);
+        console.log(`   Avatar clips: ${result.avatarVideos.applied} picked up from cache, ${result.avatarVideos.missing} still missing (run synthesize-avatar.mjs; never ad-hoc API calls). If clips exist but were not found, check that the episode and its Series declare the same avatar_model and voice_model that the synthesize-avatar run resolved.`);
       }
     } else if (command === 'render') {
       const target = args._[1] || args.script || args.manifest;
@@ -1065,7 +1060,6 @@ async function main() {
         cacheDir: args['cache-dir'],
         allowModels: args.allowModels,
         approvalPath: typeof args.approval === 'string' ? args.approval : undefined,
-        models: { image: args['image-model'], tts: args['tts-model'], avatar: args['avatar-model'] },
         allowMock: Boolean(args['allow-mock']),
         hyperframesArgs: passthrough,
         onProgress: cliReporter,

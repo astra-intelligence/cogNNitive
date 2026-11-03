@@ -5,7 +5,7 @@
  * level that supplied it; when the nearest-folder walk finds no file for a name,
  * the severity follows who asked for it:
  *
- *   - a user level (cli, layer, scene, video, series, domain) is a promise:
+ *   - a user level (layer, scene, video, kind, series, domain) is a promise:
  *     `MissingAssetError` naming the name, the level and every path searched,
  *     raised before any synthesis or render so nothing is spent;
  *   - the blueprint Video Defaults is a hint: a name that ships no file is
