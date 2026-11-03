@@ -142,10 +142,10 @@
     '@media (max-width:640px){.nn-annotation-popover{width:100%}.nn-new-element{width:100%}}',
     '.nn-edit-modal{border:1px solid var(--nn-border);border-radius:var(--nn-radius-lg);padding:0;max-width:760px;width:100%;max-height:86vh;overflow:auto;background:var(--nn-surface);color:var(--nn-text);box-shadow:0 12px 40px rgba(0,0,0,.15)}',
     '.nn-edit-modal::backdrop{background:rgba(0,0,0,.35)}',
-    '.nn-edit-modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--nn-border)}',
-    '.nn-edit-modal-head h2{margin:0;font-size:1.05rem;font-weight:700}',
-    '.nn-edit-modal-close{border:1px solid var(--nn-border);background:var(--nn-surface);color:var(--nn-muted);border-radius:var(--nn-radius-sm);width:28px;height:28px;cursor:pointer;font-size:1.1rem;font-weight:700;display:flex;align-items:center;justify-content:center}',
-    '.nn-edit-modal-body{padding:20px}',
+    '.nn-edit-modal-head,.nn-export-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--nn-border)}',
+    '.nn-edit-modal-head h2,.nn-export-head h2{margin:0;font-size:1.05rem;font-weight:700}',
+    '.nn-edit-modal-close,.nn-export-close{border:1px solid var(--nn-border);background:var(--nn-surface);color:var(--nn-muted);border-radius:var(--nn-radius-sm);width:28px;height:28px;cursor:pointer;font-size:1.1rem;font-weight:700;display:flex;align-items:center;justify-content:center}',
+    '.nn-edit-modal-body,.nn-export-body{padding:20px}',
     '.nn-edit-mode-selector{display:flex;gap:8px;margin-bottom:16px}',
     '.nn-edit-mode-btn{padding:6px 14px;border:1px solid var(--nn-border);background:var(--nn-surface-2);color:var(--nn-text);border-radius:var(--nn-radius-sm);cursor:pointer;font:inherit;font-size:.85rem;font-weight:600}',
     '.nn-edit-mode-btn.active{background:var(--nn-accent);color:var(--nn-bg);border-color:var(--nn-accent)}',
@@ -154,10 +154,10 @@
     '.nn-edit-input:focus,.nn-edit-select:focus,.nn-edit-textarea:focus{outline:none;border-color:var(--nn-focus);box-shadow:0 0 0 2px rgba(37,99,235,.2)}',
     '.nn-edit-checkbox-label{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer}',
     '.nn-edit-multiselect{display:flex;flex-direction:column;gap:6px}',
-    '.nn-edit-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--nn-border);background:var(--nn-surface-2);border-radius:0 0 var(--nn-radius-lg) var(--nn-radius-lg)}',
-    '.nn-edit-btn{padding:7px 16px;border-radius:var(--nn-radius-sm);font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}',
-    '.nn-edit-btn-save{background:var(--nn-accent);color:var(--nn-bg);border:1px solid var(--nn-accent)}',
-    '.nn-edit-btn-cancel{background:var(--nn-surface);color:var(--nn-text);border:1px solid var(--nn-border)}',
+    '.nn-edit-modal-actions,.nn-export-actions{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--nn-border);background:var(--nn-surface-2);border-radius:0 0 var(--nn-radius-lg) var(--nn-radius-lg)}',
+    '.nn-edit-btn,.nn-export-btn{padding:7px 16px;border-radius:var(--nn-radius-sm);font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}',
+    '.nn-edit-btn-save,.nn-export-primary{background:var(--nn-accent);color:var(--nn-bg);border:1px solid var(--nn-accent)}',
+    '.nn-edit-btn-cancel,.nn-export-secondary{background:var(--nn-surface);color:var(--nn-text);border:1px solid var(--nn-border)}',
     '.nn-modal-tabs{display:flex;border-bottom:1px solid var(--nn-border);background:var(--nn-surface-2);padding:0 12px;gap:4px}',
     '.nn-modal-tab-btn{padding:8px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--nn-muted);font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}',
     '.nn-modal-tab-btn.active{color:var(--nn-text);border-bottom-color:var(--nn-accent);background:var(--nn-surface)}',
@@ -2158,6 +2158,120 @@
     return li
   }
 
+  // ---- Change sheets (a change IS an element) ----
+  //
+  // One builder renders a change wherever the console lists changes: the element
+  // modal's Changes panel and the export modal's pending list. It reuses
+  // ElementCard — the same sheet the explorer renders — so a change inherits the
+  // console's real card anatomy (concept/name chips, collapsible field rows,
+  // citation widgets) instead of growing a second, unstyled card.
+  //
+  // `variant: 'draft'` reads an unsent draft (original/proposed, comment, sources);
+  // the default reads an applied change block (from/to, evidence, resolution).
+  function changeSheetFields(entry, opts) {
+    var e = entry || {}
+    opts = opts || {}
+    var variant = opts.variant || 'applied'
+    var op = opts.op || e.op || draftOp(e)
+    var fields = []
+    function push(name, value) {
+      if (value === undefined || value === null || value === '') return
+      fields.push({ name: name, value: String(value) })
+    }
+
+    if (variant === 'draft') {
+      // One scalar row carries the edit: `4 -> 6` reads better than two rows.
+      push('value', cardDiff(op, e))
+      push('concept', e.concept)
+    } else {
+      push('op', op)
+      push('target', e.target)
+      if (e.from !== undefined) fields.push({ name: 'from', value: String(e.from) })
+      if (e.to !== undefined) fields.push({ name: 'to', value: String(e.to) })
+      push('concept', e.concept)
+      push('name', e.name)
+    }
+    push('author', e.author)
+    // An applied block's `status` also feeds ElementCard's header status pill.
+    if (variant === 'applied') push('status', e.status)
+
+    // Evidence / sources are citations: the standard citation value widget keeps
+    // the icon live, so the reviewer opens the source from the change sheet.
+    var rawEvidence = variant === 'draft' ? e.sources || e.evidence : e.evidence
+    var evidenceList =
+      rawEvidence == null ? [] : Array.isArray(rawEvidence) ? rawEvidence : [rawEvidence]
+    evidenceList.forEach(function (src) {
+      if (src == null || src === '') return
+      var fieldName = variant === 'draft' ? 'sources' : 'evidence'
+      fields.push({
+        name: fieldName,
+        value: String(src),
+        type: 'citation',
+        citations: [
+          (variant === 'applied' && e.evidenceCitation) || {
+            origin: 'document',
+            path: String(src),
+            exists: true,
+            field: fieldName,
+          },
+        ],
+      })
+    })
+
+    if (variant === 'draft') {
+      push('notes', e.comment)
+    } else {
+      push('applied_at', e.timestamp)
+      push('notes', e.notes)
+      push('resolution', e.resolution)
+    }
+    return fields
+  }
+
+  // data: { entry, variant, stale }. opts: { open, collapsible, modelId, onCite, onDiscard }.
+  // The unsent signal is ONE badge in the sheet head (the same StatusBadge the
+  // review tab uses), never a `status` field row duplicating it.
+  function changeSheet(data, opts) {
+    if (!data || typeof data !== 'object') throw new TypeError('nnUI.changeSheet: data required')
+    opts = opts || {}
+    var doc = resolveDoc(opts)
+    var entry = data.entry || data
+    var variant = data.variant || 'draft'
+    var op = opts.op || entry.op || draftOp(entry)
+    var head = []
+    if (variant === 'draft' && typeof StatusBadge === 'function') {
+      var badge = StatusBadge({ status: 'local', label: COPY.unsent })
+      badge.classList.add('nn-change-card-badge')
+      head.push(badge)
+    }
+    if (data.stale) head.push(makeEl(doc, 'span', 'nn-change-sheet-stale', 'target changed'))
+    if (typeof opts.onDiscard === 'function' && entry.id != null) {
+      var discard = makeEl(doc, 'button', 'nn-change-sheet-discard', COPY.discard)
+      discard.setAttribute('type', 'button')
+      discard.addEventListener('click', function () {
+        opts.onDiscard(entry.id)
+      })
+      head.push(discard)
+    }
+    return ElementCard(
+      {
+        id: entry.id,
+        conceptId: 'Change',
+        concept: 'Change',
+        name: opts.title || cardTitle(op, entry),
+        fields: changeSheetFields(entry, { variant: variant, op: op }),
+      },
+      {
+        doc: doc,
+        modelId: opts.modelId,
+        collapsible: opts.collapsible !== false,
+        open: opts.open === true,
+        onCite: opts.onCite,
+        head: head,
+      },
+    )
+  }
+
   function draftOp(d) {
     if (d.matrix != null && d.matrix !== '') return 'update_matrix_cell'
     var canUpdate = !!d.field && d.proposed !== undefined
@@ -2677,51 +2791,13 @@
     })
     if (historyItems.length) {
       historyItems.forEach(function (h) {
-        var changeFields = []
-        var pushField = function (name, value) {
-          if (value === undefined || value === null || value === '') return
-          changeFields.push({ name: name, value: String(value) })
-        }
-        pushField('op', h.op)
-        pushField('target', h.target)
-        if (h.from !== undefined) changeFields.push({ name: 'from', value: String(h.from) })
-        if (h.to !== undefined) changeFields.push({ name: 'to', value: String(h.to) })
-        pushField('concept', h.concept)
-        pushField('name', h.name)
-        pushField('author', h.author)
-        pushField('status', h.status)
-        // Evidence is a citation: render it with the standard citation value widget
-        // (value + clickable icon) so the icon opens the citation/unit.
-        if (h.evidence) {
-          changeFields.push({
-            name: 'evidence',
-            value: String(h.evidence),
-            type: 'citation',
-            citations: [
-              h.evidenceCitation || {
-                origin: 'document',
-                path: String(h.evidence),
-                exists: true,
-                field: 'evidence',
-              },
-            ],
-          })
-        }
-        pushField('applied_at', h.timestamp)
-        pushField('notes', h.notes)
-        pushField('resolution', h.resolution)
         histSection.appendChild(
-          ElementCard(
-            {
-              id: h.id,
-              conceptId: 'Change',
-              concept: 'Change',
-              name: cardTitle(h.op, h),
-              fields: changeFields,
-            },
+          changeSheet(
+            { entry: h, variant: 'applied' },
             {
               doc: doc,
               collapsible: false,
+              open: true,
               onCite: opts && typeof opts.onEvidence === 'function' ? opts.onEvidence : undefined,
             },
           ),
@@ -4308,6 +4384,8 @@
     CITATION_ORIGIN_LABELS: CITATION_ORIGIN_LABELS,
     DraftList: DraftList,
     ChangeHistory: ChangeHistory,
+    changeSheet: changeSheet,
+    changeSheetFields: changeSheetFields,
     AnnotationPopover: AnnotationPopover,
     RailProgress: RailProgress,
     Toast: Toast,
