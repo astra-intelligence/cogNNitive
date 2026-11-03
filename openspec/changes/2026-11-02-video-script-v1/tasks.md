@@ -125,47 +125,47 @@ Design open items accepted as designed: A12 generic `.data.mjs` hook; A4 the age
 
 ## Slice 4: Series kinds, chrome, cascade
 
-- [ ] 4.1 RED: cascade order blueprint, domain, series, kind, video, scene; kind presets; fixed scenes; `Libre`; chrome per language; kind rule enforcement.
-- [ ] 4.2 GREEN: `lib/cascade.mjs`, `lib/kinds.mjs`; delete the `cli` level; delete `lib/video-scope.mjs`. Apply decisions 3, 4 and A6.
-- [ ] Verify: `node --test S/test`.
+- [x] 4.1 RED: cascade order blueprint, domain, series, kind, video, scene; kind presets; fixed scenes; `Libre`; chrome per language; kind rule enforcement.
+- [x] 4.2 GREEN: `lib/cascade.mjs`, `lib/kinds.mjs`; delete the `cli` level; delete `lib/video-scope.mjs`. Apply decisions 3, 4 and A6.
+- [x] Verify: `node --test S/test`.
 
 ## Slice 5: Staging and project layout
 
-- [ ] 5.1 RED: `linkOrCopy` with injected `EXDEV`, `nlink >= 2`, no write-open of staged assets, no `build/`, master named `<slug>_<W>x<H>.mp4`, `image_size` in cache key and catalog `sizes`, missing GSAP fails loudly.
-- [ ] 5.2 GREEN: `lib/stage-assets.mjs`; modify `scene-project.mjs`, `hyperframes-render.mjs`, `cache-manager.mjs` (read-only cache files), `ensure-hyperframes.mjs`; pin `gsap` exactly.
-- [ ] 5.3 Manual spike: render the pilot in link and forced-copy modes; masters must be byte-identical. Record in apply-progress.
-- [ ] Verify: `node --test S/test`.
+- [x] 5.1 RED: `linkOrCopy` with injected `EXDEV`, `nlink >= 2`, no write-open of staged assets, no `build/`, master named `<slug>_<W>x<H>.mp4`, `image_size` in cache key and catalog `sizes`, missing GSAP fails loudly.
+- [x] 5.2 GREEN: `lib/stage-assets.mjs`; modify `scene-project.mjs`, `hyperframes-render.mjs`, `cache-manager.mjs` (read-only cache files), `ensure-hyperframes.mjs`; pin `gsap` exactly.
+- [x] 5.3 Manual spike: render the pilot in link and forced-copy modes; masters must be byte-identical. Record in apply-progress.
+- [x] Verify: `node --test S/test`.
 
 ## Slice 6: Timings
 
-- [ ] 6.1 RED: timing row schema, fingerprint (first 12 hex of sha256 of `machine` without `fp`), write failure does not stop a run.
-- [ ] 6.2 GREEN: timings in `lib/facts.mjs`, stage hooks in `lib/compile.mjs`, `lib/render.mjs`.
+- [x] 6.1 RED: timing row schema, fingerprint (first 12 hex of sha256 of `machine` without `fp`), write failure does not stop a run.
+- [x] 6.2 GREEN: timings in `lib/facts.mjs`, stage hooks in `lib/compile.mjs`, `lib/render.mjs`.
 
 ## Slice 7a: `produce` core
 
-- [ ] 7a.1 RED: integration tests on a tmp domaiNN with injected synthesizer and `hyperframesRun`: every transition, exit codes 0/10/11/1, intake dry-apply, skip never bypasses budget, resume, refusal of non-V_0-15-0 episodes.
-- [ ] 7a.2 GREEN: `S/scripts/produce.mjs`, `lib/episode.mjs`, `lib/changes.mjs` (engine changesets via `writeProposedChangeset` and `executeChangesetApply`). Apply decision 5.
+- [x] 7a.1 RED: integration tests on a tmp domaiNN with injected synthesizer and `hyperframesRun`: every transition, exit codes 0/10/11/1, intake dry-apply, skip never bypasses budget, resume, refusal of non-V_0-15-0 episodes.
+- [x] 7a.2 GREEN: `S/scripts/produce.mjs`, `lib/episode.mjs`, `lib/changes.mjs` (engine changesets via `writeProposedChangeset` and `executeChangesetApply`). Apply decision 5.
 
 ## Slice 7b: Remove old pipeline
 
-- [ ] 7b.1 Delete `video-engine-cli`, `build-script-from-draft`, `build-draft-html`, `draft-template.html`, `finalize-video`, `approve-plan`, `lib/legacy-draft-keys.mjs` and their tests.
-- [ ] 7b.2 Delete standalone CLIs of `synthesize-avatar.mjs` and `tts-generator.mjs` unless a test needs them.
-- [ ] Verify: `node --test S/test`, `node scripts/verify.js`.
+- [x] 7b.1 Delete `video-engine-cli`, `build-script-from-draft`, `build-draft-html`, `draft-template.html`, `finalize-video`, `approve-plan`, `lib/legacy-draft-keys.mjs` and their tests.
+- [x] 7b.2 Delete standalone CLIs of `synthesize-avatar.mjs` and `tts-generator.mjs` unless a test needs them.
+- [x] Verify: `node --test S/test`, `node scripts/verify.js`.
 
 ## Slice 8: Exporter hook and Episode review view
 
-- [ ] 8.1 RED (jsdom pragma): view mounts via `registerView`, emits `update_field` and `comment`, reads `ctx.viewData`, export under 5 MB; exporter test for `.data.mjs` `collect`.
-- [ ] 8.2 GREEN: `scripts/export-console.mjs` hook; `.../assets/console-view-episode-review.js` and `.data.mjs`. Needs A12 confirmed.
+- [x] 8.1 RED (jsdom pragma): view mounts via `registerView`, emits `update_field` and `comment`, reads `ctx.viewData`, export under 5 MB; exporter test for `.data.mjs` `collect`.
+- [x] 8.2 GREEN: `scripts/export-console.mjs` hook; `.../assets/console-view-episode-review.js` and `.data.mjs`. Needs A12 confirmed.
 
 ## Slice 9: Series view
 
-- [ ] 9.1 RED (jsdom): cost and timings from JSONL, stale-price warning, computed index.
-- [ ] 9.2 GREEN: `console-view-series.js` and `.data.mjs`.
+- [x] 9.1 RED (jsdom): cost and timings from JSONL, stale-price warning, computed index.
+- [x] 9.2 GREEN: `console-view-series.js` and `.data.mjs`.
 
 ## Slice 10: Draft procedure and docs
 
-- [ ] 10.1 Draft procedure under `.../coNNtent/procedures/` emitting a sealed changeset P; apply decision 7.
-- [ ] 10.2 Update `S/SKILL.md`, `references/{folder-contract,parameters,cost-guardrails}.md`; add `prune-duplicates.mjs --dry-run` with a test that only cache-identical bytes qualify.
+- [x] 10.1 Draft procedure under `.../coNNtent/procedures/` emitting a sealed changeset P; apply decision 7.
+- [x] 10.2 Update `S/SKILL.md`, `references/{folder-contract,parameters,cost-guardrails}.md`; add `prune-duplicates.mjs --dry-run` with a test that only cache-identical bytes qualify.
 
 ## Slice 11: Pilot port (manual, maintainer-run, outside the repo)
 
