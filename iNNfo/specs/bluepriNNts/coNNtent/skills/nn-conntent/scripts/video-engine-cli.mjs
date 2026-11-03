@@ -28,6 +28,7 @@ import { loadCascadeBags, resolve, resolveKeyed, findNearest, findNearestByStem,
 import { applyCachedAvatars } from './lib/avatar-jobs.mjs';
 import { buildTtsVoiceOptions } from './lib/tts-options.mjs';
 import { buildImageOptions } from './lib/image-options.mjs';
+import { appendTimingRow, timingRow } from './lib/facts.mjs';
 import { warnUnpricedAllowedModels } from './asset-cost-estimator.mjs';
 import { loadFrame } from './lib/frame-tokens.mjs';
 import { probeDuration } from './lib/media-duration.mjs';
@@ -727,6 +728,28 @@ export async function compileVideo(options) {
  * @param {VideoRenderOptions} options
  * @returns {Promise<RenderSummary>}
  */
+/**
+ * Appends one stage timing row when a run carries a `facts` context. A timing failure only
+ * warns (capability video-run-facts), so it can never stop a render.
+ */
+function recordStage(facts, { stage, start, end, render, cache, outcome }) {
+  if (!facts || !facts.rootDir) return;
+  appendTimingRow(
+    facts.rootDir,
+    timingRow({
+      runId: facts.runId || 'run',
+      episode: facts.episode || 'unknown',
+      planHash: facts.planHash || '',
+      stage,
+      start,
+      end,
+      linkMode: facts.linkMode,
+      render,
+      cache,
+      outcome,
+    }),
+  );
+}
 export async function renderVideo(options) {
   const startTime = Date.now();
   const onProgress = options.onProgress || (() => {});
@@ -740,6 +763,7 @@ export async function renderVideo(options) {
   if (options.manifestPath && fs.existsSync(path.resolve(options.manifestPath))) {
     manifest = JSON.parse(fs.readFileSync(path.resolve(options.manifestPath), 'utf8'));
   } else if (options.scriptPath) {
+    const compileStart = Date.now();
     const compRes = await compileVideo({
       scriptPath: options.scriptPath,
       fps: options.fps,
@@ -753,6 +777,12 @@ export async function renderVideo(options) {
       approvalPath: options.approvalPath,
       models: options.models,
       onProgress,
+    });
+    recordStage(options.facts, {
+      stage: 'compile',
+      start: compileStart,
+      end: Date.now(),
+      cache: { hits: compRes.cachedAssetsUsed || 0, misses: compRes.newAssetsSynthesized || 0 },
     });
     manifest = compRes.manifest;
     cachedAssetsUsed = compRes.cachedAssetsUsed;
@@ -795,6 +825,7 @@ export async function renderVideo(options) {
   const projectDir = path.join(buildDir, 'hyperframes');
   const renderDeps = { onProgress };
   if (options.hyperframesRun) renderDeps.run = options.hyperframesRun;
+  const renderStart = Date.now();
   const hfResult = await tryHyperframesRender(
     {
       manifest,
@@ -805,6 +836,18 @@ export async function renderVideo(options) {
     },
     renderDeps,
   );
+  recordStage(options.facts, {
+    stage: 'render',
+    start: renderStart,
+    end: Date.now(),
+    render: {
+      frames: manifest.totalDurationInFrames,
+      fps_effective: manifest.fps,
+      width: manifest.width || 1920,
+      height: manifest.height || 1920,
+    },
+    outcome: hfResult.rendered ? 'ok' : 'failed',
+  });
 
   let mocked = false;
   if (!hfResult.rendered) {

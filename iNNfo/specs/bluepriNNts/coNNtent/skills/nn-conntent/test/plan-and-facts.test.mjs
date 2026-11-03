@@ -128,3 +128,39 @@ test('a timing row carries the stage schema and a write failure only warns', () 
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('a render records compile and render timing rows when a facts context is passed', async () => {
+  const { renderVideo } = await import('../scripts/video-engine-cli.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'facts-render-'));
+  try {
+    fs.writeFileSync(path.join(root, 'domaiNN_NN.md'), '# NN DomaiNN\n', 'utf8');
+    const scriptPath = path.join(root, 'timed_NN.md');
+    fs.writeFileSync(
+      scriptPath,
+      '---\nlevel: 3\ntitle: "Timed"\n---\n\n# NN Video\n\n## NN Video: Timed\nslug:: timed\ntitle:: Timed\n\n# NN Scene\n\n## NN Scene: One\nslug:: one\n\nOne two three four five.\n',
+      'utf8',
+    );
+    await renderVideo({
+      scriptPath,
+      cacheDir: path.join(root, 'cache'),
+      synthesizeAssets: false,
+      facts: { rootDir: root, runId: 'run-1', episode: 'timed', planHash: 'abc' },
+      hyperframesRun: async (cmd, args) => {
+        fs.writeFileSync(args[args.indexOf('--output') + 1], 'fake-mp4');
+        return { status: 0 };
+      },
+    });
+    const rows = readTimingRows(root);
+    const stages = rows.map((r) => r.stage);
+    assert.ok(stages.includes('compile'), `stages: ${stages.join(',')}`);
+    assert.ok(stages.includes('render'), `stages: ${stages.join(',')}`);
+    const render = rows.find((r) => r.stage === 'render');
+    assert.equal(render.plan_hash, 'abc');
+    assert.equal(render.episode, 'timed');
+    assert.equal(render.link_mode, 'link');
+    assert.ok(render.render.frames > 0);
+    assert.equal(verifyFingerprint(render.machine), true);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
