@@ -79,11 +79,16 @@ below is what `produce` does; the primitive commands are for debugging a single 
 1b. **Review Gate** (the Episode document is the record; the console view is the UI):
    The episode declares `review::` (skip or required) and each scene carries its own approval.
    `produce` refuses to spend while a scene is unapproved and, when a reviewer left a
-   `needs-change` comment, prints that comment verbatim. The Episode review view
-   (`assets/console-view-episode-review.js`) writes the same decisions as `update_field` and
-   `comment` changesets — it is a view over the document, not a separate JSON store. There is no
-   `draft.json`, `reviewed.json`, `review_console.html` or `draft_thumbs/`: those artifacts are
-   retired.
+   `needs-change` comment, prints that comment verbatim. Two console views ship with the
+   blueprint:
+   - **Episode review** (`assets/console-view-episode-review.js`): the episode's Scenes in
+     order with kind, narration, a verdict control and a comment box, one ordered Preset
+     selector, and the estimate against the budget. Every edit is a changeset operation.
+   - **Series** (`assets/console-view-series.js`): the Series' episodes grouped by state,
+     their real cost from the ledger and their stage timings across machines.
+   Both read the exporter's facts through `ctx.viewData`; neither keeps a private copy of a
+   decision. There is no `draft.json`, `reviewed.json`, `review_console.html` or
+   `draft_thumbs/`: those artifacts are retired.
 2. **Validate**: the document is validated against the `coNNtent` blueprint (innfo-core `validate_knowledge` / the engine pre-compile guard); the engine refuses an invalid document with a named, non-zero error before any manifest.
 3. **Plan, Estimate & Consult Providers (Pre-Generation Gate)**:
    ```bash
@@ -122,7 +127,16 @@ below is what `produce` does; the primitive commands are for debugging a single 
    node scripts/produce.mjs <episode-dir> [--approve <plan_hash>] [--dry-run]
    ```
    *`produce` derives the delivery files from the master — `<slug>_1080x1920.mp4`, `<slug>_1920x1080.mp4` and `<slug>_1080x1080.mp4` according to `output_formats` — writes the chapters into `description.md`, sets `master::` and `thumbnail::` on the Video element, and moves the Episode to `status:: produced`. A format with no preset is `unsupported-format`, never a guess. It never writes a manifest by hand: `compile` owns `hyperframes/manifest.json`.*
-9. **Closing Retrospective & Improvement Analysis**:
+9. **Housekeeping (optional)**:
+   ```bash
+   node scripts/prune-duplicates.mjs <episode-or-series-dir> [--apply] [--json]
+   ```
+   *Reports files whose exact bytes and extension already exist in the provider cache, then
+   deletes them only with `--apply` — this is the one cleanup that removes authored files, so
+   the default is a dry run. A same-name-different-bytes file, another extension and anything
+   the cache does not hold byte-for-byte are left alone, and the cache entry is never deleted.
+   Run it before archiving a Series.*
+10. **Closing Retrospective & Improvement Analysis**:
    After completing the script elaboration or rendering session, proactively prompt the user asking if they want to analyze the session's conversation to suggest concrete refinements for future episodes.
 
 ## 3. Tooling Reference
@@ -149,6 +163,7 @@ below is what `produce` does; the primitive commands are for debugging a single 
 | `scripts/lib/compile.mjs` | The compile primitive: validates, resolves the cascade, synthesizes missing assets, stages them and writes `hyperframes/manifest.json`. `--dry-run` previews spend. |
 | `scripts/lib/render.mjs` | The render primitive: takes the script, compiles, and writes the master in place. The size comes from `output_formats`. |
 | `scripts/lib/series-doc.mjs` | Reads a Series' `<series>_scope_NN.md` document (title, slug, fields). |
+| `scripts/prune-duplicates.mjs` | Reports (or, with `--apply`, deletes) episode files whose exact bytes and extension already exist in the provider cache. The cache entry is never touched. |
 | `scripts/render-formats.mjs` | The one derivation from the master: `_1080x1920` and `_1920x1080` are the central 1080 crops, `_1080x1080` is a lanczos scale, and `--fill blur` is an opt-in with a `_blur` suffix. |
 | `scripts/render-thumbnail.mjs` | Programmatic thumbnail compositor: renders a one-frame HyperFrames composition (base image + typography + brand pill) through the pinned CLI. `--series <dir>` (or the cascade from `--out`) fills subtitle/badge from the Series `title`; font/accent come from the resolved `frame` tokens. |
 
