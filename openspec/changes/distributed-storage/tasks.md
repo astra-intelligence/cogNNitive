@@ -64,8 +64,8 @@ Depends on: `dev` at or after merge `81837577` (lineage-as-changes merged).
 Files: `core/validator/knowledge-checks.ts` (M, `checkProvenanceBan` at line 350, the equality test `/V_0-6-0/i` at about line 360); `core/validator/knowledge-checks.spec.ts` (M; design named `tests/validator/knowledge-checks.test.ts`, which does not exist).
 First failing test: a document pinned to `iNNfo_V_0-7-0` still raises `SOURCES_FIELD_BANNED`; `V_0-10-0` is later than `V_0-6-0` (numeric comparison, not lexicographic); `V_0-5-9` is not banned.
 
-- [ ] S0.1 [RED] [S] Add the three cases above to `core/validator/knowledge-checks.spec.ts`. (design A17; lineage-as-changes regression)
-- [ ] S0.2 [GREEN] [S] Replace the equality test with a numeric L1-version comparison helper `l1AtLeast(scope, 'V_0-6-0')` in the same file; no regex per version.
+- [x] S0.1 [RED] [S] Add the three cases above to `core/validator/knowledge-checks.spec.ts`. (design A17; lineage-as-changes regression)
+- [x] S0.2 [GREEN] [S] Replace the equality test with a numeric L1-version comparison helper `l1AtLeast(scope, 'V_0-6-0')` in the same file; no regex per version.
 - [ ] S0.3 [S] Standard PR gate. Open PR 1.
 
 Verification: `npm --workspace=@cognnitive/nn-core test -- knowledge-checks`, `npm run verify:fast`.
