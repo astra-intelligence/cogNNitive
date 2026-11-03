@@ -229,3 +229,41 @@ All three slices of the batch are closed. The batch is ready for its single PR.
 
 Verification at the batch tip: skill suite 467 tests, 467 pass; `node scripts/verify.js` green;
 nothing merged to `dev`/`main`; no tag; `video_NN` untouched.
+
+PR: https://github.com/cogNNitive/cogNNitive/pull/492 (base `feature/conntent-v1-3b`), merged as
+merge commit `34b22907`.
+
+## Slice 7a — `produce` state machine and engine changesets
+
+- Branch: `feature/conntent-v1-7a` (base `feature/conntent-v1-3b`, tip `34b22907`)
+- TDD: RED first (`test/produce.test.mjs`, 13 tests), then GREEN.
+- Changes:
+  - `scripts/produce.mjs`: `produce <episode-doc-or-folder> [--approve <plan_hash>] [--dry-run]`. The
+    one command runs intake, the review gate, the estimate, the budget gate, compile+render and the
+    lifecycle writes in a fixed order, and refuses model-id/output-size flags (the cascade has no
+    `cli` level).
+  - Exit codes: `0` done, `10` awaiting review, `11` over budget or budget unset, `1` every other
+    named error. A stop leaves no partial spend.
+  - `scripts/lib/episode.mjs`: `EPISODE_STATUSES`, `readEpisode`, `unknownKeys` (the intake's field
+    guard, since the apply engine does not police unknown keys), `assertProducible` (refuses
+    `published`/`archived` and a `blueprint_version` that is not the installed one),
+    `resolveForEpisode`, `pendingReviews`.
+  - `scripts/lib/changes.mjs`: the only write path, through the mirror's `writeProposedChangeset` +
+    `executeChangesetApply` (`applyChanges`, `applyChangesetFile`, `fieldChange`, `removeElement`),
+    `readComments` (the reviewer's reason lives in an applied `comment` op, design A3), and
+    `dryApply` (applies the proposal to a throwaway copy of the workspace so an invalid P changes
+    nothing).
+  - `lib/field-consumers.mjs`: `status`, `master`, `budget`, `script_review`, `review`, `language`
+    and `kind` became real consumers; the remaining `PLANNED_CONSUMERS` entries name the slice that
+    will read them (7b/8/10).
+  - The workspace fixture for the apply engine is `specs/bluepriNNts/coNNtent/spec_NN.md` (the
+    versioned package resolver's unversioned workspace tier), which is how the tests run a real
+    changeset cycle in a tmp domaiNN.
+- Verification: skill suite 480 tests, 480 pass; `node scripts/verify.js` green.
+- Deviations: the proposal file name is `proposal_changes_NN.md` in the episode folder (a fixed
+  working-file name); the design did not fix one. `Variant` removal on approval (design A3) is not
+  implemented yet: no variant elements are authored before Slice 8, and the removal belongs with
+  the review view. Delivery formats are derived only for the three dimension presets the derivation
+  knows; another declared size fails with `unsupported-format` instead of guessing.
+- Open issues: `daily_budget` and the stale-price warning line are still planned (Slice 10); the
+  formats derivation for a non-1920x1920 master is a Slice 5 follow-up recorded here.
