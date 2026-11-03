@@ -315,3 +315,41 @@ merge commit `34b22907`.
     yet.
   - `produce` must own the avatar stage (then the `synthesize-avatar` CLI can be reconsidered).
   - `PLANNED_CONSUMERS` still carries entries pointing at closed slices.
+
+## Slice 8 - the view data hook and the Episode review view
+
+- Branch: `feature/conntent-v1-8` (base `feature/conntent-v1-3b`, tip `42322660`)
+- TDD: RED first (`test/console-view-data.test.mjs` 5 tests, `test/console-view-episode-review.test.mjs`
+  10 tests, plus the Variant case in `test/produce.test.mjs`), then GREEN.
+- Changes:
+  - `scripts/console-views.mjs`: a view may ship a sibling `<view>.data.mjs`. `viewFiles` pairs it
+    with its view and refuses an orphan data module by name; `collectViewData({ views, rootDir,
+    models })` imports each one at export time and calls `collect()` (decision A12).
+  - `scripts/export-console.mjs`: runs the hook and injects the result into a new
+    `nn-view-data` slot as `payload.viewData[<viewId>]`, on the same serialization path as the
+    schema and model slots.
+  - `iNNfo/specs/bluepriNNts/console/artifact_shell.html`: the `nn-view-data` slot.
+  - `iNNfo/specs/bluepriNNts/console/nn-runtime.js`: `parseViewData` (absent means `{}`, corrupt is
+    loud), `ctx.payload.viewData` (the whole map) and `ctx.viewData` (this view's entry).
+    Bundle rebuilt and the testlab fixture regenerated.
+  - `coNNtent/assets/console-view-episode-review.js` + `.data.mjs`: the view lists the Episode's
+    Scenes in document order with kind, narration, a verdict control and a comment box, one
+    ordered Preset selector, and the estimate against the budget. Every edit goes through
+    `ctx.store.propose` as a `correction` (`update_field`) or a `comment`; it keeps no private
+    copy and bakes in no tier label. The data module reads `.cognnitive/video/{ledger,timings}.jsonl`
+    (decision A13) and returns per-episode cost and timings; missing files mean "no facts yet".
+  - `scripts/produce.mjs`: once the review gate passes, the consumed `Variant` elements are removed
+    through `removeElement` in one engine changeset (design A3). `script_review:: skip` keeps them.
+- Verification: skill suite 411 tests green; `node scripts/verify.js` green (233 steps).
+- Deviations:
+  - `ctx.viewData` is this view's slice and `ctx.payload.viewData` is the whole map keyed by view
+    id. A12 said "exposed as `ctx.viewData`" without fixing which of the two; both are exposed so
+    neither reading is wrong, and the test pins the behaviour.
+  - A `Variant` element carries only `for::` (the target field): the parsed model has no link to its
+    Scene. Since produce only proceeds when every Scene is approved, retiring every Variant of the
+    episode is unambiguous. A per-Scene scoping would need a parent field in the document model.
+  - The draft-console leftovers (`draft_thumbs`, the Quine export) died with the files deleted in
+    Slice 7b; there was nothing else to remove.
+- Open issues: the Series view (Slice 9) still needs its own `.data.mjs` for the cross-machine
+  comparison and the stale-price flag.
+
