@@ -409,3 +409,36 @@ merge commit `34b22907`.
     saying they are still planned. The audit only fails on a field that is in none of the
     three maps, so this is honest debt, not a broken gate.
 
+
+## Not a slice - closing the declared debt
+
+- Branch: `feature/conntent-v1-debt` (base `feature/conntent-v1-3b`, tip `2b6e3b47`)
+- TDD: RED first (two `produce` cases on a tmp domaiNN with a domain-level `daily_budget`),
+  then GREEN.
+- Changes:
+  - `scripts/produce.mjs`: `daily_budget::` is enforced. It is a domain/blueprint cascade
+    field and a rolling 24h ceiling: `produce` sums what the facts ledger charged in the last
+    24h and stops with `daily-budget-exceeded` (exit 11) when this run's estimate would pass
+    it. `--approve` never bypasses it - that flag is about the Episode's `budget::` only.
+  - `lib/field-consumers.mjs`: `daily_budget` is a real consumer and leaves
+    `PLANNED_CONSUMERS`.
+  - `SKILL.md` and `references/cost-guardrails.md`: the daily ceiling, and the plan's
+    stale-price warning, documented next to the budget gate.
+  - `openspec/changes/2026-11-02-video-script-v1/tasks.md`: every completed slice is ticked.
+    Only Slice 11 (the maintainer's pilot, outside the repo) is still open.
+- Verification: skill suite 420 tests, 420 pass; `node scripts/verify.js` green (233 steps).
+- Still open after this pass (deliberately, with reasons):
+  - `lib/knowledge-model.mjs` and `lib/video-scope.mjs`: `specs/video-script-skill/spec.md:58`
+    says the skill MUST NOT contain them, and they are still imported across `produce`,
+    `render-thumbnail` and most tests. Removing them is the mirror/cascade/registry
+    replacement - a refactor with its own red-green cycle, not a delete line. No gate
+    enforces the clause yet, which is the real risk: a future reader will assume it is done.
+  - `produce` does not drive the avatar stage, so `synthesize-avatar.mjs` keeps its CLI
+    (spec.md:88 lists it as a permitted primitive). An episode with `talking_avatar` layers
+    needs that manual step before render.
+  - `PLANNED_CONSUMERS` still lists authoring fields of closed slices and the three
+    publication fields (`script`, `published_url`, `thumbnail`).
+  - The `daily_budget` check is a gate, not a per-call cap: a single run that passes the gate
+    can still overshoot by one run's worth. Tightening it means a second rolling window
+    inside `SpendGuard`.
+

@@ -244,6 +244,44 @@ An alternative opening line.
   }
 });
 
+test('daily_budget stops the run when the 24h window would be exceeded', async () => {
+  const ws = workspace(episodeDoc({ status: 'draft', review: 'skip' }));
+  try {
+    // daily_budget is a domain-level ceiling (design A14).
+    const defaultsPath = path.join(ws.root, 'video-defaults_NN.md');
+    fs.appendFileSync(defaultsPath, '\ndaily_budget:: 0.001\n', 'utf8');
+
+    // A row already spent inside the window leaves no headroom for this episode.
+    const factsDir = path.join(ws.root, '.cognnitive', 'video');
+    fs.mkdirSync(factsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(factsDir, 'ledger.jsonl'),
+      JSON.stringify({ v: 2, ts: new Date().toISOString(), episode: 'other', stage: 'tts', est_usd: 0.5 }) + '\n',
+      'utf8',
+    );
+
+    await assertStop(
+      produce({ episodePath: ws.scriptPath, deps: { render: fakeRender().render, log: () => {} } }),
+      'daily-budget-exceeded',
+      EXIT_BUDGET,
+    );
+  } finally {
+    done(ws.root);
+  }
+});
+
+test('daily_budget leaves a run alone when there is headroom', async () => {
+  const ws = workspace(episodeDoc({ status: 'draft', review: 'skip' }));
+  try {
+    const defaultsPath = path.join(ws.root, 'video-defaults_NN.md');
+    fs.appendFileSync(defaultsPath, '\ndaily_budget:: 100\n', 'utf8');
+    const result = await produce({ episodePath: ws.scriptPath, deps: { render: fakeRender().render, log: () => {} } });
+    assert.equal(result.code, EXIT_DONE);
+  } finally {
+    done(ws.root);
+  }
+});
+
 test('a stale --approve hash stops again', async () => {
   const ws = workspace(episodeDoc({ status: 'draft', budget: '0.0001' }));
   try {

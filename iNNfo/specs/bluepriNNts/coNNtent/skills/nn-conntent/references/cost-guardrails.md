@@ -97,6 +97,15 @@ stale: the estimate still uses it (it is the best number available) but the plan
 changes `plan_hash` or the total, and it never blocks a run. Refresh the catalog instead of
 editing the estimate.
 
+## 2c. The daily ceiling
+
+`daily_budget::` is declared at the domaiNN or bluepriNNt level (never per episode) and is a
+rolling 24h ceiling, not a per-run one. `produce` sums what the facts ledger charged in the
+last 24h and stops with exit 11 when this run's estimate would pass `daily_budget`.
+`--approve` never bypasses it: that flag is about the Episode's `budget::` only. The
+per-call safety caps (`budgetPerRunUsd`, `dailyCapUsd` in `video-guard.json`) still apply
+during the run; `daily_budget` is the author's intent, those are the machine's guard rails.
+
 ## 3. Dry run
 
 `node scripts/lib/compile.mjs compile <script.md> --dry-run` lists every

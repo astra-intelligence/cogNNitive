@@ -38,7 +38,7 @@ import {
 } from './lib/changes.mjs';
 import { estimateScriptCost } from './asset-cost-estimator.mjs';
 import { randomUUID } from 'node:crypto';
-import { readTimingRows } from './lib/facts.mjs';
+import { readTimingRows, readLedgerRows } from './lib/facts.mjs';
 import { chapterLines, readManifestForFinalize } from './lib/description.mjs';
 import { DELIVERY_FORMATS, renderFormats } from './render-formats.mjs';
 import { renderVideo } from './lib/render.mjs';
@@ -229,6 +229,30 @@ export async function produce(options) {
         `Approve it explicitly with --approve ${planHash}, or lower the script.`,
       { exitCode: EXIT_BUDGET, details: { planHash, total, budget: budgetUsd } },
     );
+  }
+
+  // The rolling daily ceiling is a domain/blueprint declaration (design A14), not a
+  // per-run knob: it is checked against what the facts ledger already charged in the
+  // last 24h. `--approve` is about the episode's budget, never about the daily ceiling.
+  const dailyBudget = resolveForEpisode(episode.model, scriptPath, 'daily_budget').value;
+  const dailyBudgetUsd = dailyBudget === null || dailyBudget === undefined || dailyBudget === '' ? null : Number(dailyBudget);
+  if (dailyBudgetUsd !== null && Number.isFinite(dailyBudgetUsd)) {
+    const now = Date.now();
+    const spent24h = readLedgerRows(rootDir).reduce((sum, row) => {
+      const ts = Date.parse(row.ts);
+      if (!Number.isFinite(ts) || now - ts > 24 * 60 * 60 * 1000) return sum;
+      const usd = Number(row.est_usd);
+      return sum + (Number.isFinite(usd) && usd > 0 ? usd : 0);
+    }, 0);
+    if (spent24h + total > dailyBudgetUsd + 1e-9) {
+      throw new ProduceStop(
+        'daily-budget-exceeded',
+        `The 24h window already spent $${spent24h.toFixed(4)} and this run estimates $${total.toFixed(4)}, ` +
+          `over the daily_budget $${dailyBudgetUsd.toFixed(2)} (plan ${planHash.slice(0, 8)}). ` +
+          'Lower the script, or raise daily_budget at the domain level. --approve does not bypass this ceiling.',
+        { exitCode: EXIT_BUDGET, details: { planHash, total, dailyBudget: dailyBudgetUsd, spent24h } },
+      );
+    }
   }
 
   if (options.dryRun) {
