@@ -29,6 +29,7 @@ import { applyCachedAvatars } from './lib/avatar-jobs.mjs';
 import { buildTtsVoiceOptions } from './lib/tts-options.mjs';
 import { buildImageOptions } from './lib/image-options.mjs';
 import { appendTimingRow, timingRow } from './lib/facts.mjs';
+import { assertImageSize, loadMergedCatalog } from './lib/catalog.mjs';
 import { warnUnpricedAllowedModels } from './asset-cost-estimator.mjs';
 import { loadFrame } from './lib/frame-tokens.mjs';
 import { probeDuration } from './lib/media-duration.mjs';
@@ -452,6 +453,7 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
       if (!prompt) continue;
       const imageModel = normalizeModelId(resolve('image_model', bags).value);
       const imageSize = resolve('image_size', bags).value;
+      if (imageSize) assertImageSize(loadMergedCatalog({ overlay: null }), imageModel, imageSize);
       const mediaOptions = buildImageOptions(sc, layer, { ...models, image: imageModel, imageSize });
       const ref = `${sc.id}/${layer.name}`;
       onProgress({ phase: 'media-start', done: mediaDone, total: mediaTotal, scene: sc.id, model: imageModel });
