@@ -32,12 +32,12 @@ import { fileURLToPath } from 'node:url';
 import { AssetSynthesizer, BillingFailureError, probeAudioDurationDetailed } from './asset-synthesizer.mjs';
 import { CacheManager } from './cache-manager.mjs';
 import { estimateCallUsd } from './asset-cost-estimator.mjs';
-import { loadCascadeBags } from './lib/video-scope.mjs';
+import { loadCascadeBags, resolve } from './lib/video-scope.mjs';
 import { SceneCompiler, ScriptValidationError } from './scene-compiler.mjs';
 import { loadKnowledgeModel } from './lib/knowledge-model.mjs';
 import { withScriptPresets } from './lib/video-scope.mjs';
 import { APPROVAL_FILENAME, checkApproval } from './lib/plan-approval.mjs';
-import { LOCKS_RELATIVE_DIR, SpendGuard, loadGuard, resolveDefaultCacheDir } from './lib/video-guard.mjs';
+import { LOCKS_RELATIVE_DIR, SpendGuard, loadGuard, normalizeModelId, resolveDefaultCacheDir } from './lib/video-guard.mjs';
 import { collectAvatarJobs } from './lib/avatar-jobs.mjs';
 import { appendPending, findOutstanding, latestPending } from './lib/pending-predictions.mjs';
 import { acquireLock } from './lib/file-lock.mjs';
@@ -78,10 +78,6 @@ function buildResumeCommand(o, sceneIds, taskId) {
   args.push('--resume', String(taskId));
   if (o.cacheDir) args.push('--cache-dir', path.resolve(o.cacheDir));
   if (o.approvalPath) args.push('--approval', path.resolve(o.approvalPath));
-  const m = o.models || {};
-  if (m.avatar) args.push('--avatar-model', m.avatar);
-  if (m.tts) args.push('--tts-model', m.tts);
-  if (m.image) args.push('--image-model', m.image);
   for (const a of o.allowModels || []) args.push('--allow-model', a);
   if (o.pollWindowMs) args.push('--poll-window', String(o.pollWindowMs / 60000));
   return args.map(quote).join(' ');
@@ -112,14 +108,16 @@ export async function synthesizeAvatars(o) {
   const measure = o.measureDuration
     ? async (f) => ({ seconds: Number(await o.measureDuration(f)) })
     : (f) => probeAudioDurationDetailed(f, o.probeDeps || {});
-  const models = o.models || {};
   const allowModels = o.allowModels || [];
   const windowMs = o.pollWindowMs ?? DEFAULT_POLL_WINDOW_MS;
   const scriptContent = fs.readFileSync(scriptPath, 'utf8');
   const scriptDir = path.dirname(scriptPath);
-  const bags = {
-    ...(o.bags || loadCascadeBags(scriptDir)),
-    cli: { voice_model: models.tts, image_model: models.image, avatar_model: models.avatar },
+  // No `cli` cascade level: the models come from the documents, never a flag.
+  const bags = o.bags || loadCascadeBags(scriptDir);
+  const models = o.models || {
+    image: normalizeModelId(resolve('image_model', bags).value),
+    tts: normalizeModelId(resolve('voice_model', bags).value),
+    avatar: normalizeModelId(resolve('avatar_model', bags).value),
   };
   const loaded = loadGuard(scriptDir);
   const cacheDir = o.cacheDir || resolveDefaultCacheDir(scriptDir);
@@ -347,7 +345,6 @@ export const USAGE = [
   '  --allow-model <name>     unlock a blocked model; must be recorded in the human approval (repeatable)',
   '  --approval <file>        approved plan (default <script dir>/asset_plan.approved.json)',
   '  --cache-dir <dir>        cache dir (default <workspace>/.cognnitive/cache/video)',
-  '  --avatar-model <id> / --tts-model <id> / --image-model <id>   same values as given to the estimator (part of plan_hash)',
   'Run compile first (it populates the TTS cache this reads; no staged audio file; an entry for older narration is not served). Needs WAVESPEED_API_KEY and a',
   'human-approved plan. Billed seconds = ceil(measured audio seconds); audio over maxAvatarSeconds is refused.',
   'Exit codes: 0 ok, 1 refused or failed, 3 resumable (timeout or recoverable failure; the exact command is printed).',
@@ -358,7 +355,7 @@ async function main() {
   try {
     parsed = parseArgs(process.argv.slice(2), {
       boolean: ['dry-run', 'force-resubmit'],
-      value: ['resume', 'poll-window', 'approval', 'cache-dir', 'avatar-model', 'tts-model', 'image-model'],
+      value: ['resume', 'poll-window', 'approval', 'cache-dir'],
       repeatable: ['scene', 'allow-model'],
     });
     if (parsed.flags['dry-run'] && parsed.flags.resume) throw new CliUsageError('--dry-run cannot be combined with --resume');
@@ -388,7 +385,6 @@ async function main() {
       allowModels: f['allow-model'],
       approvalPath: f.approval,
       cacheDir: f['cache-dir'],
-      models: { avatar: f['avatar-model'], tts: f['tts-model'], image: f['image-model'] },
       pollWindowMs: Math.round(windowMin * 60000),
     });
     if (res.dryRun) {

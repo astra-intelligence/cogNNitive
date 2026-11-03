@@ -174,3 +174,58 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 - Falsified the fallback: `estimateCallUsd` still prices a model the guard does not allow (needed by synthesizer-level tests), while `estimateScriptCost` refuses a resolved model that is allowed but unpriced. The full no-fallback rule lands with the guard rewrite in 7a.
 - Verification: skill suite 438 tests, 438 pass; `node scripts/verify.js` green (232 steps).
 - Deviations: `video-guard.json` is NOT deleted here (its allowlist still drives the guard until `produce` lands in 7a); recorded in tasks 3b.2. Stale-price *warning* is not printed yet: `isPriceStale` and `price_date` are in place, the warning line lands with the plan output in 7a. Open issues: none.
+
+## Batch 4+5+6 — in flight on `feature/conntent-v1-4` (one PR at the end)
+
+Per maintainer decision (option 1): slices 4, 5 and 6 accumulate on one branch and open a single PR
+when all three are complete.
+
+Landed and verified so far (each commit ran the full `verify.js`):
+
+- **4 / part 1** (`f83c750c`): `kind` level in the cascade between `series` and `video`; `kind` may
+  expand `presets`; new `lib/kinds.mjs` (series grammar from the Series document, `kindBagOf`,
+  `chromeFieldsFor`, `validateSceneKinds`, `validateLanguage`); a V_0-15-0 document requires a known
+  `kind::` (or `Libre`) on every scene and a resolved `language`, legacy documents stay exempt.
+  Cascade proof: a kind preset beats `series` and loses to `video`.
+- **5 / part 2** (`5e53530a`): `image_size` is part of the image cache key; the master is named
+  `<slug>_<W>x<H>.mp4` from the manifest size instead of a literal `1920x1920`.
+- **6 / part 3** (`5a235f16`): `renderVideo` appends `compile` and `render` timing rows when given a
+  `facts` context (plan hash, episode, link mode, frames/fps/resolution, cache counts, machine fp).
+- **5 / part 4** (`8d1a596b`): `assertImageSize` refuses an `image_size` the resolved model does not
+  declare (`unsupported-size`), before any spend.
+
+- **4 / part 6** (`61225221`): the `cli` cascade level is gone from `SCOPE_ORDER` and
+  `bagsToChain` (a `cli` bag is ignored). `--image-model`, `--tts-model` and `--avatar-model` are
+  refused by `video-engine-cli`, `asset-cost-estimator` and `synthesize-avatar`, as
+  `video-script-model` "There is no cli level" requires. Model ids resolve once per run from the
+  documents, so the estimator, compile and synthesize-avatar share one `plan_hash` and one cache
+  key; a cascaded TTS model equal to the scene's own no longer forks the key.
+- **5 / part 7**: `lib/stage-assets.mjs` (`linkOrCopy`, `assetName`, `resolveGsapPath`,
+  `assertGsapPresent`). Staged assets are hardlinks to the provider cache; `EXDEV`/`EPERM`/
+  `ENOTSUP` falls back to a clone-on-write copy, records `link_mode: copy` and warns once. The
+  engine project now lives in `<episode>/hyperframes/` (`manifest.json`, `index.html`,
+  `compositions/`, `assets/`, `vendor/`): no `build/`, no `public/`, no `audio/`, the manifest at
+  `hyperframes/manifest.json` and the temp render file inside that folder. An authored
+  `Hyperframes/` folder is a named collision error before anything is written. `gsap` is pinned
+  exactly (`3.14.2`), `ensure-hyperframes --check` reports it, emission copies it to
+  `vendor/gsap.min.js` and the project references it (a missing install fails loudly, no network
+  URL anywhere). Copy mode deletes `hyperframes/assets/` after a successful render. `image_size`
+  is validated against the merged catalog (`sizes`, overlay included) by both the estimate and
+  the compile, and is now a real field consumer.
+
+**Link-vs-copy spike (hard stop): PASSED.** Rendered the same two-scene episode twice with the
+real pinned HyperFrames CLI (`0.8.192`): run 1 `link_mode=link`, run 2 forced `EXDEV` →
+`link_mode=copy` (assets staged again from scratch, one warning, `hyperframes/assets/` deleted
+after the render). Both masters are byte-identical:
+`sha256 3c2b45ab…7c9cfbef7`, 28,466 bytes, `spike_1920x1920.mp4`. Harness:
+`temp/spike-link-vs-copy.mjs` (gitignored scratch, not committed).
+
+- **6 / part 8**: per-stage timing hooks. `synthesizeScriptAssets` measures the `tts` and
+  `image` windows (wall clock, calls, cache hits/misses) and `compileVideo` queues the
+  `tts`/`image`/`avatar` rows until the staging mode is known, so every row carries the real
+  `link_mode`; the rows land in the fixed order `tts`, `image`, `avatar`, `compile`, `render`.
+
+All three slices of the batch are closed. The batch is ready for its single PR.
+
+Verification at the batch tip: skill suite 467 tests, 467 pass; `node scripts/verify.js` green;
+nothing merged to `dev`/`main`; no tag; `video_NN` untouched.

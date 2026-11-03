@@ -63,8 +63,8 @@ fallback): budgets and `dailyCapUsd` must be finite numbers >= 0,
 
 1. `node scripts/asset-cost-estimator.mjs <script.md> --out assets/<slug>/asset_plan.md`
    stamps the first line of the plan with `plan_hash` (sha256 of the normalized
-   script text, NFC and newline-insensitive, plus the explicitly chosen
-   `--image-model/--tts-model/--avatar-model`), `total_usd` and the model set.
+   script text, NFC and newline-insensitive, plus the cascade-resolved model ids
+   and their unit prices), `total_usd` and the model set.
    Only that first-line stamp is ever read back. The estimate prices what the run
    will charge: it opens the video cache read-only, with the same keys `compile`
    writes (TTS, image, avatar clip), and quotes a cached item at $0 (marked
@@ -81,10 +81,10 @@ fallback): budgets and `dailyCapUsd` must be finite numbers >= 0,
    the approval exists next to `script.md` (or via `--approval`), matches the
    script and models, covers every model used, and the plan fits
    `min(budgetPerRunUsd, approvedTotal x 1.25)` and the 24h cap. Editing the script
-   or the model flags invalidates the approval.
+   or a document that resolves a model id invalidates the approval.
 
-Pass the same `--image-model/--tts-model/--avatar-model` to `compile` as to the
-estimator: those flags select the models actually called, and are part of the hash.
+There is no model flag: `compile` and the estimator read the same cascade, so
+they always select the same models, and those ids are part of the hash.
 
 **Residual risk.** The approval is a file, not a signature. Requiring the human's
 phrase to contain the plan hash (both routes: typed in chat or at the TTY prompt)
@@ -163,7 +163,7 @@ A Scene's voice — the `voice::` value of its referenced Template instance — 
 second with `wavespeed-ai/infinitetalk-fast`; the non-fast model, about $0.06/s, is blocked), so they
 have their own entry point on the same guard: `node scripts/synthesize-avatar.mjs <script.md>
 [--scene <id>]... [--dry-run] [--resume <task-id>] [--force-resubmit] [--poll-window <min>]
-[--allow-model <name>] [--approval <file>] [--cache-dir <dir>] [--avatar-model/--tts-model/--image-model <id>]`.
+[--allow-model <name>] [--approval <file>] [--cache-dir <dir>]`.
 Never call WaveSpeed for avatars directly or through an MCP tool: those calls bypass the budget, the
 daily cap, the approval, the ledger and the double-submit protection.
 
@@ -212,8 +212,8 @@ again (picks the clips up), render.
   image by AvatarFrame; a following `compile` finds the clip by the same key (cache reads only) and rewrites
   that layer to `layer_type: video`, `layer_asset_source: <clip>` and `layer_muted: true` (the narration is a
   separate Audio track; `Scene.tsx` mutes the clip only for `true` or `"true"`). Other video layers keep
-  `layer_muted` undefined. If clips seem missing after synthesis, check that `--avatar-model/--tts-model`
-  match between compile and synthesize-avatar.
+  `layer_muted` undefined. If clips seem missing after synthesis, check that the episode and its Series
+  resolve the same `avatar_model` and `voice_model` for compile and synthesize-avatar.
 - **Framing (design question)**: a picked-up clip is drawn by the generic full-bleed video primitive
   (`object-fit: cover`), NOT inside the framed-portrait `AvatarFrame` used for the still. The existing
   Mendel avatar scenes were already full-bleed `video` layers, so this keeps them identical. Whether

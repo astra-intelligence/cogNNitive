@@ -128,6 +128,22 @@ export function assertModelAllowed(catalog, idOrSlug) {
   return model;
 }
 
+/**
+ * Refuses an `image_size` the resolved image Model does not offer (design A7). A Model with
+ * no declared `sizes` is not constrained; a declared list is authoritative.
+ */
+export function assertImageSize(catalog, idOrSlug, size) {
+  const model = resolveModel(catalog, idOrSlug);
+  const sizes = sizesOf(model);
+  const value = String(size);
+  if (sizes.length > 0 && !sizes.includes(value)) {
+    throw new CatalogError(
+      'unsupported-size',
+      `image_size "${value}" is not offered by ${model.slug} (sizes: ${sizes.join(', ')}).`,
+    );
+  }
+  return value;
+}
 /** True when a price dated `priceDate` is older than `staleAfterDays`. */
 export function isPriceStale(priceDate, { now = new Date(), staleAfterDays = DEFAULT_STALE_AFTER_DAYS } = {}) {
   const then = Date.parse(String(priceDate));

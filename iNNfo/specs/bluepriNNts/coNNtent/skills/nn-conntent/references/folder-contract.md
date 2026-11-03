@@ -15,19 +15,28 @@ tools that enforce it.
   series/<s>/
     <s>_scope_NN.md                        # the only series anchor (frontmatter `scope: true`)
     shared/<kind>/  sounds/  components/  frames/  procedures/      # optional
-    assets/<slug>/
+    assets/<library>/                      # series-level media (bumper, logo, music, avatar images)
+    episodes/<slug>/
       <slug>_coNNtent_<s>_NN.md        # the Video record and its script
-      draft.json  reviewed.json  review_console.html  draft_thumbs/
       media/  animations/<project>/
       asset_plan.md  asset_plan.approved.json
       description.md                        # the publication body
-      <slug>_1920x1920.mp4                  # the master
-      <slug>_1080x1920.mp4 <slug>_1920x1080.mp4 <slug>_1080x1080.mp4   # derived
-      <slug>_thumbnail_2560x1440.png  <slug>_thumbnail_1080x1920.png
-      build/                                # engine output, gitignored
-        .nn-build  manifest.json  render.tmp.mp4
-        hyperframes/{index.html, compositions/, components/, authored/, assets/, .nn-emit.json, .hyperframes/}
+      <slug>_<W>x<H>.mp4                    # the master, sized by output_formats
+      formats/<slug>_<W>x<H>.mp4            # derived delivery files
+      <slug>_thumbnail_<W>x<H>.png
+      hyperframes/                          # engine project, gitignored and regenerable
+        manifest.json  index.html  render.tmp.mp4
+        compositions/  components/  authored/  vendor/gsap.min.js  assets/
 ```
+
+The `hyperframes/` project is the engine's only output folder: `manifest.json`,
+`index.html`, `compositions/`, `components/`, `authored/`, `vendor/` (the pinned
+GSAP build, loaded as `vendor/gsap.min.js` so a render needs no network) and
+`assets/`. Its `assets/` holds hardlinks to the provider cache. A link refused by
+the filesystem (`EXDEV`/`EPERM`/`ENOTSUP`) falls back to a copy, records
+`link_mode: copy` and then deletes `hyperframes/assets/` after a successful
+render. There is no `build/`, no `public/` and no `audio/` handoff.
+
 
 Three naming classes, and nothing outside them:
 
@@ -39,7 +48,7 @@ Three naming classes, and nothing outside them:
 
 Folders are lowercase, plural when they hold many items (`assets`, `sounds`,
 `components`, `frames`, `animations`, `procedures`) and singular for mass nouns
-(`media`, `shared`, `build`). Every name the contract produces is English.
+(`media`, `shared`, `hyperframes`). Every name the contract produces is English.
 
 ## Three-level asset scoping
 
@@ -65,34 +74,33 @@ another series or the domain root — is invalid, even if the file exists.
 The engine applies this as a pre-compile guard; never assume a path is fine
 because it "looks relative".
 
-## Engine output lives only under build/
+## Engine output lives only under hyperframes/
 
-`build/` holds every file the engine generates: `.nn-build`, `manifest.json`,
-`render.tmp.mp4` during a render, and the emitted `hyperframes/` project (whose
-`assets/` IS the staging layer, so nothing is copied twice). `asset_plan.approved.json`
-stays at the episode root: it is a tracked governance file that survives deleting
-`build/`.
+`hyperframes/` holds every file the engine generates: `manifest.json`, the emitted
+HyperFrames project, `render.tmp.mp4` during a render and the `assets/` hardlinks
+into the provider cache. `asset_plan.approved.json` stays at the episode root: it
+is a tracked governance file that survives deleting `hyperframes/`.
 
-The episode `.gitignore` block is `**/build/`, `**/draft_thumbs/` and
-`.cognnitive/cache/`. `audio/` is NOT ignored: real episodes hold authored audio
+The episode `.gitignore` block is `**/hyperframes/`, `.cognnitive/cache/` and
+`.cognnitive/video/`. `audio/` is NOT ignored: real episodes hold authored audio
 there.
 
 ## One master, derived delivery files
 
-The only master is `<slug>_1920x1920.mp4`, whose size is declared in the domain
-Video Defaults (`master_resolution:: 1920x1920`). Everything else is a pure
-function of it: the vertical and horizontal files are the central 1080 crops of
-the Open Gate safe square, and the square file is a lanczos scale. No format is
-rendered on its own; there is no `--format`, no 9:16 recompile and no separate
-vertical master.
+The only master is `<slug>_<W>x<H>.mp4`, whose size is the first entry of the
+cascaded `output_formats` (default `1920x1920`). Everything else is a pure
+function of it and lands under `formats/`: the vertical and horizontal files are
+the central 1080 crops of the Open Gate safe square, and the square file is a
+lanczos scale. No format is rendered on its own; there is no `--format`, no 9:16
+recompile and no separate vertical master.
 
 ## Finalize
 
 `scripts/finalize-video.mjs <episode-dir> [--formats …] [--fill crop|blur] [--force] [--dry-run]`
-reads the master and `build/manifest.json`, derives the delivery files, prints the
-`description.md` chapters and the `master::`/`thumbnail::` values. It copies
-nothing, writes no model, and refuses a manifest that came from another script or
-is older than the script.
+reads the master and `hyperframes/manifest.json`, derives the delivery files under
+`formats/`, prints the `description.md` chapters and the `master::`/`thumbnail::`
+values. It copies nothing, writes no model, and refuses a manifest that came from
+another script or is older than the script.
 
 ## Cost-approval artifact
 

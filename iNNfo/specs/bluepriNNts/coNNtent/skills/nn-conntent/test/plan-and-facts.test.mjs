@@ -30,6 +30,9 @@ import {
 
 const SCRIPT = '# NN Video\n\n## NN Video: X\nslug:: x\n';
 
+/** A stand-in for the pinned GSAP build: emission vendors it into `vendor/`. */
+const gsapPath = path.join(os.tmpdir(), `nn-gsap-facts-${process.pid}.js`);
+fs.writeFileSync(gsapPath, '/* gsap */');
 test('a price change invalidates the plan hash', () => {
   const models = { tts: 'minimax/speech-2.8-hd' };
   const a = computePlanHash(SCRIPT, models, { tts: 0.02 });
@@ -124,6 +127,88 @@ test('a timing row carries the stage schema and a write failure only warns', () 
     const failed = appendTimingRow(root, row, (msg) => warned.push(msg));
     assert.equal(failed.ok, false);
     assert.equal(warned.length, 1);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a render records one timing row per stage in the fixed order', async () => {
+  const { renderVideo } = await import('../scripts/video-engine-cli.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'facts-stages-'));
+  try {
+    for (const k of ['WAVESPEED_API_KEY', 'REPLICATE_API_TOKEN', 'TTS_PROVIDER', 'MEDIA_PROVIDER']) delete process.env[k];
+    fs.writeFileSync(path.join(root, 'domaiNN_NN.md'), '# NN DomaiNN\n', 'utf8');
+    const scriptPath = path.join(root, 'staged_NN.md');
+    fs.writeFileSync(
+      scriptPath,
+      '---\nlevel: 3\ntitle: "Staged"\n---\n\n# NN Video\n\n## NN Video: Staged\nslug:: staged\ntitle:: Staged\n\n' +
+        '# NN Scene\n\n## NN Scene: One\nslug:: one\n\nOne two three four five.\n\n' +
+        '### NN Layer: Barn\nslug:: barn\ntype:: media\nprompt:: a red barn at dawn\n',
+      'utf8',
+    );
+    await renderVideo({
+      scriptPath,
+      cacheDir: path.join(root, 'cache'),
+      gsapPath,
+      facts: { rootDir: root, runId: 'run-2', episode: 'staged', planHash: 'def' },
+      hyperframesRun: async (cmd, args) => {
+        fs.writeFileSync(args[args.indexOf('--output') + 1], 'fake-mp4');
+        return { status: 0 };
+      },
+    });
+    const rows = readTimingRows(root);
+    assert.deepEqual(
+      rows.map((r) => r.stage),
+      ['tts', 'image', 'avatar', 'compile', 'render'],
+      `stages: ${rows.map((r) => r.stage).join(',')}`,
+    );
+    const byStage = Object.fromEntries(rows.map((r) => [r.stage, r]));
+    assert.ok(byStage.tts.cache.hits + byStage.tts.cache.misses >= 1, 'the tts stage counts its calls');
+    assert.ok(byStage.image.cache.hits + byStage.image.cache.misses >= 1, 'the image stage counts its calls');
+    assert.equal(byStage.avatar.cache.misses, 0, 'no avatar layer means no avatar spend');
+    for (const row of rows) {
+      assert.equal(row.plan_hash, 'def');
+      assert.equal(row.episode, 'staged');
+      assert.equal(verifyFingerprint(row.machine), true);
+      assert.ok(row.duration_ms >= 0);
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a render records compile and render timing rows when a facts context is passed', async () => {
+  const { renderVideo } = await import('../scripts/video-engine-cli.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'facts-render-'));
+  try {
+    fs.writeFileSync(path.join(root, 'domaiNN_NN.md'), '# NN DomaiNN\n', 'utf8');
+    const scriptPath = path.join(root, 'timed_NN.md');
+    fs.writeFileSync(
+      scriptPath,
+      '---\nlevel: 3\ntitle: "Timed"\n---\n\n# NN Video\n\n## NN Video: Timed\nslug:: timed\ntitle:: Timed\n\n# NN Scene\n\n## NN Scene: One\nslug:: one\n\nOne two three four five.\n',
+      'utf8',
+    );
+    await renderVideo({
+      scriptPath,
+      cacheDir: path.join(root, 'cache'),
+      synthesizeAssets: false,
+      gsapPath,
+      facts: { rootDir: root, runId: 'run-1', episode: 'timed', planHash: 'abc' },
+      hyperframesRun: async (cmd, args) => {
+        fs.writeFileSync(args[args.indexOf('--output') + 1], 'fake-mp4');
+        return { status: 0 };
+      },
+    });
+    const rows = readTimingRows(root);
+    const stages = rows.map((r) => r.stage);
+    assert.ok(stages.includes('compile'), `stages: ${stages.join(',')}`);
+    assert.ok(stages.includes('render'), `stages: ${stages.join(',')}`);
+    const render = rows.find((r) => r.stage === 'render');
+    assert.equal(render.plan_hash, 'abc');
+    assert.equal(render.episode, 'timed');
+    assert.equal(render.link_mode, 'link');
+    assert.ok(render.render.frames > 0);
+    assert.equal(verifyFingerprint(render.machine), true);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

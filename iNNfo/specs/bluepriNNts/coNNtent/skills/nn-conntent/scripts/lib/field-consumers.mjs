@@ -27,6 +27,8 @@ export const FIELD_CONSUMERS = {
   avatar_model: ['lib/avatar-jobs.mjs', 'asset-cost-estimator.mjs'],
   avatar_resolution: ['lib/avatar-jobs.mjs', 'lib/avatar-request.mjs'],
   image_model: ['asset-cost-estimator.mjs', 'video-engine-cli.mjs'],
+  image_size: ['asset-cost-estimator.mjs', 'video-engine-cli.mjs', 'lib/image-options.mjs'],
+  sizes: ['lib/catalog.mjs'],
   background_audio: ['scene-compiler.mjs'],
   background_audio_volume: ['scene-compiler.mjs'],
   transition: ['scene-compiler.mjs', 'lib/frame-tokens.mjs'],
@@ -49,7 +51,6 @@ export const FIELD_CONSUMERS = {
   api_id: ['lib/catalog.mjs'],
   capability: ['lib/catalog.mjs'],
   controls: ['lib/catalog.mjs', 'adapters/_intent.mjs'],
-  sizes: ['lib/catalog.mjs'],
   adapter: ['lib/catalog.mjs'],
   allowed: ['lib/catalog.mjs'],
   voice_id: ['lib/catalog.mjs'],
@@ -93,7 +94,6 @@ export const PLANNED_CONSUMERS = {
   source: '5',
   placement: '5',
   timing: '5',
-  image_size: '5',
 };
 
 /** Fields that are annotation by design: never engine input, so never a phantom. */

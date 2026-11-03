@@ -125,7 +125,7 @@ export function buildProject(manifest, plan = {}) {
   <div id="root" data-composition-id="${esc(slug)}" data-width="${width}" data-height="${height}" data-duration="${dur}">
       ${layerHtml}
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="vendor/gsap.min.js"></script>
   <script>
     (function () {
       const tl = gsap.timeline({ paused: true });
@@ -208,7 +208,7 @@ ${tween}
   <head>
     <meta charset="utf-8" />
     <title>${esc(compositionId)}</title>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="vendor/gsap.min.js"></script>
   </head>
   <body>
     <div id="root" data-composition-id="${esc(compositionId)}" data-start="0" data-duration="${total}" data-width="${width}" data-height="${height}" data-fps="${fps}">

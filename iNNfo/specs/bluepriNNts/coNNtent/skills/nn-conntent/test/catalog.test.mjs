@@ -166,8 +166,7 @@ test('the shipped catalog is complete and every model names a real adapter with 
   }
 });
 
-test('intent translation maps declared controls and refuses an undeclared one', async () => {
-  const catalog = loadMergedCatalog({ overlay: null });
+test('intent translation maps declared controls and refuses an undeclared one', async () => {  const catalog = loadMergedCatalog({ overlay: null });
   const tts = catalog.models['minimax-speech-2-8-hd'];
   const { default: speech } = await import(pathToFileURL(path.join(ADAPTERS, 'minimax-speech.mjs')).href);
   assert.deepEqual(speech.translate({ voice_speed: '1.1', voice_emotion: 'calm' }, tts), { speed: 1.1, emotion: 'calm' });
@@ -177,4 +176,14 @@ test('intent translation maps declared controls and refuses an undeclared one', 
     'an image size is not a control of a TTS model',
   );
   assert.throws(() => speech.translate({ scene_duration: '5' }, tts), /unsupported-intent/);
+});
+
+test('an image size the model does not offer is refused before spend', async () => {
+  const { assertImageSize } = await import('../scripts/lib/catalog.mjs');
+  const catalog = loadMergedCatalog({ overlay: null });
+  assert.equal(assertImageSize(catalog, 'wavespeed-ai/z-image/turbo', '1024x1024'), '1024x1024');
+  assert.throws(
+    () => assertImageSize(catalog, 'wavespeed-ai/z-image/turbo', '4096x4096'),
+    (err) => err.code === 'unsupported-size' && /4096x4096/.test(err.message),
+  );
 });

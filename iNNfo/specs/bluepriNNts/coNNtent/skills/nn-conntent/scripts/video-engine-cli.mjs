@@ -8,15 +8,13 @@
  * Commands:
  *   compile <script.md> [--fps <n>] [--cache-dir <dir>]
  *           [--dry-run] [--allow-model <name>]... [--approval <approved.json>]
- *           [--image-model <m>] [--tts-model <m>] [--avatar-model <m>]
- *   render  <script.md> [--fps <n>] [--concurrency <n>]   (writes <slug>_1920x1920.mp4 next to the script)
+ *   render  <script.md> [--fps <n>] [--concurrency <n>]   (writes <slug>_<W>x<H>.mp4 next to the script)
  *
  * Zero external mandatory runtime dependencies for compilation. ESM module.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { SceneCompiler, ScriptValidationError, compositionIdOf, computeSceneDurations } from './scene-compiler.mjs';
 import { loadKnowledgeModel } from './lib/knowledge-model.mjs';
@@ -28,6 +26,8 @@ import { loadCascadeBags, resolve, resolveKeyed, findNearest, findNearestByStem,
 import { applyCachedAvatars } from './lib/avatar-jobs.mjs';
 import { buildTtsVoiceOptions } from './lib/tts-options.mjs';
 import { buildImageOptions } from './lib/image-options.mjs';
+import { appendTimingRow, timingRow } from './lib/facts.mjs';
+import { assertImageSize, loadMergedCatalog } from './lib/catalog.mjs';
 import { warnUnpricedAllowedModels } from './asset-cost-estimator.mjs';
 import { loadFrame } from './lib/frame-tokens.mjs';
 import { probeDuration } from './lib/media-duration.mjs';
@@ -36,6 +36,7 @@ import { resolveAnimations, assertAnimationIds } from './lib/animations.mjs';
 import { assertSlotContract, SLOT_OF } from './overlay-blocks.mjs';
 import { parseArgs, CliUsageError } from './lib/cli-args.mjs';
 import { tryHyperframesRender } from './hyperframes-render.mjs';
+import { assetName, linkOrCopy } from './lib/stage-assets.mjs';
 
 const SCRIPTS_DIR = path.dirname(fileURLToPath(import.meta.url));
 /** The skill's own folder: the fallback anchor for the nearest-folder walker. */
@@ -220,10 +221,10 @@ export function resolveSoundFiles({ bags, scriptDir, workspaceRoot, skillDir = S
  * Builds the root `kind:'sfx'` audio tracks for every resolved sound key that
  * fires an event (design D6/D12). Each file is staged into `publicDir`; the
  * `video-end` sound is placed at `total - probeDuration(sound)` (never negative).
- * @param {{ manifest: object, files: Record<string, { path: string }>, scriptDir: string, publicDir: string, probe?: (file: string) => Promise<{ seconds?: number }> }} params
+ * @param {{ manifest: object, files: Record<string, { path: string }>, scriptDir: string, publicDir: string, probe?: (file: string) => Promise<{ seconds?: number }>, stageDeps?: object }} params
  * @returns {Promise<Array<{ id: string, kind: 'sfx', assetPath: string, fromFrame: number }>>}
  */
-export async function resolveSounds({ manifest, files, scriptDir, publicDir, probe = probeDuration }) {
+export async function resolveSounds({ manifest, files, scriptDir, publicDir, probe = probeDuration, stageDeps = {} }) {
   const fps = Number(manifest?.fps) || 30;
   const totalFrames =
     Number(manifest?.totalDurationInFrames) ||
@@ -235,7 +236,7 @@ export async function resolveSounds({ manifest, files, scriptDir, publicDir, pro
   for (const [key, frames] of framesByKey) {
     const file = files?.[key];
     if (!file) continue;
-    const staged = stageAsset(file.path, scriptDir, publicDir);
+    const staged = stageAsset(file.path, scriptDir, publicDir, stageDeps);
     if (!staged) continue;
 
     let occurrences = frames;
@@ -253,35 +254,29 @@ export async function resolveSounds({ manifest, files, scriptDir, publicDir, pro
 }
 
 /**
- * Resolves a media source against the script directory and stages it into the
- * project's public directory, returning the bundle-relative name. The name
+ * Resolves a media source against the script directory and links it into the
+ * project's asset directory, returning the bundle-relative name. The name
  * is `<basename>_<sha256-prefix><ext>` so two sources that share a basename (an
  * in-dir `assets/x.mp4` and an out-of-dir `../shared/x.mp4`) never collide, and
  * the same source referenced twice stages once.
+ *
+ * The staged file is a HARDLINK to the source (capability "Assets Are Linked, Not
+ * Copied"), so the episode folder never holds a copy of a cache entry. A refused
+ * link falls back to a copy and is reported by `linkOrCopy`.
  * @param {string} src
  * @param {string} scriptDir
  * @param {string} publicDir
- * @returns {{ name: string, staged: boolean } | null} null when the source is empty or missing.
+ * @param {{ link?: Function, copy?: Function, warn?: Function }} [deps] Staging seams (tests).
+ * @returns {{ name: string, staged: boolean, mode: 'link' | 'copy' } | null} null when the source is empty or missing.
  */
-export function stageAsset(src, scriptDir, publicDir) {
+export function stageAsset(src, scriptDir, publicDir, deps = {}) {
   if (!src || typeof src !== 'string') return null;
   const abs = path.isAbsolute(src) ? src : path.resolve(scriptDir, src);
   if (!fs.existsSync(abs)) return null;
 
-  const buf = fs.readFileSync(abs);
-  const ext = path.extname(abs) || '';
-  const base = path.basename(abs, ext).replace(/[^a-zA-Z0-9._-]+/g, '_') || 'asset';
-  const hash = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 12);
-  const name = `${base}_${hash}${ext}`;
-  const dest = path.join(publicDir, name);
-
-  let staged = false;
-  if (!fs.existsSync(dest) || !fs.readFileSync(dest).equals(buf)) {
-    fs.mkdirSync(publicDir, { recursive: true });
-    fs.writeFileSync(dest, buf);
-    staged = true;
-  }
-  return { name, staged };
+  const name = assetName(abs);
+  const res = linkOrCopy(abs, path.join(publicDir, name), deps);
+  return { name, staged: res.staged, mode: res.mode };
 }
 
 /**
@@ -295,22 +290,24 @@ export function stageAsset(src, scriptDir, publicDir) {
  * so it is the test seam.
  *
  * @param {object} manifest
- * @param {{ scriptDir: string, publicDir: string, seriesRoot?: string, scopeRoot?: string }} opts
- * @returns {{ staged: number, missing: string[], escaped: string[] }}
+ * @param {{ scriptDir: string, publicDir: string, seriesRoot?: string, scopeRoot?: string, stageDeps?: object }} opts
+ * @returns {{ staged: number, missing: string[], escaped: string[], linkMode: 'link' | 'copy' }}
  */
 export function resolveMediaLayers(manifest, opts) {
-  const { scriptDir, publicDir, seriesRoot, scopeRoot } = opts;
+  const { scriptDir, publicDir, seriesRoot, scopeRoot, stageDeps = {} } = opts;
   const missing = [];
   const escaped = [];
   let staged = 0;
+  let copyMode = false;
 
   const stageField = (obj, field) => {
     const src = obj?.[field];
     if (!src || typeof src !== 'string') return;
-    const res = stageAsset(src, scriptDir, publicDir);
+    const res = stageAsset(src, scriptDir, publicDir, stageDeps);
     if (res) {
       obj[field] = res.name;
       if (res.staged) staged++;
+      if (res.mode === 'copy') copyMode = true;
     } else {
       missing.push(src);
     }
@@ -339,7 +336,7 @@ export function resolveMediaLayers(manifest, opts) {
     if (track?.config) stageField(track.config, 'assetPath');
   }
 
-  return { staged, missing, escaped };
+  return { staged, missing, escaped, linkMode: copyMode ? 'copy' : 'link' };
 }
 
 /**
@@ -353,9 +350,10 @@ export function resolveMediaLayers(manifest, opts) {
  * @property {boolean} [dryRun=false] List uncached billable work + estimated total; spend nothing, write nothing.
  * @property {string[]} [allowModels] Models explicitly unlocked past the guard blocklist/allowlist (--allow-model).
  * @property {string} [approvalPath] Approved-plan artifact (defaults to <scriptDir>/asset_plan.approved.json).
- * @property {{ image?: string, tts?: string, avatar?: string }} [models] Chosen models, as passed to the cost estimator (part of plan_hash).
  * @property {(file: string) => Promise<{ seconds?: number }>} [soundProbe] Test seam for the `video-end` sound-length probe.
  * @property {Record<string, unknown>} [synthesizerOptions] Extra AssetSynthesizer options (test seam: env, fetch, sleep).
+ * @property {{ link?: Function, copy?: Function, warn?: Function }} [stageDeps] Staging seams (tests force the copy fallback).
+ * @property {{ rootDir: string, runId?: string, episode?: string, planHash?: string, linkMode?: string }} [facts] Timing-log context; each stage appends one row.
  * @property {(e: object) => void} [onProgress] Progress listener: `plan` (totals + estimated USD)
  *   first, then `tts-start`/`tts-done` and `media-start`/`media-done` with `[done/total]`,
  *   model, cache hit, `itemCostUsd` and accumulated `spentUsd`.
@@ -374,7 +372,8 @@ export function resolveMediaLayers(manifest, opts) {
  * @property {boolean} [allowMock=false] Write a mock MP4 when the renderer is unavailable.
  * @property {string[]} [allowModels] See VideoCompileOptions (used when rendering from a script).
  * @property {string} [approvalPath] See VideoCompileOptions.
- * @property {{ image?: string, tts?: string, avatar?: string }} [models] See VideoCompileOptions.
+ * @property {string} [gsapPath] Pinned GSAP build to vendor (default: resolve the installed `gsap`).
+ * @property {{ link?: Function, copy?: Function, warn?: Function }} [stageDeps] See VideoCompileOptions.
  * @property {(e: object) => void} [onProgress] See VideoCompileOptions (also covers render phases).
  */
 
@@ -397,15 +396,28 @@ export function resolveMediaLayers(manifest, opts) {
  * `ref` to its estimated USD (cache hits cost 0, so `spentUsd` is real accumulated spend).
  * @param {any} parsed Parsed script (layers receive `layer_asset_source` for real runs).
  * @param {AssetSynthesizer} synthesizer
- * @param {{ image?: string, tts?: string, avatar?: string }} models Chosen models (same flags as the estimator).
+ * @param {{ image?: string, tts?: string, avatar?: string }} models Cascade-resolved models (part of plan_hash).
  * @param {(e: object) => void} [onProgress]
  * @param {Map<string, number>} [costByRef]
  */
-async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = () => {}, costByRef = new Map(), bags = {}) {
+async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = () => {}, costByRef = new Map(), bags = {}, catalog = null) {
   const audioAssets = {};
   let cachedAssetsUsed = 0;
   let newAssetsSynthesized = 0;
   let spentUsd = 0;
+  /** Per-stage wall-clock windows for the timing log (capability video-run-facts). */
+  const stageTimings = {
+    tts: { start: null, end: null, calls: 0, hits: 0, misses: 0 },
+    image: { start: null, end: null, calls: 0, hits: 0, misses: 0 },
+  };
+  const mark = (stage, startedAt, fromCache) => {
+    const t = stageTimings[stage];
+    t.start = t.start === null ? startedAt : Math.min(t.start, startedAt);
+    t.end = t.end === null ? Date.now() : Math.max(t.end, Date.now());
+    t.calls++;
+    if (fromCache) t.hits++;
+    else t.misses++;
+  };
   const ttsScenes = parsed.scenes.filter((sc) => sc.narration && sc.narration.trim().length > 0);
   const mediaTotal = parsed.scenes.reduce(
     (n, sc) => n + (Array.isArray(sc.layers) ? sc.layers.filter((l) => l.properties?.layer_prompt || l.properties?.prompt).length : 0),
@@ -426,8 +438,10 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
       const voiceOptions = buildTtsVoiceOptions(sc, models, bags);
       const ttsModel = normalizeModelId(sc.properties?.scene_voice_model);
       onProgress({ phase: 'tts-start', done: ttsDone, total: ttsScenes.length, scene: sc.id, model: ttsModel });
+      const ttsStartedAt = Date.now();
       const ttsRes = await synthesizer.synthesizeTTS(sc.narration, voiceOptions, { ref: sc.id, model: ttsModel });
       if (!ttsRes.dryRun) {
+        mark('tts', ttsStartedAt, ttsRes.fromCache);
         if (ttsRes.fromCache) {
           cachedAssetsUsed++;
         } else {
@@ -450,11 +464,17 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
       const prompt = layer.properties?.layer_prompt || layer.properties?.prompt;
       if (!prompt) continue;
       const imageModel = normalizeModelId(resolve('image_model', bags).value);
-      const mediaOptions = buildImageOptions(sc, layer, { ...models, image: imageModel });
+      const imageSize = resolve('image_size', bags).value;
+      // The size is validated against the merged catalog's `sizes` for the resolved model,
+      // overlay included, before any provider call.
+      if (imageSize) assertImageSize(catalog || loadMergedCatalog({ overlay: null }), imageModel, imageSize);
+      const mediaOptions = buildImageOptions(sc, layer, { ...models, image: imageModel, imageSize });
       const ref = `${sc.id}/${layer.name}`;
       onProgress({ phase: 'media-start', done: mediaDone, total: mediaTotal, scene: sc.id, model: imageModel });
+      const mediaStartedAt = Date.now();
       const mediaRes = await synthesizer.resolveMedia(prompt, mediaOptions, { ref, model: imageModel });
       if (mediaRes.dryRun) continue;
+      mark('image', mediaStartedAt, mediaRes.fromCache);
       if (mediaRes.fromCache) {
         cachedAssetsUsed++;
       } else {
@@ -467,7 +487,7 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
       layer.properties.layer_asset_source = mediaRes.assetPath;
     }
   }
-  return { audioAssets, cachedAssetsUsed, newAssetsSynthesized, spentUsd };
+  return { audioAssets, cachedAssetsUsed, newAssetsSynthesized, spentUsd, stageTimings };
 }
 
 /**
@@ -488,18 +508,33 @@ export async function compileVideo(options) {
   const scriptDir = path.dirname(scriptPath);
   const loaded = loadGuard(scriptDir);
   warnUnpricedAllowedModels(loaded.config);
-  const models = options.models || {};
+  // The engine project IS `<episode>/hyperframes/` (capability "Engine Project Lives In The
+  // Episode Folder"). An authored folder that differs from it only by case would be clobbered
+  // by the regeneration, so the collision is a named error before anything is written.
+  for (const entry of fs.readdirSync(scriptDir, { withFileTypes: true })) {
+    if (entry.isDirectory() && entry.name !== 'hyperframes' && entry.name.toLowerCase() === 'hyperframes') {
+      throw new VideoRenderError(
+        `The episode folder holds an authored "${entry.name}" folder, which collides with the engine's ` +
+          `"hyperframes/" project folder. Rename it; nothing was written.`,
+      );
+    }
+  }
+  // Render is hermetic: the emitted project loads the vendored GSAP build from `vendor/`
+  // (checked when the project is emitted and when a render starts).
   const allowModels = options.allowModels || [];
   const approvalPath = options.approvalPath ? path.resolve(options.approvalPath) : path.join(scriptDir, APPROVAL_FILENAME);
-  const checkNow = () => checkApproval({ scriptContent, models, approvalPath, allowModels, allowDelegated: loaded.config.allowDelegatedApproval === true });
   // Default cache lives at the workspace root so it is shared across series and cwd-independent.
   const cacheDir = options.cacheDir || resolveDefaultCacheDir(scriptDir);
-  // One cascade: the CLI model flags are the most specific level, the script's
-  // series/domain/blueprint documents the rest (design D10). No default id here.
-  const bags = {
-    ...(options.bags || loadCascadeBags(scriptDir)),
-    cli: { image_model: models.image, voice_model: models.tts, avatar_model: models.avatar },
+  // One cascade and no `cli` level: every model id comes from the documents
+  // (layer > scene > video > kind > series > domain > blueprint). No flag and no
+  // default id supplies one.
+  const bags = options.bags || loadCascadeBags(scriptDir);
+  const models = {
+    image: normalizeModelId(resolve('image_model', bags).value),
+    tts: normalizeModelId(resolve('voice_model', bags).value),
+    avatar: normalizeModelId(resolve('avatar_model', bags).value),
   };
+  const checkNow = () => checkApproval({ scriptContent, models, approvalPath, allowModels, allowDelegated: loaded.config.allowDelegatedApproval === true });
   const synthOptions = { defaultModels: models, bags, ...(options.synthesizerOptions || {}) };
   const makeGuard = (dryRun) =>
     new SpendGuard({ config: loaded.config, root: loaded.root, allowModels, dryRun, approval: checkNow });
@@ -517,7 +552,7 @@ export async function compileVideo(options) {
   const scriptBags = withScriptPresets(bags, model, scriptPath);
   const guard = compiler.checkScript(model, { ...options, bags: scriptBags });
   if (!guard.ok) throw new ScriptValidationError(guard.errors);
-  const parsed = compiler.lowerKnowledgeModel(model, { bags: scriptBags, fps: options.fps, width: options.width, height: options.height });
+  const parsed = compiler.lowerKnowledgeModel(model, { bags: scriptBags, scriptDir, fps: options.fps, width: options.width, height: options.height });
   // Resolve the frame cascade value to its document BEFORE any synthesis or
   // render (design D18/D21): a user-level name with no file fails here, with
   // nothing spent; a blueprint-only name is skipped with one warning.
@@ -556,6 +591,14 @@ export async function compileVideo(options) {
   let spentUsd = 0;
   let plannedTotalUsd = 0;
   const onProgress = options.onProgress || (() => {});
+  // Synthesis and avatar-pickup rows are queued, then written once the staging mode is known,
+  // so every stage row of the run carries the real `link_mode`.
+  const stageRows = [];
+  const queueStage = (row) => {
+    if (options.facts) stageRows.push(row);
+  };
+  // One merged catalog (reference + domaiNN overlay) answers `sizes`, allowlists and prices.
+  const catalog = loadMergedCatalog({ domainRoot: loaded.root });
 
   if (options.synthesizeAssets !== false || options.dryRun) {
     // Pass 1: plan. Read-only cache, dry-run guard: nothing is spent or written.
@@ -565,7 +608,7 @@ export async function compileVideo(options) {
       guard: planGuard,
       ...synthOptions,
     });
-    const planned = await synthesizeScriptAssets(structuredClone(parsed), planSynth, models, () => {}, new Map(), bags);
+    const planned = await synthesizeScriptAssets(structuredClone(parsed), planSynth, models, () => {}, new Map(), bags, catalog);
 
     if (options.dryRun) {
       // Each scene's target duration (design D14): `measured` when narration
@@ -625,11 +668,26 @@ export async function compileVideo(options) {
       guard: makeGuard(false),
       ...synthOptions,
     });
-    ({ audioAssets, cachedAssetsUsed, newAssetsSynthesized, spentUsd } = await synthesizeScriptAssets(parsed, synthesizer, models, onProgress, costByRef, bags));
+    let synthesisStages = null;
+    ({
+      audioAssets,
+      cachedAssetsUsed,
+      newAssetsSynthesized,
+      spentUsd,
+      stageTimings: synthesisStages,
+    } = await synthesizeScriptAssets(parsed, synthesizer, models, onProgress, costByRef, bags, catalog));
+    // One row per synthesis stage, before the compile row (capability video-run-facts
+    // "Stage Timing Row Schema" and the fixed stage order of video-produce-command).
+    for (const stage of ['tts', 'image']) {
+      const t = synthesisStages?.[stage];
+      if (!t || t.calls === 0) continue;
+      queueStage({ stage, start: t.start, end: t.end, cache: { hits: t.hits, misses: t.misses } });
+    }
   }
 
   // Avatar pickup: a lip-sync clip cached by synthesize-avatar.mjs replaces the still avatar layer
   // (cache read only: compile never synthesizes or spends on avatars).
+  const avatarStartedAt = Date.now();
   const avatarVideos = applyCachedAvatars({
     parsed,
     scriptDir,
@@ -637,6 +695,14 @@ export async function compileVideo(options) {
     config: loaded.config,
     models,
     bags,
+  });
+  // The avatar stage of this run: the cache pickup. Counting it keeps the fixed stage order
+  // even when the episode has no avatar Layer (and records the clips still missing).
+  queueStage({
+    stage: 'avatar',
+    start: avatarStartedAt,
+    end: Date.now(),
+    cache: { hits: avatarVideos?.applied || 0, misses: avatarVideos?.missing || 0 },
   });
 
   const manifest = compiler.compile(parsed, {
@@ -648,30 +714,27 @@ export async function compileVideo(options) {
     scriptSource: scriptPath,
   });
 
-  // Stage every media reference (layers + audio) into a project public
-  // dir next to the script, and rewrite the manifest to bundle-relative names.
-  // Sources resolve against the script dir, not the cwd, so in-dir (`assets/…`)
-  // and out-of-dir (`../shared/…`) paths both work. A missing asset is a loud
-  // failure — never a silently dropped layer.
-  // Every engine-generated file goes under one gitignored folder. The staging
-  // layer IS the renderer's asset dir, so nothing is copied twice (design D2).
-  const buildDir = path.join(scriptDir, 'build');
-  const publicDir = path.join(buildDir, 'hyperframes', 'assets');
-  fs.mkdirSync(publicDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(buildDir, '.nn-build'),
-    JSON.stringify({ schema: 'nn-build@1', script: path.basename(scriptPath) }, null, 2) + '\n',
-    'utf8',
-  );
-  manifest.metadata.buildDir = buildDir;
+  // Stage every media reference (layers + audio) into the project's asset dir and
+  // rewrite the manifest to bundle-relative names. Sources resolve against the
+  // script dir, not the cwd, so in-dir (`assets/…`) and out-of-dir (`../shared/…`)
+  // paths both work. A missing asset is a loud failure — never a silently dropped
+  // layer. The staged entries are HARDLINKS to the sources (capability "Assets Are
+  // Linked, Not Copied"), so the episode folder holds no copy of a cache entry.
+  const hyperframesDir = path.join(scriptDir, 'hyperframes');
+  const assetsDir = path.join(hyperframesDir, 'assets');
+  fs.mkdirSync(assetsDir, { recursive: true });
+  manifest.metadata.hyperframesDir = hyperframesDir;
+  manifest.metadata.assetsDir = assetsDir;
   const scopeRoot = resolveWorkspace(scriptDir).root;
   const staging = resolveMediaLayers(manifest, {
     scriptDir,
-    publicDir,
+    publicDir: assetsDir,
     seriesRoot: findSeriesRoot(scriptDir),
     scopeRoot,
+    stageDeps: options.stageDeps,
   });
-  manifest.metadata.publicDir = publicDir;
+  manifest.metadata.publicDir = assetsDir;
+  manifest.metadata.linkMode = staging.linkMode;
 
   // The resolved frame (palette + type) becomes the manifest's frame contract so
   // the emitter styles overlays from brand tokens instead of hardcoded values.
@@ -690,8 +753,9 @@ export async function compileVideo(options) {
     manifest,
     files: soundFiles,
     scriptDir,
-    publicDir,
+    publicDir: assetsDir,
     probe: options.soundProbe,
+    stageDeps: options.stageDeps,
   });
   manifest.tracks.audio.push(...sfxTracks);
 
@@ -711,14 +775,26 @@ export async function compileVideo(options) {
     );
   }
 
-  // The manifest always lands at build/manifest.json: it is a build artifact, not
-  // a user-chosen output (design D2).
-  const manifestPath = path.join(buildDir, 'manifest.json');
+  // The manifest always lands at hyperframes/manifest.json: it is engine output, not
+  // a user-chosen file, and the HyperFrames project folder is regenerable.
+  const manifestPath = path.join(hyperframesDir, 'manifest.json');
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
   manifest.metadata.manifestPath = manifestPath;
 
-  return { manifest, cachedAssetsUsed, newAssetsSynthesized, avatarVideos, spentUsd, plannedTotalUsd };
+  // The staging mode is known now: every queued stage row carries it.
+  if (options.facts) options.facts.linkMode = staging.linkMode;
+  for (const row of stageRows) recordStage(options.facts, row);
+
+  return {
+    manifest,
+    cachedAssetsUsed,
+    newAssetsSynthesized,
+    avatarVideos,
+    spentUsd,
+    plannedTotalUsd,
+    linkMode: staging.linkMode,
+  };
 }
 
 /**
@@ -726,6 +802,28 @@ export async function compileVideo(options) {
  * @param {VideoRenderOptions} options
  * @returns {Promise<RenderSummary>}
  */
+/**
+ * Appends one stage timing row when a run carries a `facts` context. A timing failure only
+ * warns (capability video-run-facts), so it can never stop a render.
+ */
+function recordStage(facts, { stage, start, end, render, cache, outcome }) {
+  if (!facts || !facts.rootDir) return;
+  appendTimingRow(
+    facts.rootDir,
+    timingRow({
+      runId: facts.runId || 'run',
+      episode: facts.episode || 'unknown',
+      planHash: facts.planHash || '',
+      stage,
+      start,
+      end,
+      linkMode: facts.linkMode,
+      render,
+      cache,
+      outcome,
+    }),
+  );
+}
 export async function renderVideo(options) {
   const startTime = Date.now();
   const onProgress = options.onProgress || (() => {});
@@ -739,6 +837,7 @@ export async function renderVideo(options) {
   if (options.manifestPath && fs.existsSync(path.resolve(options.manifestPath))) {
     manifest = JSON.parse(fs.readFileSync(path.resolve(options.manifestPath), 'utf8'));
   } else if (options.scriptPath) {
+    const compileStart = Date.now();
     const compRes = await compileVideo({
       scriptPath: options.scriptPath,
       fps: options.fps,
@@ -750,8 +849,15 @@ export async function renderVideo(options) {
       modelPath: options.modelPath,
       allowModels: options.allowModels,
       approvalPath: options.approvalPath,
-      models: options.models,
+      stageDeps: options.stageDeps,
+      facts: options.facts,
       onProgress,
+    });
+    recordStage(options.facts, {
+      stage: 'compile',
+      start: compileStart,
+      end: Date.now(),
+      cache: { hits: compRes.cachedAssetsUsed || 0, misses: compRes.newAssetsSynthesized || 0 },
     });
     manifest = compRes.manifest;
     cachedAssetsUsed = compRes.cachedAssetsUsed;
@@ -774,34 +880,48 @@ export async function renderVideo(options) {
     throw new Error('Either scriptPath or manifestPath must be provided for rendering');
   }
 
-  // The master is written in place: render to build/render.tmp.mp4, then rename it
-  // over E/<slug>_1920x1920.mp4 (same volume), so a failed render never touches a
+  // The master is written in place: render to hyperframes/render.tmp.mp4, then rename it
+  // over E/<slug>_<W>x<H>.mp4 (same volume), so a failed render never touches a
   // previous master and no partial file is ever visible under the master name.
-  const buildDir = manifest.metadata?.buildDir;
-  if (!buildDir) throw new Error('The manifest has no metadata.buildDir; render takes the script, which compile stamps');
+  const hyperframesDir = manifest.metadata?.hyperframesDir;
+  if (!hyperframesDir) throw new Error('The manifest has no metadata.hyperframesDir; render takes the script, which compile stamps');
   const slug = manifest.metadata?.videoSlug;
   if (!slug) throw new Error('The manifest has no metadata.videoSlug (the Video slug); recompile the script');
-  const tmpPath = path.join(buildDir, 'render.tmp.mp4');
-  const outputPath = path.join(path.dirname(buildDir), `${slug}_1920x1920.mp4`);
-  fs.mkdirSync(buildDir, { recursive: true });
+  const tmpPath = path.join(hyperframesDir, 'render.tmp.mp4');
+  const masterWidth = manifest.width || 1920;
+  const masterHeight = manifest.height || 1920;
+  const outputPath = path.join(path.dirname(hyperframesDir), `${slug}_${masterWidth}x${masterHeight}.mp4`);
+  fs.mkdirSync(hyperframesDir, { recursive: true });
   fs.rmSync(tmpPath, { force: true });
 
-  // HyperFrames is the renderer: emit the project from the manifest, then render
-  // it headlessly. A failure is a loud, named, non-zero error — never a silent
-  // FFmpeg fallback or a mock MP4 masquerading as a render (only `--allow-mock`).
-  const projectDir = path.join(buildDir, 'hyperframes');
+  // Render is hermetic: the emitted project references `vendor/gsap.min.js`. The build is
+  // linked in by the emitter, whose missing-install failure is loud (never a network load).
   const renderDeps = { onProgress };
   if (options.hyperframesRun) renderDeps.run = options.hyperframesRun;
+  const renderStart = Date.now();
   const hfResult = await tryHyperframesRender(
     {
       manifest,
       outputPath: tmpPath,
       concurrency: options.concurrency || 4,
-      projectDir,
+      projectDir: hyperframesDir,
+      gsapPath: options.gsapPath,
       extraArgs: options.hyperframesArgs,
     },
     renderDeps,
   );
+  recordStage(options.facts, {
+    stage: 'render',
+    start: renderStart,
+    end: Date.now(),
+    render: {
+      frames: manifest.totalDurationInFrames,
+      fps_effective: manifest.fps,
+      width: manifest.width || 1920,
+      height: manifest.height || 1920,
+    },
+    outcome: hfResult.rendered ? 'ok' : 'failed',
+  });
 
   let mocked = false;
   if (!hfResult.rendered) {
@@ -830,6 +950,13 @@ export async function renderVideo(options) {
     );
   }
 
+  // Copy mode leaves real files behind; a successful render is the last reader, so the staged
+  // copies are deleted (they duplicate cache entries). Link mode keeps the links: deleting them
+  // would delete nothing of the cache, but the project stays regenerable either way.
+  if (manifest.metadata?.linkMode === 'copy') {
+    fs.rmSync(path.join(hyperframesDir, 'assets'), { recursive: true, force: true });
+  }
+
   const renderTimeMs = Date.now() - startTime;
 
   return {
@@ -837,6 +964,7 @@ export async function renderVideo(options) {
     totalDurationSeconds: manifest.totalDurationInSeconds,
     totalFrames: manifest.totalDurationInFrames,
     renderTimeMs,
+    linkMode: manifest.metadata?.linkMode || 'link',
     cachedAssetsUsed,
     newAssetsSynthesized,
     spentUsd,
@@ -913,8 +1041,7 @@ function printDryRun(result) {
 const FLAG_SPEC = {
   boolean: ['dry-run', 'allow-mock'],
   value: [
-    'script', 'manifest', 'fps', 'concurrency',
-    'cache-dir', 'approval', 'image-model', 'tts-model', 'avatar-model',
+    'script', 'manifest', 'fps', 'concurrency', 'cache-dir', 'approval',
   ],
   repeatable: ['allow-model'],
 };
@@ -923,9 +1050,8 @@ const USAGE = [
   'Usage: node video-engine-cli.mjs <compile|render> [options]',
   '  compile <script.md> [--fps n] [--cache-dir dir]',
   '          [--dry-run] [--approval approved.json] [--allow-model name]...',
-  '          [--image-model id] [--tts-model id] [--avatar-model id]',
   '  render  <script.md> [--fps n] [--concurrency n] [--cache-dir dir]',
-  '          [--allow-mock] [--approval approved.json] [--allow-model name]... [--image-model id] [--tts-model id] [--avatar-model id]',
+  '          [--allow-mock] [--approval approved.json] [--allow-model name]...',
   '          [-- <hyperframes render flags>]   e.g. -- --workers 2 --low-memory-mode (forwarded verbatim)',
   '  --dry-run (compile only): list uncached billable work and the estimated total; spends and writes nothing.',
   '  --approval: approved plan (default <script dir>/asset_plan.approved.json); --allow-model unlocks a blocked',
@@ -982,7 +1108,6 @@ async function main() {
         dryRun: Boolean(args['dry-run']),
         allowModels: args.allowModels,
         approvalPath: typeof args.approval === 'string' ? args.approval : undefined,
-        models: { image: args['image-model'], tts: args['tts-model'], avatar: args['avatar-model'] },
         onProgress: cliReporter,
       });
       if (result.dryRun) {
@@ -992,7 +1117,7 @@ async function main() {
       console.log(`✅ [video-engine-cli] Compiled manifest (${result.manifest.totalDurationInFrames} frames, ${result.manifest.totalDurationInSeconds.toFixed(2)}s)`);
       console.log(`   Cached assets: ${result.cachedAssetsUsed}, New assets: ${result.newAssetsSynthesized}, Spent: $${result.spentUsd.toFixed(4)} of $${result.plannedTotalUsd.toFixed(4)} estimated`);
       if (result.avatarVideos.applied + result.avatarVideos.missing > 0) {
-        console.log(`   Avatar clips: ${result.avatarVideos.applied} picked up from cache, ${result.avatarVideos.missing} still missing (run synthesize-avatar.mjs; never ad-hoc API calls). If clips exist but were not found, check that --avatar-model/--tts-model match the synthesize-avatar run.`);
+        console.log(`   Avatar clips: ${result.avatarVideos.applied} picked up from cache, ${result.avatarVideos.missing} still missing (run synthesize-avatar.mjs; never ad-hoc API calls). If clips exist but were not found, check that the episode and its Series declare the same avatar_model and voice_model that the synthesize-avatar run resolved.`);
       }
     } else if (command === 'render') {
       const target = args._[1] || args.script || args.manifest;
@@ -1017,7 +1142,6 @@ async function main() {
         cacheDir: args['cache-dir'],
         allowModels: args.allowModels,
         approvalPath: typeof args.approval === 'string' ? args.approval : undefined,
-        models: { image: args['image-model'], tts: args['tts-model'], avatar: args['avatar-model'] },
         allowMock: Boolean(args['allow-mock']),
         hyperframesArgs: passthrough,
         onProgress: cliReporter,

@@ -20,11 +20,11 @@ import { resolveWorkspace } from './video-guard.mjs';
 import { parseKnowledgeDocument } from './knowledge-model.mjs';
 import { loadPresetIndex, lookupPreset, parsePresetList, presetSourceFromFile } from './presets.mjs';
 
-export const SCOPE_ORDER = ['cli', 'layer', 'scene', 'video', 'series', 'domain', 'blueprint'];
+export const SCOPE_ORDER = ['layer', 'scene', 'video', 'kind', 'series', 'domain', 'blueprint'];
 export const PROCEDURES_DIR = 'procedures';
 
-/** Levels whose `presets` list expands. `layer` and `cli` carry explicit fields only. */
-export const PRESET_LEVELS = new Set(['domain', 'series', 'video', 'scene']);
+/** Levels whose `presets` list expands. `layer` carries explicit fields only. */
+export const PRESET_LEVELS = new Set(['domain', 'series', 'kind', 'video', 'scene']);
 
 const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -43,8 +43,11 @@ function usable(v) {
 }
 
 /**
- * Turns legacy cascade bags { cli, layer, scene, video, series, domain, blueprint }
+ * Turns cascade bags { layer, scene, video, series, domain, blueprint }
  * into a LoadedChain structure for nn-core's resolve fold.
+ *
+ * There is no `cli` level: no command-line flag supplies a cascade parameter,
+ * and a `cli` key in the bags is ignored.
  *
  * Each level that may carry `presets` expands its list into extra scope nodes
  * placed immediately before that level's own node, in list order: the last
@@ -55,7 +58,7 @@ export function bagsToChain(bags = {}) {
   const floor = bags.blueprint
     ? { id: 'blueprint', kind: 'floor', doc: null, isolate: false, values: bags.blueprint }
     : null;
-  const levels = ['domain', 'series', 'video', 'scene', 'layer', 'cli'];
+  const levels = ['domain', 'series', 'kind', 'video', 'scene', 'layer'];
   const nodes = [];
   for (const level of levels) {
     const bag = bags[level];

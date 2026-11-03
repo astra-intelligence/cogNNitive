@@ -63,7 +63,7 @@ export function chapterLines(manifest) {
  * @returns {{ manifest: any, manifestPath: string }}
  */
 export function readManifestForFinalize({ episodeDir, scriptPath, manifestPath } = {}) {
-  const file = manifestPath || path.join(episodeDir, 'build', 'manifest.json');
+  const file = manifestPath || path.join(episodeDir, 'hyperframes', 'manifest.json');
   if (!fs.existsSync(file)) {
     throw new Error(`Missing build manifest at ${file}; run compile (or render) first`);
   }

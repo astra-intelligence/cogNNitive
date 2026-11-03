@@ -20,7 +20,7 @@ import { normalizeModelId } from './lib/video-guard.mjs';
 import { loadCascadeBags, resolve, withScriptPresets } from './lib/video-scope.mjs';
 import { isAvatarLayer, collectAvatarJobs, ttsCachePathFor, AVATAR_CACHE_EXT, AVATAR_CACHE_CATEGORY } from './lib/avatar-jobs.mjs';
 import { layerPrompt, imageCachePathFor } from './lib/image-options.mjs';
-import { loadMergedCatalog } from './lib/catalog.mjs';
+import { loadMergedCatalog, assertImageSize } from './lib/catalog.mjs';
 import { CacheManager } from './cache-manager.mjs';
 import { loadGuard, resolveDefaultCacheDir } from './lib/video-guard.mjs';
 import { parseArgs, CliUsageError } from './lib/cli-args.mjs';
@@ -123,9 +123,6 @@ export function estimateCallUsd(kind, model, units = {}) {
  *
  * @param {string} scriptContentOrPath Script markdown text or file path
  * @param {Object} [options]
- * @param {string} [options.defaultImageModel] CLI image-model override (part of plan_hash)
- * @param {string} [options.defaultTtsModel] CLI tts-model override (part of plan_hash)
- * @param {string} [options.defaultAvatarModel] CLI avatar-model override (part of plan_hash)
  * @param {string} [options.cacheDir] Video cache read (read-only) to price cached items at $0 (default: the workspace cache of a script path)
  * @returns {Object} Cost estimation report
  */
@@ -139,26 +136,21 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
   const compiler = new SceneCompiler(options);
   const model = isPath ? loadKnowledgeModel(scriptContentOrPath) : parseKnowledgeDocument(String(scriptContent));
   // Model selection goes through the single cascade resolver
-  // (cli > layer > scene > video > series > domain > blueprint). The plan and
-  // the execution read the same bags, so they pick the SAME model id.
+  // (layer > scene > video > kind > series > domain > blueprint). The plan and
+  // the execution read the same bags, so they pick the SAME model id. No flag
+  // supplies a parameter: the cascade has no `cli` level.
   const bags = withScriptPresets(
     options.bags || (isPath ? loadCascadeBags(path.dirname(path.resolve(scriptContentOrPath))) : {}),
     model,
     isPath ? path.resolve(scriptContentOrPath) : null,
   );
-  const resolvedBags = {
-    ...bags,
-    cli: {
-      image_model: options.defaultImageModel,
-      voice_model: options.defaultTtsModel,
-      avatar_model: options.defaultAvatarModel,
-    },
-  };
-  const guard = compiler.checkScript(model, { ...options, bags: resolvedBags });
+  const guard = compiler.checkScript(model, { ...options, bags });
   if (!guard.ok) throw new ScriptValidationError(guard.errors);
-  const parsed = compiler.lowerKnowledgeModel(model, { bags: resolvedBags });
-  const defaultImageModel = normalizeModelId(resolve('image_model', resolvedBags).value);
-  const defaultAvatarModel = normalizeModelId(resolve('avatar_model', resolvedBags).value);
+  const parsed = compiler.lowerKnowledgeModel(model, { bags });
+  const defaultImageModel = normalizeModelId(resolve('image_model', bags).value);
+  const defaultImageSize = resolve('image_size', bags).value;
+  const defaultAvatarModel = normalizeModelId(resolve('avatar_model', bags).value);
+  const defaultTtsModel = normalizeModelId(resolve('voice_model', bags).value);
   const planModels = new Set();
   const noteModel = (model) => {
     if (model && !model.startsWith('local/')) planModels.add(model);
@@ -171,13 +163,19 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
   const scriptDir = isPath ? path.dirname(path.resolve(scriptContentOrPath)) : null;
   const cacheDir = options.cacheDir || (scriptDir ? resolveDefaultCacheDir(scriptDir) : null);
   const cache = cacheDir ? new CacheManager({ baseDir: cacheDir, readOnly: true }) : null;
-  const models = { image: options.defaultImageModel, tts: options.defaultTtsModel, avatar: options.defaultAvatarModel };
-  const config = scriptDir ? loadGuard(scriptDir).config : {};
+  const models = { image: defaultImageModel, imageSize: defaultImageSize, tts: defaultTtsModel, avatar: defaultAvatarModel };
+  const loaded = scriptDir ? loadGuard(scriptDir) : { config: {}, root: null };
+  const config = loaded.config;
   warnUnpricedAllowedModels(config);
+  // An `image_size` the resolved model does not offer fails the ESTIMATE, before any spend,
+  // against the same merged catalog (reference + domaiNN overlay) the compile reads.
+  if (defaultImageSize) {
+    assertImageSize(loadMergedCatalog({ domainRoot: loaded.root }), defaultImageModel, defaultImageSize);
+  }
   const cachedAvatarLayers = new Set();
   if (cache && scriptDir) {
     try {
-      const { jobs } = collectAvatarJobs({ parsed, scriptDir, cacheManager: cache, config, models, bags: resolvedBags });
+      const { jobs } = collectAvatarJobs({ parsed, scriptDir, cacheManager: cache, config, models, bags: bags });
       for (const j of jobs) if (cache.getSync(j.cacheKey, AVATAR_CACHE_EXT, AVATAR_CACHE_CATEGORY)) cachedAvatarLayers.add(j.layer);
     } catch {
       // An input that cannot be resolved leaves the avatar priced: never under-estimate.
@@ -228,7 +226,7 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
     // 2. TTS
     const ttsModelKey = normalizeModelId(scene.properties?.scene_voice_model);
     const ttsPricing = findCatalogEntry('tts', ttsModelKey) || { modelName: ttsModelKey, provider: 'Unlisted (fallback rate)' };
-    const ttsCached = Boolean(cache && charCount > 0 && ttsCachePathFor(scene, { cacheManager: cache, config, models, bags: resolvedBags }));
+    const ttsCached = Boolean(cache && charCount > 0 && ttsCachePathFor(scene, { cacheManager: cache, config, models, bags: bags }));
     const sceneTtsCost = ttsCached ? 0 : estimateCallUsd('tts', ttsModelKey, { chars: charCount });
     if (charCount > 0) noteModel(ttsModelKey);
 
@@ -320,9 +318,9 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
   // (capability video-model-catalog "Unpriced Allowed Models Block, Unknown Models Fail").
   const allowedIds = new Set((config.allowedModels || []).map(normalizeModelId));
   for (const [kind, id] of [
-    ['image', options.defaultImageModel],
-    ['tts', options.defaultTtsModel],
-    ['avatar', options.defaultAvatarModel],
+    ['image', defaultImageModel],
+    ['tts', defaultTtsModel],
+    ['avatar', defaultAvatarModel],
   ]) {
     const model = normalizeModelId(id);
     if (model && allowedIds.has(model) && !findCatalogEntry(kind, model)) {
@@ -331,12 +329,12 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
   }
   const planHash = computePlanHash(
     scriptContent,
-    {
-      image: options.defaultImageModel,
-      tts: options.defaultTtsModel,
-      avatar: options.defaultAvatarModel,
-    },
-    resolvedPrices(options),
+    { image: defaultImageModel, tts: defaultTtsModel, avatar: defaultAvatarModel },
+    resolvedPrices({
+      image: defaultImageModel,
+      tts: defaultTtsModel,
+      avatar: defaultAvatarModel,
+    }),
   );
 
   return {
@@ -368,16 +366,16 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
  * @returns {string} Markdown text
  */
 /** Resolved unit prices for the chosen models, so a price change invalidates an approval. */
-function resolvedPrices(options) {
+function resolvedPrices(models) {
   const priceOf = (kind, id) => {
     const entry = findCatalogEntry(kind, id);
     if (!entry) return undefined;
     return entry.unitPrice ?? entry.unitPricePer1kChars ?? entry.unitPricePerSecond;
   };
   return {
-    image: priceOf('image', options.defaultImageModel),
-    tts: priceOf('tts', options.defaultTtsModel),
-    avatar: priceOf('avatar', options.defaultAvatarModel),
+    image: priceOf('image', models.image),
+    tts: priceOf('tts', models.tts),
+    avatar: priceOf('avatar', models.avatar),
   };
 }
 export function formatAssetPlanMarkdown(estimateResult) {
@@ -435,9 +433,6 @@ const USAGE = [
   'Usage: node asset-cost-estimator.mjs <script.md> [options]',
   '  --out <asset_plan.md>     write the Markdown plan (stamped with plan_hash) instead of printing it',
   '  --json                    print the estimate as JSON (includes planHash and planModels)',
-  '  --image-model <id>        default image model (part of plan_hash; pass the same to compile)',
-  '  --tts-model <id>          default TTS model (part of plan_hash; pass the same to compile)',
-  '  --avatar-model <id>       default avatar model (part of plan_hash; pass the same to compile)',
 ].join('\n');
 
 async function main() {
@@ -445,7 +440,7 @@ async function main() {
   try {
     parsed = parseArgs(process.argv.slice(2), {
       boolean: ['json'],
-      value: ['out', 'image-model', 'tts-model', 'avatar-model'],
+      value: ['out'],
     });
   } catch (err) {
     if (!(err instanceof CliUsageError)) throw err;
@@ -465,11 +460,7 @@ async function main() {
     process.exit(1);
   }
 
-  const estimate = estimateScriptCost(path.resolve(scriptPath), {
-    defaultImageModel: args['image-model'],
-    defaultTtsModel: args['tts-model'],
-    defaultAvatarModel: args['avatar-model'],
-  });
+  const estimate = estimateScriptCost(path.resolve(scriptPath), {});
 
   if (args.json) {
     console.log(JSON.stringify(estimate, null, 2));

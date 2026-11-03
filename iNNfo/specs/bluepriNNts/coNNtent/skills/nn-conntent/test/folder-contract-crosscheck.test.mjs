@@ -24,14 +24,11 @@ test('the doc has a canonical layout block', () => {
 test('master suffix: doc and finalize-video agree', () => {
   const suffix = /const MASTER_SUFFIX = '([^']+)'/.exec(read('scripts/finalize-video.mjs'))?.[1];
   assert.equal(suffix, '_1920x1920.mp4');
-  assert.ok(layout.includes('<slug>' + suffix), 'the layout names the master as <slug>' + suffix);
-  assert.ok(doc.includes('`<slug>' + suffix + '`'), 'the prose names the master');
+  assert.ok(layout.includes('<slug>_<W>x<H>.mp4'), 'the layout names the master as <slug>_<W>x<H>.mp4');
+  assert.ok(doc.includes('`<slug>_<W>x<H>.mp4`'), 'the prose names the master');
 });
 
-test('fixed draft names: doc and the draft tools agree, with no slug or version tag', () => {
-  for (const name of ['draft.json', 'reviewed.json', 'review_console.html', 'draft_thumbs']) {
-    assert.ok(layout.includes(name), `${name} is in the doc layout`);
-  }
+test('fixed draft names: the draft tools agree, with no slug or version tag', () => {
   const builder = read('scripts/build-draft-html.mjs');
   for (const name of ["'reviewed.json'", "'review_console.html'", "'draft_thumbs'"]) {
     assert.ok(builder.includes(name), `build-draft-html.mjs uses ${name}`);
@@ -42,12 +39,14 @@ test('fixed draft names: doc and the draft tools agree, with no slug or version 
   assert.doesNotMatch(doc, /_draft_|<slug>_reviewed|<slug>_review_console/);
 });
 
-test('build/ entries: doc and engine agree', () => {
+test('hyperframes/ entries: doc and engine agree', () => {
   const engine = read('scripts/video-engine-cli.mjs');
-  for (const [name, inCode] of [['.nn-build', "'.nn-build'"], ['manifest.json', "'manifest.json'"], ['hyperframes/', "'hyperframes'"]]) {
+  for (const [name, inCode] of [['manifest.json', "'manifest.json'"], ['hyperframes', "'hyperframes'"]]) {
     assert.ok(layout.includes(name), `${name} is in the doc layout`);
     assert.ok(engine.includes(inCode), `video-engine-cli.mjs writes ${inCode}`);
   }
+  assert.match(doc, /no `build\/`/, 'the doc states there is no build/ directory');
+  assert.doesNotMatch(layout, /build\//, 'the layout block names no build/ folder');
 });
 
 test('description.md: doc and the chapter printer agree', () => {

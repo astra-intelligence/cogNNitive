@@ -20,6 +20,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { isKnowledgeModel, slugify } from './lib/knowledge-model.mjs';
 import { resolve } from './lib/video-scope.mjs';
+import { chromeFieldsFor, kindBagOf, loadSeriesGrammar, validateLanguage, validateSceneKinds } from './lib/kinds.mjs';
 
 /**
  * @typedef {Object} LowerThirdProps
@@ -404,14 +405,29 @@ export class SceneCompiler {
     const buckets = assignLayersToScenes(sceneElements, layerElements);
     const videoEl = videos[0] || {};
 
+    // The series grammar: Scene Kinds and Chrome declared by the Series document
+    // (capability video-scene-kinds). A caller may inject it (tests, `produce`).
+    const grammar = options.grammar || (options.scriptDir ? loadSeriesGrammar(options.scriptDir) : { kinds: {}, chrome: {} });
+    const kindErrors = validateSceneKinds(model, grammar);
+    if (kindErrors.length > 0) {
+      throw Object.assign(new Error(kindErrors.map((e) => e.message).join(' ')), { code: kindErrors[0].code, errors: kindErrors });
+    }
+    const language = resolve('language', { ...bags, video: videoEl.fields || {} }).value;
+    const languageError = validateLanguage(model, language);
+    if (languageError) {
+      throw Object.assign(new Error(languageError.message), { code: languageError.code, errors: [languageError] });
+    }
+
     const scenes = sceneElements.map((sc, i) => {
       const slug = sc.slug || slugify(sc.name);
       const sceneId = `scene_${slug}`;
       const fields = sc.fields || {};
       // The scene bag is the most specific element level; `video` is the
-      // enclosing Video element. `series`/`domain`/`blueprint` ride in `bags`,
-      // and every level's `presets` expand there (design D4).
-      const sceneBags = { ...bags, video: videoEl.fields || {}, scene: fields };
+      // enclosing Video element; `kind` is the Scene Kind's expanded presets,
+      // which sit between `series` and `video` (design A6). `series`/`domain`/
+      // `blueprint` ride in `bags`, and every level's `presets` expand there.
+      const kindBag = kindBagOf(grammar, fields.kind);
+      const sceneBags = { ...bags, ...(kindBag ? { kind: kindBag } : {}), video: videoEl.fields || {}, scene: fields };
       const backgroundAudio = resolve('background_audio', sceneBags).value;
       const backgroundVolume = resolve('background_audio_volume', sceneBags, {
         accept: (v) => v !== undefined && v !== null && String(v).trim() !== '' && Number.isFinite(Number(v)),
@@ -444,10 +460,36 @@ export class SceneCompiler {
       // here: it must never reach the TTS payload or the cache key (design D6).
 
       const layers = buckets[i].map((layer, j) => this.lowerLayer(layer, sceneId, j, sceneBags));
+      // Kind chrome: series wallpaper applied per kind, resolved for the cascaded
+      // language (capability video-scene-kinds). It becomes ordinary overlays/music,
+      // so the scene document never repeats it.
+      const chrome = chromeFieldsFor(grammar, fields.kind, language);
+      if (chrome.missing.length > 0) {
+        throw Object.assign(
+          new Error(
+            `missing-chrome-language: kind "${fields.kind}" lists ${chrome.missing.join(', ')} but no Chrome element for language "${language}" declares it.`,
+          ),
+          { code: 'missing-chrome-language' },
+        );
+      }
+      if (chrome.fields.watermark) {
+        layers.push(
+          this.lowerLayer({ name: 'Chrome watermark', fields: { type: 'watermark', text: chrome.fields.watermark } }, sceneId, layers.length, sceneBags),
+        );
+      }
+      if (chrome.fields.cta) {
+        layers.push(
+          this.lowerLayer({ name: 'Chrome cta', fields: { type: 'title', text: chrome.fields.cta } }, sceneId, layers.length, sceneBags),
+        );
+      }
+      if (chrome.fields.music && !properties.scene_background_audio) {
+        properties.scene_background_audio = chrome.fields.music;
+      }
       return {
         id: sceneId,
         name: sc.name,
         slug,
+        kind: fields.kind ? String(fields.kind) : null,
         narration: String(sc.description || '').trim(),
         transition: transition || null,
         frame: { value: frame.value, source: frame.source },
@@ -456,6 +498,48 @@ export class SceneCompiler {
         layers,
       };
     });
+
+    // Fixed scenes: a Scene Kind whose `fixed` is not `none` is inserted by the engine,
+    // in placed order, so the episode never declares a bumper itself (capability
+    // video-scene-kinds "Fixed Scenes Are Inserted By The Engine").
+    const fixedScenes = [];
+    for (const kind of Object.values(grammar.kinds || {})) {
+      const placement = String(kind.fields.fixed || 'none').trim();
+      if (!placement || placement === 'none') continue;
+      const fixedId = `scene_${slugify(kind.name)}`;
+      const media = kind.fields.asset
+        ? [this.lowerLayer({ name: `${kind.name} media`, fields: { type: 'background', asset: kind.fields.asset } }, fixedId, 0, bags)]
+        : [];
+      fixedScenes.push({
+        placement,
+        scene: {
+          id: fixedId,
+          name: kind.name,
+          slug: slugify(kind.name),
+          kind: kind.name,
+          narration: '',
+          transition: null,
+          frame: { value: null, source: null },
+          music: kind.fields.music || null,
+          properties: {},
+          layers: media,
+          fixed: true,
+        },
+      });
+    }
+    for (const { placement, scene: fixed } of fixedScenes) {
+      if (placement === 'first') scenes.unshift(fixed);
+      else if (placement === 'last') scenes.push(fixed);
+      else if (placement.startsWith('after:')) {
+        const anchor = placement.slice('after:'.length).trim();
+        const at = scenes.findIndex((s) => s.kind === anchor);
+        if (at === -1) {
+          this.warnings.push(`fixed scene "${fixed.kind}" has no "${anchor}" scene to follow; it was not inserted.`);
+        } else {
+          scenes.splice(at + 1, 0, fixed);
+        }
+      }
+    }
 
     // The master size is the first entry of the declared `output_formats`. The retired
     // `master_resolution` stays readable for documents written before V_0-15-0 until the
