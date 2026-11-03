@@ -26,6 +26,7 @@ export function buildImageOptions(sc, layer, models = {}) {
   const options = {
     provider: 'wavespeed',
     model: models.image || 'wavespeed-v1-flux',
+    ...(models.imageSize ? { size: String(models.imageSize) } : {}),
     accentColor: '#ef4444',
   };
   if (models.modelOverride) options.modelOverride = models.modelOverride;

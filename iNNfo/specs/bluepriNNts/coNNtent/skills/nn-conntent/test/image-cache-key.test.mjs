@@ -64,3 +64,21 @@ test('an unset model falls back to the documented blueprint default', () => {
   const options = buildImageOptions(scene('Scene A'), layer('Barn'));
   assert.equal(options.model, 'wavespeed-v1-flux');
 });
+
+test('the resolved image size is part of the key', () => {
+  const { manager, dir } = cache();
+  try {
+    const model = 'wavespeed-ai/z-image/turbo';
+    const square = manager.computeHash(
+      'a red barn at dawn',
+      buildImageOptions(scene('S'), layer('L'), { image: model, imageSize: '1024x1024' }),
+    );
+    const wide = manager.computeHash(
+      'a red barn at dawn',
+      buildImageOptions(scene('S'), layer('L'), { image: model, imageSize: '1920x1080' }),
+    );
+    assert.notEqual(square, wide, 'changing image_size is a cache miss');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

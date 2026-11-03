@@ -450,7 +450,8 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
       const prompt = layer.properties?.layer_prompt || layer.properties?.prompt;
       if (!prompt) continue;
       const imageModel = normalizeModelId(resolve('image_model', bags).value);
-      const mediaOptions = buildImageOptions(sc, layer, { ...models, image: imageModel });
+      const imageSize = resolve('image_size', bags).value;
+      const mediaOptions = buildImageOptions(sc, layer, { ...models, image: imageModel, imageSize });
       const ref = `${sc.id}/${layer.name}`;
       onProgress({ phase: 'media-start', done: mediaDone, total: mediaTotal, scene: sc.id, model: imageModel });
       const mediaRes = await synthesizer.resolveMedia(prompt, mediaOptions, { ref, model: imageModel });
@@ -782,7 +783,9 @@ export async function renderVideo(options) {
   const slug = manifest.metadata?.videoSlug;
   if (!slug) throw new Error('The manifest has no metadata.videoSlug (the Video slug); recompile the script');
   const tmpPath = path.join(buildDir, 'render.tmp.mp4');
-  const outputPath = path.join(path.dirname(buildDir), `${slug}_1920x1920.mp4`);
+  const masterWidth = manifest.width || 1920;
+  const masterHeight = manifest.height || 1920;
+  const outputPath = path.join(path.dirname(buildDir), `${slug}_${masterWidth}x${masterHeight}.mp4`);
   fs.mkdirSync(buildDir, { recursive: true });
   fs.rmSync(tmpPath, { force: true });
 
