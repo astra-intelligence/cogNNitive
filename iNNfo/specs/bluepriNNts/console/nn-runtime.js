@@ -4953,7 +4953,7 @@
       '</div>' +
       '<div class="nn-export-list-head"><h3>Unsent changes</h3>' +
       '<span data-nn="draft-count"></span></div>' +
-      '<div class="nn-export-list" data-nn="preview"></div>' +
+      '<div class="nn-change-sheets" data-nn="preview"></div>' +
       '<div data-nn="errors" style="display: none;"></div>' +
       '<details class="nn-modal-details">' +
       '<summary>View the generated change &amp; prompt</summary>' +
@@ -5686,6 +5686,16 @@
 
   // Renders the pending changes as change sheets — one ElementCard per draft,
   // collapsed except the newest — and refreshes the modal's counts.
+  // The field citation widget reports the resolved entry (`{ entry, field, value }`);
+  // every change list only needs its address to open the source dialog.
+  function openCitePayload(doc, citeData) {
+    var entry = citeData && citeData.entry
+    var source = (entry && entry.path) || (citeData && citeData.value)
+    if (!source) return
+    if (entry && entry.anchor) source = source + '#' + entry.anchor
+    openSourceCitation(doc, source)
+  }
+
   function updateExportPreview(doc, state) {
     var modal = doc.getElementById('nn-feedback-modal')
     if (!modal) return { ok: false }
@@ -5734,14 +5744,8 @@
               doc: doc,
               modelId: modelId,
               open: i === 0,
-              // The field citation widget reports the resolved entry; the modal
-              // only needs its address to open the source dialog.
               onCite: function (citeData) {
-                var entry = citeData && citeData.entry
-                var source = (entry && entry.path) || (citeData && citeData.value)
-                if (!source) return
-                if (entry && entry.anchor) source = source + '#' + entry.anchor
-                openSourceCitation(doc, source)
+                openCitePayload(doc, citeData)
               },
               onDiscard: function (id) {
                 if (state && state.store) state.store.removeDraft(id)

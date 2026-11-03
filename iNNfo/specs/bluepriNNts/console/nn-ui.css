@@ -7968,12 +7968,14 @@ input[type="text"], input[type="search"], textarea, select {
   font-size: 0.78rem;
   color: var(--nn-muted, #64748b);
 }
-.nn-export-list {
+/* One list container for every change list: the export modal's pending list and
+   the review tab's unsent/applied sections. */
+.nn-change-sheets {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.nn-export-modal .nn-export-list > * {
+.nn-change-sheets > * {
   margin: 0;
 }
 .nn-export-empty {
@@ -7992,7 +7994,9 @@ input[type="text"], input[type="search"], textarea, select {
   border-radius: 999px;
   padding: 0.05em 0.5em;
 }
-.nn-change-sheet-discard {
+/* Row actions (go to, revert, discard) sit in the sheet head as flat ghost
+   buttons, so a change row never grows a second action bar. */
+.nn-change-sheet-action {
   appearance: none;
   border: 1px solid transparent;
   background: transparent;
@@ -8003,10 +8007,22 @@ input[type="text"], input[type="search"], textarea, select {
   padding: 0.2em 0.55em;
   border-radius: var(--nn-radius-sm, 6px);
   cursor: pointer;
+  white-space: nowrap;
+}
+.nn-change-sheet-action:hover {
+  color: var(--nn-text, #0a0a0a);
+  border-color: var(--nn-border, #e5e5e5);
+  background: var(--nn-surface, #fff);
+}
+.nn-change-sheet-state {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--nn-muted, #64748b);
+  white-space: nowrap;
 }
 .nn-change-sheet-discard:hover {
   color: var(--nn-status-rejected, #b91c1c);
-  border-color: var(--nn-border, #e5e5e5);
+  border-color: var(--nn-status-rejected, #b91c1c);
   background: var(--nn-surface, #fff);
 }
 .nn-export-actions {

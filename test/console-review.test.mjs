@@ -149,12 +149,11 @@ describe('Console Review Workflow & Feedback Roundtrip Contract', () => {
         reviewTab.querySelector('[data-nn-component="draft-list"]'),
         'Review tab renders through nnUI.DraftList',
       )
-      const items = reviewTab.querySelectorAll('.nn-change-card')
-      assert.equal(items.length, 1)
-      assert.match(
-        items[0].querySelector('.nn-change-card-note').textContent,
-        /Updated seat minimum to 50/,
+      const items = reviewTab.querySelectorAll(
+        '[data-nn-component="draft-list"] article[data-nn-component="element-card"]',
       )
+      assert.equal(items.length, 1)
+      assert.match(items[0].textContent, /Updated seat minimum to 50/)
     })
 
     function reviewTabFor(elementHash) {
@@ -184,7 +183,11 @@ describe('Console Review Workflow & Feedback Roundtrip Contract', () => {
 
     it('flags a draft whose target element hash changed since it was written', () => {
       const { tab } = reviewTabFor('2222222222222222')
-      const rows = [...tab.querySelectorAll('.nn-change-card')]
+      const rows = [
+        ...tab.querySelectorAll(
+          '[data-nn-component="draft-list"] article[data-nn-component="element-card"]',
+        ),
+      ]
       assert.equal(rows.length, 2)
       assert.equal(rows[0].getAttribute('data-target-changed'), 'true')
       assert.ok(tab.querySelector('[data-nn="stale-drafts"]'), 'review head names the stale drafts')
