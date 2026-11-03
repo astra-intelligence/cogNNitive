@@ -132,6 +132,51 @@ test('a timing row carries the stage schema and a write failure only warns', () 
   }
 });
 
+test('a render records one timing row per stage in the fixed order', async () => {
+  const { renderVideo } = await import('../scripts/video-engine-cli.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'facts-stages-'));
+  try {
+    for (const k of ['WAVESPEED_API_KEY', 'REPLICATE_API_TOKEN', 'TTS_PROVIDER', 'MEDIA_PROVIDER']) delete process.env[k];
+    fs.writeFileSync(path.join(root, 'domaiNN_NN.md'), '# NN DomaiNN\n', 'utf8');
+    const scriptPath = path.join(root, 'staged_NN.md');
+    fs.writeFileSync(
+      scriptPath,
+      '---\nlevel: 3\ntitle: "Staged"\n---\n\n# NN Video\n\n## NN Video: Staged\nslug:: staged\ntitle:: Staged\n\n' +
+        '# NN Scene\n\n## NN Scene: One\nslug:: one\n\nOne two three four five.\n\n' +
+        '### NN Layer: Barn\nslug:: barn\ntype:: media\nprompt:: a red barn at dawn\n',
+      'utf8',
+    );
+    await renderVideo({
+      scriptPath,
+      cacheDir: path.join(root, 'cache'),
+      gsapPath,
+      facts: { rootDir: root, runId: 'run-2', episode: 'staged', planHash: 'def' },
+      hyperframesRun: async (cmd, args) => {
+        fs.writeFileSync(args[args.indexOf('--output') + 1], 'fake-mp4');
+        return { status: 0 };
+      },
+    });
+    const rows = readTimingRows(root);
+    assert.deepEqual(
+      rows.map((r) => r.stage),
+      ['tts', 'image', 'avatar', 'compile', 'render'],
+      `stages: ${rows.map((r) => r.stage).join(',')}`,
+    );
+    const byStage = Object.fromEntries(rows.map((r) => [r.stage, r]));
+    assert.ok(byStage.tts.cache.hits + byStage.tts.cache.misses >= 1, 'the tts stage counts its calls');
+    assert.ok(byStage.image.cache.hits + byStage.image.cache.misses >= 1, 'the image stage counts its calls');
+    assert.equal(byStage.avatar.cache.misses, 0, 'no avatar layer means no avatar spend');
+    for (const row of rows) {
+      assert.equal(row.plan_hash, 'def');
+      assert.equal(row.episode, 'staged');
+      assert.equal(verifyFingerprint(row.machine), true);
+      assert.ok(row.duration_ms >= 0);
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('a render records compile and render timing rows when a facts context is passed', async () => {
   const { renderVideo } = await import('../scripts/video-engine-cli.mjs');
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'facts-render-'));

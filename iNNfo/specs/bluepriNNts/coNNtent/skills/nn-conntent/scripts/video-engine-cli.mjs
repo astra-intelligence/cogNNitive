@@ -353,6 +353,7 @@ export function resolveMediaLayers(manifest, opts) {
  * @property {(file: string) => Promise<{ seconds?: number }>} [soundProbe] Test seam for the `video-end` sound-length probe.
  * @property {Record<string, unknown>} [synthesizerOptions] Extra AssetSynthesizer options (test seam: env, fetch, sleep).
  * @property {{ link?: Function, copy?: Function, warn?: Function }} [stageDeps] Staging seams (tests force the copy fallback).
+ * @property {{ rootDir: string, runId?: string, episode?: string, planHash?: string, linkMode?: string }} [facts] Timing-log context; each stage appends one row.
  * @property {(e: object) => void} [onProgress] Progress listener: `plan` (totals + estimated USD)
  *   first, then `tts-start`/`tts-done` and `media-start`/`media-done` with `[done/total]`,
  *   model, cache hit, `itemCostUsd` and accumulated `spentUsd`.
@@ -404,6 +405,19 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
   let cachedAssetsUsed = 0;
   let newAssetsSynthesized = 0;
   let spentUsd = 0;
+  /** Per-stage wall-clock windows for the timing log (capability video-run-facts). */
+  const stageTimings = {
+    tts: { start: null, end: null, calls: 0, hits: 0, misses: 0 },
+    image: { start: null, end: null, calls: 0, hits: 0, misses: 0 },
+  };
+  const mark = (stage, startedAt, fromCache) => {
+    const t = stageTimings[stage];
+    t.start = t.start === null ? startedAt : Math.min(t.start, startedAt);
+    t.end = t.end === null ? Date.now() : Math.max(t.end, Date.now());
+    t.calls++;
+    if (fromCache) t.hits++;
+    else t.misses++;
+  };
   const ttsScenes = parsed.scenes.filter((sc) => sc.narration && sc.narration.trim().length > 0);
   const mediaTotal = parsed.scenes.reduce(
     (n, sc) => n + (Array.isArray(sc.layers) ? sc.layers.filter((l) => l.properties?.layer_prompt || l.properties?.prompt).length : 0),
@@ -424,8 +438,10 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
       const voiceOptions = buildTtsVoiceOptions(sc, models, bags);
       const ttsModel = normalizeModelId(sc.properties?.scene_voice_model);
       onProgress({ phase: 'tts-start', done: ttsDone, total: ttsScenes.length, scene: sc.id, model: ttsModel });
+      const ttsStartedAt = Date.now();
       const ttsRes = await synthesizer.synthesizeTTS(sc.narration, voiceOptions, { ref: sc.id, model: ttsModel });
       if (!ttsRes.dryRun) {
+        mark('tts', ttsStartedAt, ttsRes.fromCache);
         if (ttsRes.fromCache) {
           cachedAssetsUsed++;
         } else {
@@ -455,8 +471,10 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
       const mediaOptions = buildImageOptions(sc, layer, { ...models, image: imageModel, imageSize });
       const ref = `${sc.id}/${layer.name}`;
       onProgress({ phase: 'media-start', done: mediaDone, total: mediaTotal, scene: sc.id, model: imageModel });
+      const mediaStartedAt = Date.now();
       const mediaRes = await synthesizer.resolveMedia(prompt, mediaOptions, { ref, model: imageModel });
       if (mediaRes.dryRun) continue;
+      mark('image', mediaStartedAt, mediaRes.fromCache);
       if (mediaRes.fromCache) {
         cachedAssetsUsed++;
       } else {
@@ -469,7 +487,7 @@ async function synthesizeScriptAssets(parsed, synthesizer, models, onProgress = 
       layer.properties.layer_asset_source = mediaRes.assetPath;
     }
   }
-  return { audioAssets, cachedAssetsUsed, newAssetsSynthesized, spentUsd };
+  return { audioAssets, cachedAssetsUsed, newAssetsSynthesized, spentUsd, stageTimings };
 }
 
 /**
@@ -573,6 +591,12 @@ export async function compileVideo(options) {
   let spentUsd = 0;
   let plannedTotalUsd = 0;
   const onProgress = options.onProgress || (() => {});
+  // Synthesis and avatar-pickup rows are queued, then written once the staging mode is known,
+  // so every stage row of the run carries the real `link_mode`.
+  const stageRows = [];
+  const queueStage = (row) => {
+    if (options.facts) stageRows.push(row);
+  };
   // One merged catalog (reference + domaiNN overlay) answers `sizes`, allowlists and prices.
   const catalog = loadMergedCatalog({ domainRoot: loaded.root });
 
@@ -644,11 +668,26 @@ export async function compileVideo(options) {
       guard: makeGuard(false),
       ...synthOptions,
     });
-    ({ audioAssets, cachedAssetsUsed, newAssetsSynthesized, spentUsd } = await synthesizeScriptAssets(parsed, synthesizer, models, onProgress, costByRef, bags, catalog));
+    let synthesisStages = null;
+    ({
+      audioAssets,
+      cachedAssetsUsed,
+      newAssetsSynthesized,
+      spentUsd,
+      stageTimings: synthesisStages,
+    } = await synthesizeScriptAssets(parsed, synthesizer, models, onProgress, costByRef, bags, catalog));
+    // One row per synthesis stage, before the compile row (capability video-run-facts
+    // "Stage Timing Row Schema" and the fixed stage order of video-produce-command).
+    for (const stage of ['tts', 'image']) {
+      const t = synthesisStages?.[stage];
+      if (!t || t.calls === 0) continue;
+      queueStage({ stage, start: t.start, end: t.end, cache: { hits: t.hits, misses: t.misses } });
+    }
   }
 
   // Avatar pickup: a lip-sync clip cached by synthesize-avatar.mjs replaces the still avatar layer
   // (cache read only: compile never synthesizes or spends on avatars).
+  const avatarStartedAt = Date.now();
   const avatarVideos = applyCachedAvatars({
     parsed,
     scriptDir,
@@ -656,6 +695,14 @@ export async function compileVideo(options) {
     config: loaded.config,
     models,
     bags,
+  });
+  // The avatar stage of this run: the cache pickup. Counting it keeps the fixed stage order
+  // even when the episode has no avatar Layer (and records the clips still missing).
+  queueStage({
+    stage: 'avatar',
+    start: avatarStartedAt,
+    end: Date.now(),
+    cache: { hits: avatarVideos?.applied || 0, misses: avatarVideos?.missing || 0 },
   });
 
   const manifest = compiler.compile(parsed, {
@@ -735,6 +782,10 @@ export async function compileVideo(options) {
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
   manifest.metadata.manifestPath = manifestPath;
 
+  // The staging mode is known now: every queued stage row carries it.
+  if (options.facts) options.facts.linkMode = staging.linkMode;
+  for (const row of stageRows) recordStage(options.facts, row);
+
   return {
     manifest,
     cachedAssetsUsed,
@@ -799,6 +850,7 @@ export async function renderVideo(options) {
       allowModels: options.allowModels,
       approvalPath: options.approvalPath,
       stageDeps: options.stageDeps,
+      facts: options.facts,
       onProgress,
     });
     recordStage(options.facts, {
@@ -808,7 +860,6 @@ export async function renderVideo(options) {
       cache: { hits: compRes.cachedAssetsUsed || 0, misses: compRes.newAssetsSynthesized || 0 },
     });
     manifest = compRes.manifest;
-    if (options.facts) options.facts.linkMode = compRes.linkMode;
     cachedAssetsUsed = compRes.cachedAssetsUsed;
     newAssetsSynthesized = compRes.newAssetsSynthesized;
     spentUsd = compRes.spentUsd || 0;

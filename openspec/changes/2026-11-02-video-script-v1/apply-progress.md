@@ -220,8 +220,12 @@ after the render). Both masters are byte-identical:
 `sha256 3c2b45ab…7c9cfbef7`, 28,466 bytes, `spike_1920x1920.mp4`. Harness:
 `temp/spike-link-vs-copy.mjs` (gitignored scratch, not committed).
 
-Still missing to close the batch: per-synthesis-stage timing hooks (`tts`, `image`, `avatar`
-through `recordStage`, Slice 6).
+- **6 / part 8**: per-stage timing hooks. `synthesizeScriptAssets` measures the `tts` and
+  `image` windows (wall clock, calls, cache hits/misses) and `compileVideo` queues the
+  `tts`/`image`/`avatar` rows until the staging mode is known, so every row carries the real
+  `link_mode`; the rows land in the fixed order `tts`, `image`, `avatar`, `compile`, `render`.
+
+All three slices of the batch are closed. The batch is ready for its single PR.
 
 Verification at the batch tip: skill suite 467 tests, 467 pass; `node scripts/verify.js` green;
 nothing merged to `dev`/`main`; no tag; `video_NN` untouched.
