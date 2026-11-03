@@ -20,11 +20,11 @@ import { resolveWorkspace } from './video-guard.mjs';
 import { parseKnowledgeDocument } from './knowledge-model.mjs';
 import { loadPresetIndex, lookupPreset, parsePresetList, presetSourceFromFile } from './presets.mjs';
 
-export const SCOPE_ORDER = ['cli', 'layer', 'scene', 'video', 'series', 'domain', 'blueprint'];
+export const SCOPE_ORDER = ['cli', 'layer', 'scene', 'video', 'kind', 'series', 'domain', 'blueprint'];
 export const PROCEDURES_DIR = 'procedures';
 
 /** Levels whose `presets` list expands. `layer` and `cli` carry explicit fields only. */
-export const PRESET_LEVELS = new Set(['domain', 'series', 'video', 'scene']);
+export const PRESET_LEVELS = new Set(['domain', 'series', 'kind', 'video', 'scene']);
 
 const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -55,7 +55,7 @@ export function bagsToChain(bags = {}) {
   const floor = bags.blueprint
     ? { id: 'blueprint', kind: 'floor', doc: null, isolate: false, values: bags.blueprint }
     : null;
-  const levels = ['domain', 'series', 'video', 'scene', 'layer', 'cli'];
+  const levels = ['domain', 'series', 'kind', 'video', 'scene', 'layer', 'cli'];
   const nodes = [];
   for (const level of levels) {
     const bag = bags[level];

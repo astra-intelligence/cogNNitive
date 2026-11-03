@@ -20,6 +20,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { isKnowledgeModel, slugify } from './lib/knowledge-model.mjs';
 import { resolve } from './lib/video-scope.mjs';
+import { kindBagOf, loadSeriesGrammar, validateLanguage, validateSceneKinds } from './lib/kinds.mjs';
 
 /**
  * @typedef {Object} LowerThirdProps
@@ -404,14 +405,29 @@ export class SceneCompiler {
     const buckets = assignLayersToScenes(sceneElements, layerElements);
     const videoEl = videos[0] || {};
 
+    // The series grammar: Scene Kinds and Chrome declared by the Series document
+    // (capability video-scene-kinds). A caller may inject it (tests, `produce`).
+    const grammar = options.grammar || (options.scriptDir ? loadSeriesGrammar(options.scriptDir) : { kinds: {}, chrome: {} });
+    const kindErrors = validateSceneKinds(model, grammar);
+    if (kindErrors.length > 0) {
+      throw Object.assign(new Error(kindErrors.map((e) => e.message).join(' ')), { code: kindErrors[0].code, errors: kindErrors });
+    }
+    const language = resolve('language', { ...bags, video: videoEl.fields || {} }).value;
+    const languageError = validateLanguage(model, language);
+    if (languageError) {
+      throw Object.assign(new Error(languageError.message), { code: languageError.code, errors: [languageError] });
+    }
+
     const scenes = sceneElements.map((sc, i) => {
       const slug = sc.slug || slugify(sc.name);
       const sceneId = `scene_${slug}`;
       const fields = sc.fields || {};
       // The scene bag is the most specific element level; `video` is the
-      // enclosing Video element. `series`/`domain`/`blueprint` ride in `bags`,
-      // and every level's `presets` expand there (design D4).
-      const sceneBags = { ...bags, video: videoEl.fields || {}, scene: fields };
+      // enclosing Video element; `kind` is the Scene Kind's expanded presets,
+      // which sit between `series` and `video` (design A6). `series`/`domain`/
+      // `blueprint` ride in `bags`, and every level's `presets` expand there.
+      const kindBag = kindBagOf(grammar, fields.kind);
+      const sceneBags = { ...bags, ...(kindBag ? { kind: kindBag } : {}), video: videoEl.fields || {}, scene: fields };
       const backgroundAudio = resolve('background_audio', sceneBags).value;
       const backgroundVolume = resolve('background_audio_volume', sceneBags, {
         accept: (v) => v !== undefined && v !== null && String(v).trim() !== '' && Number.isFinite(Number(v)),

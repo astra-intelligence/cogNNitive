@@ -517,7 +517,7 @@ export async function compileVideo(options) {
   const scriptBags = withScriptPresets(bags, model, scriptPath);
   const guard = compiler.checkScript(model, { ...options, bags: scriptBags });
   if (!guard.ok) throw new ScriptValidationError(guard.errors);
-  const parsed = compiler.lowerKnowledgeModel(model, { bags: scriptBags, fps: options.fps, width: options.width, height: options.height });
+  const parsed = compiler.lowerKnowledgeModel(model, { bags: scriptBags, scriptDir, fps: options.fps, width: options.width, height: options.height });
   // Resolve the frame cascade value to its document BEFORE any synthesis or
   // render (design D18/D21): a user-level name with no file fails here, with
   // nothing spent; a blueprint-only name is skipped with one warning.
