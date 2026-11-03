@@ -9,7 +9,7 @@ const UI = req(join(import.meta.dirname!, '..', '..', '..', 'specs', 'bluepriNNt
 // Spec: console-ui-kit "Renderers Consume the Kit" — DraftList and RelList
 // chips are knowledge units built by Ku, keyed by canonical address.
 describe('DraftList Ku migration', () => {
-  it('renders a field draft target as an addressed value badge', () => {
+  it('renders the draft target as kit-built Ku chips on an element sheet', () => {
     const list = UI.DraftList(
       {
         drafts: [
@@ -19,8 +19,14 @@ describe('DraftList Ku migration', () => {
       },
       { modelId: 'm' },
     )
-    const badge = list.querySelector('[data-ku-kind="value"]')!
-    expect(badge.getAttribute('data-ku-address')).toBe('m@e1&owner')
+    // A change is an element: the target is named on the sheet, and every chip
+    // is a kit Ku unit rather than hand-rolled markup.
+    const sheet = list.querySelector('article[data-nn-component="element-card"]')!
+    expect(sheet.querySelector('[data-ku-kind="section"]')).not.toBeNull()
+    const unit = sheet.querySelector('[data-ku-kind="element"]')!
+    // The chip addresses the TARGET unit, so it stays a real, resolvable unit.
+    expect(unit.getAttribute('data-ku-address')).toBe('m@e1')
+    expect(unit.textContent).toContain('Egon')
   })
 })
 

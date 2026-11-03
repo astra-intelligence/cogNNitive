@@ -126,10 +126,15 @@ describe('console-review-tab (one Changes tab)', () => {
       ],
     }
     const tab = renderTab({ store, elements: ELEMENTS, changes: [newer, older] })
-    const diffs = Array.from(tab.querySelectorAll('.nn-change-card-diff')).map(
-      (n) => n.textContent,
-    )
-    expect(diffs).toEqual(['X \u2192 Y', 'A \u2192 B'])
+    // One sheet per applied block, newest first: read the from/to rows.
+    const sheets = Array.from(
+      tab.querySelectorAll('[data-nn-component="change-history"] article[data-nn-component="element-card"]'),
+    ) as HTMLElement[]
+    expect(sheets.length).toBe(2)
+    expect(sheets[0].textContent).toContain('X')
+    expect(sheets[0].textContent).toContain('Y')
+    expect(sheets[1].textContent).toContain('A')
+    expect(sheets[1].textContent).toContain('B')
     expect(tab.querySelector('.nn-review-empty')).not.toBeNull()
   })
 
@@ -140,7 +145,7 @@ describe('console-review-tab (one Changes tab)', () => {
     const tab = renderTab({ store, elements: ELEMENTS, changes: APPLIED }, () => {
       refreshed++
     })
-    ;(tab.querySelector('.nn-change-revert') as HTMLButtonElement).click()
+    ;(tab.querySelector('[data-nn="revert"]') as HTMLButtonElement).click()
     expect(refreshed).toBe(1)
     const draft = store.drafts()[0]
     expect(draft).toMatchObject({
@@ -167,7 +172,7 @@ describe('console-review-tab (one Changes tab)', () => {
       },
     ]
     const tab = renderTab({ store, elements: ELEMENTS, changes: added })
-    ;(tab.querySelector('.nn-change-revert') as HTMLButtonElement).click()
+    ;(tab.querySelector('[data-nn="revert"]') as HTMLButtonElement).click()
     expect(store.drafts()[0]).toMatchObject({
       element_id: 'e1',
       field: 'owner',
@@ -203,7 +208,7 @@ describe('console-review-tab (one Changes tab)', () => {
       },
     ]
     const tab = renderTab({ store, elements: ELEMENTS, changes: cited })
-    ;(tab.querySelector('.nn-change-card-source .cite-icon') as HTMLButtonElement).click()
+    ;(tab.querySelector('[data-nn-component="change-history"] [data-nn-component="citation-icon"]') as HTMLButtonElement).click()
     expect(dialog.showModal).toHaveBeenCalledTimes(1)
     // The source splits into a path and an anchor; nothing was checked, so no status is claimed.
     const labels = Array.from(dialog.querySelectorAll('dt')).map((n: any) => n.textContent)
@@ -225,7 +230,7 @@ describe('console-review-tab (one Changes tab)', () => {
     }
     env.document.body.appendChild(card)
     const tab = renderTab({ store, elements: ELEMENTS, changes: APPLIED })
-    ;(tab.querySelector('.nn-change-goto') as HTMLButtonElement).click()
+    ;(tab.querySelector('[data-nn="go-to"]') as HTMLButtonElement).click()
     expect(scrolled).toBe(true)
     expect(card.classList.contains('nn-highlight')).toBe(true)
   })

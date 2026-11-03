@@ -50,8 +50,6 @@ const ALLOWLIST = [
   { pattern: 'scripts/migrate-spec-urls.mjs', reason: 'historical one-time codemod (cogNNitive/iNNfo -> monorepo) that must match the pre-migration paths' },
   { pattern: 'iNNfo/packages/nn-core/src/validator/content.ts', reason: 'V_0-3-0 gate: detects and rejects retired frontmatter keys / the retired `type:: model` keyword with an explicit migration message' },
   { pattern: 'iNNfo/packages/nn-core/src/schema/canonical-registry.ts', reason: 'offline fallback registry: embeds canonical spec copies + the permanent lowercase legacy URL/alias maps' },
-  { pattern: 'skills/nn-sources/scripts/provenance.js', reason: 'detects the legacy `_workspace_NN.md` lineage record by name for one-time in-place migration to `_cogNNitive_NN.md`' },
-  { pattern: 'skills/nn-sources/scripts/lib/provenance-knowledge.js', reason: 'legacy `_workspace_NN.md` lineage-record suffix documented for one-time migration' },
   { pattern: 'scripts/lib/legacy-write-guard.js', reason: 'this guard carries the token table itself' },
   { pattern: 'scripts/blueprint-catalog.mjs', reason: 'reads the retired `template_version` key only as a fallback to catalog the frozen composition-root templates (base/cogNNitive/workspace), whose byte-frozen frontmatter never carried blueprint_version' },
   { pattern: 'scripts/blueprint-catalog.test.mjs', reason: 'fixtures reproduce the frozen files, which carry `template_version` instead of blueprint_version' },

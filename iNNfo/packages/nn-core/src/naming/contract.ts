@@ -98,7 +98,6 @@ export type Role =
   | 'entrypoint'
   | 'spec'
   | 'sidecar'
-  | 'lineage-record'
   | 'catalog'
   | 'procedure'
   | 'knowledge'
@@ -122,7 +121,6 @@ export const IGNORED_DIRECTORIES: ReadonlySet<string> = new Set(['backups', 'arc
  * identity, so `roleOf` stays pure and browser-safe (no filesystem, no regex).
  */
 export const CORE_BLUEPRINT_ROLE: Readonly<Record<string, Role>> = {
-  cognnitive: 'lineage-record',
   sidecar: 'sidecar',
   changes: 'changeset',
   workspace: 'catalog',
@@ -178,6 +176,21 @@ export function isExcludedPath(path: string): boolean {
   return segs.some((s) => s === 'archive' || s === 'staging' || (s.startsWith('.') && s !== '..'))
 }
 
+/**
+ * THE regenerable-view predicate (change-provenance A8): console exports
+ * (`artifacts/<name>_console/**`) and the `Impact_Audit_report*` family are
+ * regenerable from the log, so they never need a `produce_artifact` record.
+ * Shared by the projection and gc, so there is no per-caller exemption list.
+ */
+export function isRegenerableView(path: string): boolean {
+  const normalized = String(path ?? '').replace(/\\/g, '/').toLowerCase()
+  if (!normalized) return false
+  const segs = normalized.split('/').filter((seg) => seg.length > 0)
+  if (segs[0] !== 'artifacts') return false
+  if (segs.length >= 3 && segs[1].endsWith('_console')) return true
+  return segs.length === 2 && /^impact_audit_report.*\.md$/.test(segs[1])
+}
+
 /** Family identity `(dir, key, ext)`; `null` for `_NN.md` documents, which are not write-once families. */
 export function familyOf(path: string): { dir: string; key: string; ext: string } | null {
   const normalized = path.replace(/\\/g, '/')
@@ -187,8 +200,19 @@ export function familyOf(path: string): { dir: string; key: string; ext: string 
   return { dir: slash < 0 ? '' : normalized.slice(0, slash), key: parsed.key, ext: parsed.ext }
 }
 
-/** Name-only order within a family: unsuffixed first, then `(stamp, seq)` numerically. Never reads mtime. */
-export function compareMembers(a: string, b: string): number {
+/**
+ * The UTC stamp a changeset document name carries, `<prefix>_<stamp>_changes_NN.md`.
+ * `null` for any other name. The single definition of the changeset stamp.
+ */
+export function changesetStampOf(nameOrPath: string): UtcStamp | null {
+  const parsed = parseName(baseOf(nameOrPath))
+  if (parsed.kind !== 'nn' || parsed.sidecarOf !== undefined) return null
+  if (!/_changes$/i.test(parsed.stem)) return null
+  const m = STAMP_SUFFIX_RE.exec(parsed.stem.slice(0, -'_changes'.length))
+  return m ? { stamp: m[2], seq: m[3] ? Number(m[3]) : 1 } : null
+}
+
+/** Name-only order within a family: unsuffixed first, then `(stamp, seq)` numerically. Never reads mtime. */export function compareMembers(a: string, b: string): number {
   const pa = parseName(baseOf(a))
   const pb = parseName(baseOf(b))
   const sa = pa.kind === 'file' ? pa.stamp : undefined

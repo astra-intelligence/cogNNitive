@@ -71,7 +71,6 @@ describe('Metaschema (Self-Description)', () => {
     const templates = [
       'bluepriNNts/blank/spec_NN.md',
       'bluepriNNts/business/spec_NN.md',
-      'bluepriNNts/cogNNitive/spec_NN.md',
       'bluepriNNts/innovation/spec_NN.md',
       'bluepriNNts/organization/spec_NN.md',
       'bluepriNNts/procedures/spec_NN.md',

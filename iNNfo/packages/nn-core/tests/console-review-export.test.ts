@@ -45,8 +45,8 @@ function renderModelConsole(): void {
   env.setup(html)
 }
 
-function seedDraft(overrides: any = {}) {
-  const draft = {
+function draftOf(overrides: any = {}) {
+  return {
     id: 'fb-001',
     element_id: 'threat-slimer',
     concept: 'ParanormalThreat',
@@ -61,10 +61,17 @@ function seedDraft(overrides: any = {}) {
     created_at: '2026-10-02T12:00:00Z',
     ...overrides,
   }
+}
+
+function seedDrafts(drafts: any[]) {
   env.localStorage.setItem(
     'nn-console:v4:ghostbusters-model',
-    JSON.stringify({ v: 4, modelId: 'ghostbusters-model', drafts: [draft], reviewed: {} }),
+    JSON.stringify({ v: 4, modelId: 'ghostbusters-model', drafts, reviewed: {} }),
   )
+}
+
+function seedDraft(overrides: any = {}) {
+  seedDrafts([draftOf(overrides)])
 }
 
 function boot() {
@@ -112,7 +119,7 @@ describe('console-review-export (preview + clipboard)', () => {
     env.document.body.appendChild(dialog)
     openModal()
     const icon = env.document.querySelector(
-      '#nn-feedback-modal [data-nn="preview"] .nn-change-card-source .cite-icon',
+      '#nn-feedback-modal [data-nn="preview"] [data-nn-component="citation-icon"]',
     ) as HTMLButtonElement
     expect(icon).not.toBeNull()
     icon.click()
@@ -120,13 +127,55 @@ describe('console-review-export (preview + clipboard)', () => {
     expect(dialog.textContent).toContain('sources/report.pdf')
   })
 
-  it('opening the feedback modal renders a DraftList preview', () => {
+  it('opening the feedback modal renders one change sheet per draft', () => {
     seedDraft()
     boot()
     openModal()
     const preview = env.document.querySelector('#nn-feedback-modal [data-nn="preview"]')
     expect(preview).not.toBeNull()
-    expect(preview!.querySelector('[data-nn-component="draft-list"]')).not.toBeNull()
+    // A change IS an element: the pending list reuses the explorer's element
+    // sheet instead of a second, differently styled change card.
+    expect(preview!.querySelector('[data-nn-component="element-card"]')).not.toBeNull()
+    expect(preview!.textContent).toContain('Unsent')
+  })
+
+  it('the footer hands off the same actions as the navbar', () => {
+    seedDraft()
+    boot()
+    openModal()
+    const modal = env.document.getElementById('nn-feedback-modal')!
+    const save = modal.querySelector('[data-nn="save-snapshot"]')!
+    const discard = modal.querySelector('[data-nn="discard-all"]') as HTMLButtonElement
+    expect(save.textContent).toContain('Save Snapshot')
+    // Save Snapshot reuses the navbar button anatomy, badge included.
+    expect(save.className).toContain('nn-navbar-action-btn')
+    expect(save.querySelector('.nn-badge-count')!.textContent).toBe('1')
+    expect(discard).not.toBeNull()
+    expect(discard.textContent).toBe('Discard all')
+  })
+
+  it('a row discard removes only that draft', () => {
+    seedDrafts([draftOf(), draftOf({ id: 'fb-002', proposed: 'C' })])
+    boot()
+    openModal()
+    const modal = env.document.getElementById('nn-feedback-modal')!
+    const preview = modal.querySelector('[data-nn="preview"]')!
+    expect(preview.querySelectorAll('[data-nn-component="element-card"]').length).toBe(2)
+    ;(preview.querySelector('.nn-change-sheet-discard') as HTMLButtonElement).click()
+    expect(preview.querySelectorAll('[data-nn-component="element-card"]').length).toBe(1)
+  })
+
+  it('discard all clears every unsent draft after confirmation', () => {
+    seedDrafts([draftOf(), draftOf({ id: 'fb-002', proposed: 'C' })])
+    vi.spyOn(env.window, 'confirm').mockReturnValue(true)
+    boot()
+    openModal()
+    const modal = env.document.getElementById('nn-feedback-modal')!
+    ;(modal.querySelector('[data-nn="discard-all"]') as HTMLButtonElement).click()
+    expect(env.window.confirm).toHaveBeenCalledTimes(1)
+    const preview = modal.querySelector('[data-nn="preview"]')!
+    expect(preview.querySelectorAll('[data-nn-component="element-card"]').length).toBe(0)
+    expect(preview.textContent).toContain('No unsent changes')
   })
 
   it('an empty identifier disables download and copy', () => {

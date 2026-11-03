@@ -8,7 +8,6 @@ import {
   resolveHeadingSection,
   resolveUnit,
   extractHeadings,
-  SOURCE_FIELD_NAMES,
 } from '../index.js'
 import { assertNever } from '../assertNever.js'
 import type {
@@ -45,6 +44,8 @@ export interface ResolvedCitation {
   /** Derivative hash of a normalized source's companion media (`media_sha256`). */
   media_sha256?: string
   version?: string
+  /** The applied change the citation derives from (evidence index / target lookup). */
+  changeId?: string
   error?: 'MALFORMED' | 'DANGLING_FILE' | 'UNKNOWN_ANCHOR' | 'ELEMENT_NOT_FOUND' | 'MODEL_NOT_FOUND'
 }
 
@@ -342,7 +343,10 @@ export function groupCitationsByField(
 }
 
 /**
- * Determines which fields in an element carry citations (name-based or schema type:: citation).
+ * Determines which fields in an element carry citations: a schema field declared
+ * `type:: citation`, plus — transitionally, until the corpus rebuild (S5b.4) —
+ * a field literally named `sources`/`source`, which the validator still resolves
+ * and S5a.3 reports as banned.
  */
 export function citationFieldsFor(
   conceptName: string,
@@ -351,9 +355,8 @@ export function citationFieldsFor(
 ): string[] {
   const result = new Set<string>()
   for (const fieldName of Object.keys(fields)) {
-    if (SOURCE_FIELD_NAMES.has(fieldName.toLowerCase())) {
-      result.add(fieldName)
-    }
+    const lower = fieldName.toLowerCase()
+    if (lower === 'sources' || lower === 'source') result.add(fieldName)
   }
 
   if (schema) {

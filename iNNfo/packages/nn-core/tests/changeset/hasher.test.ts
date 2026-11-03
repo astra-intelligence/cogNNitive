@@ -11,7 +11,7 @@ const SEALED_KEY_SPEC = [
   'concept',
   'name',
   'slug',
-  'fields',
+  'seed',
   'author',
   'notes',
   'base_hash',

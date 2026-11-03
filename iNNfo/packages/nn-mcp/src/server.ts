@@ -51,7 +51,7 @@ import { syncDomainManifest } from './tools/workspace-sync.js'
 import { applyWithConsole, regenerateConsole, buildNextSteps } from './tools/console-regeneration.js'
 import { proposeChangeset } from './tools/propose-changeset.js'
 import { initDomain } from './tools/init-domain.js'
-import { syncLineageTool } from './tools/sync-lineage.js'
+import { readLineageTool } from './tools/read-lineage.js'
 import { explainEffective, resolveEffective } from './tools/resolve-effective.js'
 import { envelope, envelopeList, findDomainRoot } from '@cognnitive/nn-core'
 
@@ -315,6 +315,7 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
               'generate_index',
               'bump_version',
               'freeze_slugs',
+              'update_element_text',
             ],
           },
           args: {
@@ -363,7 +364,7 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
       annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Write a sealed changeset with status proposed under changes/ from a structured list of operations, then regenerate and open the domain console so the user can review it. It never applies the changeset. ' +
-        'You derive the operations (update_field, add_element, remove_element, rename_element, rename_concept, update_matrix_cell, update_concept_text, remove_matrix, add_matrix, comment, add_model, freeze_slugs, bump_version); the tool does not interpret conversations. ' +
+        'You derive the operations (update_field, add_element, remove_element, rename_element, rename_concept, update_matrix_cell, update_concept_text, update_element_text, remove_matrix, add_matrix, comment, add_model, freeze_slugs, bump_version, produce_artifact); the tool does not interpret conversations. ' +
         'Validation runs before any write: an unknown model, an add_model on an existing model, or an operation missing required keys returns errors and writes nothing. ' +
         'The result carries changeset, console and next_steps: you MUST relay next_steps.notice to the user. When the user replies OK, call apply_change with next_steps.approve.changeset.',
       inputSchema: {
@@ -372,7 +373,7 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
           operations: {
             type: 'array',
             description:
-              'Change objects using the changeset keys: op, target, from, to, concept, name, slug, fields, notes, sources (evidence citation), base_hash, author. add_model also takes blueprint_name, blueprint_url and optional knowledge_version; initial content is add_element changes that follow it and target the new id. freeze_slugs and bump_version target a bare model id; bump_version carries its level (patch, minor or major) in to. sources is a single citation string, not an array.',
+              'Change objects using the changeset keys: op, target, from, to, concept, name, slug, notes, evidence, base_hash, author. There is no fields key: add_element creates the element only and each field is its own update_field change (no from at creation). update_element_text writes the element prose body (target model@element). add_model also takes blueprint_name, blueprint_url and optional knowledge_version; initial content is add_element changes that follow it and target the new id. freeze_slugs and bump_version target a bare model id; bump_version carries its level (patch, minor or major) in to. evidence is the change\'s provenance: one citation string, or the literal decision / unknown. There is no sources key.',
             items: { type: 'object' },
           },
           title: { type: 'string', description: 'Title of the changeset.' },
@@ -396,7 +397,7 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
       description:
         'Create an empty, conformant domaiNN container in a new directory: the canonical folders (kNNowledge/, sources/import/, sources/conversations/, conversations/, artifacts/, procedures/, staging/, changes/), a .gitattributes with * -text and a domaiNN_NN.md manifest listing no models. ' +
         'Refuses a directory that exists and is not empty. It is not a changeset; add models afterwards with an add_model changeset (propose_changeset) or init_knowledge. ' +
-        'Migration recipe: init_domain for a NEW domain, import the old domain as a source (migrate-domain.js --import-as-source), derive add_model/add_element changes that cite it through sources::, propose_changeset, review, apply_change.',
+        'Migration recipe: init_domain for a NEW domain, import the old domain as a source (migrate-domain.js --import-as-source), derive add_model/add_element changes whose evidence cites it, propose_changeset, review, apply_change.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -561,7 +562,7 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
       name: 'check_domain',
       annotations: { readOnlyHint: true },
       description:
-        'Run one consolidated domain integrity pass over every Level-3 knowledge document: validate each against its blueprint and traceability, self-heal missing blueprint packages/specs (write-once hydration), classify each pinned blueprint version against the published catalog, compare the managed sections of the lineage record with a fresh projection (error LINEAGE_DRIFT in the lineage field of the report; read-only), and return one report with a per-knowledge status and a domain aggregate. Non-blocking and informational — validation failures never fail the tool.',
+        'Run one consolidated domain integrity pass over every Level-3 knowledge document: validate each against its blueprint and traceability, self-heal missing blueprint packages/specs (write-once hydration), classify each pinned blueprint version against the published catalog, check provenance (evidence warnings, drift between the applied changes and the files, and ARTIFACT_WITHOUT_RECORD; read-only), and return one report with a per-knowledge status and a domain aggregate. Non-blocking and informational — validation failures never fail the tool.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -582,6 +583,11 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
             type: 'boolean',
             description:
               'Skip all network: no catalog fetch, no hydration, no freshness. Default false.',
+          },
+          strict: {
+            type: 'boolean',
+            description:
+              'Strict provenance: rebuild each model from its add_model skeleton, replay its applied changes and compare the serialized bodies (whitespace and reordering count as drift). Default false (fold mode).',
           },
         },
       },
@@ -653,13 +659,22 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
   },
   {
     definition: {
-      name: 'sync_lineage',
-      annotations: { readOnlyHint: false, idempotentHint: true },
+      name: 'read_lineage',
+      annotations: { readOnlyHint: true },
       description:
-        'Recompute the lineage projection from the workspace filesystem and regenerate the canonical lineage record (`<project>_cogNNitive_NN.md`) without requiring the CLI. Re-synchronizes # NN Sources, # NN ModelRecords, and # NN Artifacts sections.',
+        'Read-only computed lineage view of the domain: {sources, models, artifacts, changes, edges, diagnostics}. Inventory comes from the filesystem; edges come from the applied changes (evidence: cited file -> model/artifact, target: unit -> owner, produced: artifact -> changeset). `scope` selects live evidence (the last applied change of each unit, default) or all-time evidence; `focus` narrows every section to refs containing it. A non-regenerable artifact with no produce_artifact change is ARTIFACT_WITHOUT_RECORD. Never writes files.',
       inputSchema: {
         type: 'object',
         properties: {
+          focus: {
+            type: 'string',
+            description: 'Optional substring filter applied to every section (case-insensitive)',
+          },
+          scope: {
+            type: 'string',
+            enum: ['live', 'all-time'],
+            description: 'Evidence scope: live (default) or all-time',
+          },
           domain: {
             type: 'string',
             description: 'Optional domain root directory override (default: server root)',
@@ -668,14 +683,10 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
             type: 'string',
             description: 'Optional domain root directory override (alias for domain)',
           },
-          projectName: {
-            type: 'string',
-            description: 'Optional project name override (default: basename of domain root)',
-          },
         },
       },
     },
-    handler: handleSyncLineage,
+    handler: handleReadLineage,
   },
   {
     definition: {
@@ -692,6 +703,11 @@ const TOOL_REGISTRY: ReadonlyArray<ToolEntry> = [
           fieldName: {
             type: 'string',
             description: 'Optional: restrict resolution to this single field',
+          },
+          target: {
+            type: 'string',
+            description:
+              'Optional unit address (`model@element&field`, `model@element&#body`, `model@matrix&row&col`). Returns the evidence of the last applied change of that unit, each entry with its changeId; superseded evidence is never returned.',
           },
           domain: {
             type: 'string',
@@ -1070,6 +1086,7 @@ async function handleCheckDomain(args: Record<string, unknown>): Promise<CallToo
   const report = await checkDomain(root, {
     summaryOnly: Boolean(args.summary_only),
     offline: Boolean(args.offline),
+    strict: Boolean(args.strict),
   })
   return textResult(JSON.stringify(envelope('innfo-check-domain', report), null, 2))
 }
@@ -1091,15 +1108,16 @@ async function handleCognitivize(args: Record<string, unknown>): Promise<CallToo
   return result.status === 'rejected' ? errorResult(text) : textResult(text)
 }
 
-async function handleSyncLineage(args: Record<string, unknown>): Promise<CallToolResult> {
+async function handleReadLineage(args: Record<string, unknown>): Promise<CallToolResult> {
   const root = (args.domain as string) || (args.root as string) || ROOT_DIR
-  const projectName = args.projectName as string | undefined
-  const result = await syncLineageTool(root, { projectName })
-  return textResult(JSON.stringify(envelope('innfo-sync-lineage', result), null, 2))
+  const result = await readLineageTool(root, {
+    focus: args.focus as string | undefined,
+    scope: args.scope === 'all-time' ? 'all-time' : 'live',
+  })
+  return textResult(JSON.stringify(envelope('innfo-read-lineage', result), null, 2))
 }
 
-async function handleResolveSources(args: Record<string, unknown>): Promise<CallToolResult> {
-  const knowledgeId = (args.knowledge_id as string) || (args.model as string)
+async function handleResolveSources(args: Record<string, unknown>): Promise<CallToolResult> {  const knowledgeId = (args.knowledge_id as string) || (args.model as string)
   const elementId = args.elementId as string
   if (!knowledgeId || !elementId) return errorResult('Missing required arguments: knowledge_id, elementId')
   const root = (args.domain as string) || (args.root as string) || ROOT_DIR
@@ -1107,6 +1125,7 @@ async function handleResolveSources(args: Record<string, unknown>): Promise<Call
     model: knowledgeId,
     elementId,
     fieldName: args.fieldName as string | undefined,
+    target: args.target as string | undefined,
   })
   return textResult(
     JSON.stringify(envelopeList('innfo-resolve-sources', 'citations', results), null, 2),

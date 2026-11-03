@@ -63,11 +63,11 @@ the generated block inside a `SKILL.md` by hand — the drift check will reject 
 4. **User Input Source**: in-line interactive input (`source_file: "inline:..."`),
    exempt from physical disk file existence.
 
-Citations use the pointer grammar `sources:: [<path>@<unit>, ...]` — ALWAYS a
-bracketed list, with a domaiNN-relative path written in full (no implicit prefix).
-A `<unit>` is `@## Heading` (Markdown), `@RowID&col` (CSV), or
-`@/items/0/name` (JSON Pointer, RFC 6901). No `src-NNN` IDs, no line-number
-ranges, and never a `staging/` target.
+A unit's provenance is the `evidence` of the applied change that set it: a
+domaiNN-relative `path@unit`, written in full (no implicit prefix), or a bracketed
+list when one change cites several units. A `<unit>` is `@## Heading` (Markdown),
+`@RowID&col` (CSV), or `@/items/0/name` (JSON Pointer, RFC 6901). No `src-NNN` IDs,
+no line-number ranges, and never a `staging/` target.
 
 ## rule: informative-grace
 

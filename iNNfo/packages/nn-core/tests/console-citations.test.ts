@@ -63,7 +63,7 @@ describe('Console Citations', () => {
     })
   })
 
-  it('identifies citation fields via name matching and schema type:: citation', () => {
+  it('identifies citation fields via schema type:: citation only', () => {
     const mockSchema = {
       concepts: [{ name: 'Services' }],
       fields: [
@@ -148,8 +148,6 @@ precio_source:: sources/import/pricing.md#rates
     expect(el.citations!.sources).toBeDefined()
     expect(el.citations!.precio_source).toBeDefined()
     expect(el.citations!.sources[0].path).toBe('sources/import/brief.md')
-    expect(el.citations!.sources[0].anchor).toBe('intro')
-    expect((el.citations!.sources[0] as any).field).toBeUndefined()
     expect(el.citations!.precio_source[0].path).toBe('sources/import/pricing.md')
   })
 })

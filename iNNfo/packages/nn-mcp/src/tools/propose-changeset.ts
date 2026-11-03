@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 import {
   ENTRYPOINT_FILENAME,
@@ -18,6 +18,9 @@ import {
   formatUtcStamp,
   slugify,
   createFsSourceResolver,
+  splitEvidence,
+  isChangesetPath,
+  isSidecarName,
   resolveCitation,
 } from '@cognnitive/nn-core'
 import type { ChangeItem, ChangesetDocument, SpecDocument } from '@cognnitive/nn-core'
@@ -172,6 +175,14 @@ function requiredKeyProblems(change: ChangeItem, label: string): string[] {
       need('concept')
       need('name')
       break
+    case 'update_element_text':
+      if (!hasElement || target.includes('&')) {
+        problems.push(`${label}: update_element_text target must be model@element (the prose body, not a field)`)
+      }
+      if (change.to === undefined || change.to === null) {
+        problems.push(`${label}: update_element_text requires "to"`)
+      }
+      break
     case 'remove_element':
       if (!hasElement) problems.push(`${label}: remove_element target must be model@element`)
       break
@@ -281,6 +292,18 @@ export async function validateProposal(rootDir: string, operations: ChangeItem[]
     for (const message of shape) errors.push({ path: label, code: 'INVALID_OPERATION', message })
     if (shape.length > 0 || !change.target) continue
 
+    if (change.op === 'update_field') {
+      const field = change.target.split('&')[1] ?? ''
+      if (field.trim().toLowerCase() === 'description') {
+        errors.push({
+          path: label,
+          code: 'USE_UPDATE_ELEMENT_TEXT',
+          message: `${label}: the element prose is not a field; use update_element_text on the bare element target`,
+        })
+        continue
+      }
+    }
+
     const modelId = canonicalModelOf(change.target)
     const key = modelId.toLowerCase()
     if (change.op === 'add_model') {
@@ -293,6 +316,8 @@ export async function validateProposal(rootDir: string, operations: ChangeItem[]
       continue
     }
     if (change.op === 'comment' && !change.target.includes('@')) continue
+    // produce_artifact addresses a workspace path, never a model.
+    if (change.op === 'produce_artifact') continue
     if (created.has(key)) continue
     if ((createdLater.get(key) ?? -1) > index) {
       errors.push({ path: label, code: 'ADD_MODEL_ORDER', message: `ADD_MODEL_ORDER: ${label} targets "${modelId}" before the add_model that creates it` })
@@ -312,14 +337,64 @@ export async function validateProposal(rootDir: string, operations: ChangeItem[]
   const futureChangesetPath = join(rootDir, 'changes', 'proposal_changes_NN.md')
   for (const [index, change] of operations.entries()) {
     if (!change.evidence) continue
-    // `decision` and `unknown` are not citations: accepted without resolution.
-    if (change.evidence === 'decision' || change.evidence === 'unknown') continue
-    const resolved = resolveCitation(change.evidence, 'evidence', citationResolver, futureChangesetPath)
-    if (!resolved.exists || resolved.error === 'UNKNOWN_ANCHOR' || resolved.error === 'MALFORMED') {
+    // `decision` and `unknown` are not citations: accepted without resolution, and
+    // valid only alone (`splitEvidence` rejects a keyword beside another entry).
+    let items: string[]
+    try {
+      items = splitEvidence(change.evidence)
+    } catch (err) {
       errors.push({
         path: `operations[${index}].evidence`,
-        code: 'CITATION_UNRESOLVED',
-        message: `CITATION_UNRESOLVED: operations[${index}] cites "${change.evidence}" which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
+        code: 'EVIDENCE_KEYWORD_IN_LIST',
+        message: err instanceof Error ? err.message : String(err),
+      })
+      continue
+    }
+    if (items.length === 0) continue
+    if (items.length === 1 && (items[0] === 'decision' || items[0] === 'unknown')) continue
+    for (const item of items) {
+      const resolved = resolveCitation(item, 'evidence', citationResolver, futureChangesetPath)
+      if (!resolved.exists || resolved.error === 'UNKNOWN_ANCHOR' || resolved.error === 'MALFORMED') {
+        errors.push({
+          path: `operations[${index}].evidence`,
+          code: 'CITATION_UNRESOLVED',
+          message: `CITATION_UNRESOLVED: operations[${index}] cites "${item}" which does not resolve (${resolved.error ?? 'NOT_FOUND'})`,
+        })
+      }
+    }
+  }
+  if (errors.length > 0) return errors
+
+  // produce_artifact: the target is a safe, existing workspace path that is not a
+  // model, changeset or sidecar (artifact-production-change).
+  for (const [index, change] of operations.entries()) {
+    if (change.op !== 'produce_artifact') continue
+    const rel = String(change.target).replace(/\\/g, '/')
+    const segments = rel.split('/')
+    const fileName = segments[segments.length - 1] ?? ''
+    const label = `operations[${index}].target`
+    if (
+      rel.length === 0 ||
+      rel.startsWith('/') ||
+      /^[a-zA-Z]:/.test(rel) ||
+      segments.includes('..') ||
+      isChangesetPath(rel) ||
+      isSidecarName(fileName) ||
+      /(^|\/)kNNowledge\//i.test(rel)
+    ) {
+      errors.push({
+        path: label,
+        code: 'ARTIFACT_INVALID_PATH',
+        message: `ARTIFACT_INVALID_PATH: "${rel}" is not a workspace artifact path`,
+      })
+      continue
+    }
+    const info = await stat(join(rootDir, rel)).catch(() => null)
+    if (!info || !info.isFile()) {
+      errors.push({
+        path: label,
+        code: 'ARTIFACT_NOT_FOUND',
+        message: `ARTIFACT_NOT_FOUND: "${rel}" does not exist`,
       })
     }
   }
@@ -390,6 +465,16 @@ export function normalizeOperations(raw: unknown): { operations: ChangeItem[]; e
       return
     }
     const source = entry as Record<string, unknown>
+    if (source['sources'] !== undefined) {
+      errors.push({
+        path: `operations[${index}]`,
+        code: 'INVALID_OPERATION',
+        message:
+          `operations[${index}].sources is not a change key: a change derives from its "evidence" ` +
+          `(a citation, or the literal "decision" / "unknown"), never from a "sources" list`,
+      })
+      return
+    }
     const item: Record<string, unknown> = { id: `c-${String(index + 1).padStart(2, '0')}` }
     for (const key of STRING_KEYS) {
       const value = source[key]
@@ -402,10 +487,47 @@ export function normalizeOperations(raw: unknown): { operations: ChangeItem[]; e
     }
     const fields = source['fields']
     if (fields !== undefined && fields !== null) {
-      if (typeof fields !== 'object' || Array.isArray(fields)) {
-        errors.push({ path: `operations[${index}]`, code: 'INVALID_OPERATION', message: `operations[${index}].fields must be an object` })
+      // A change carries no inline field values: each field is its own update_field.
+      errors.push({
+        path: `operations[${index}]`,
+        code: 'INVALID_OPERATION',
+        message:
+          `operations[${index}].fields is not a change key: a change carries no inline fields. ` +
+          `Emit one "update_field" change per field (target model@element&field), with its own evidence`,
+      })
+      return
+    }
+    const seed = source['seed']
+    if (seed !== undefined && seed !== null) {
+      if (source['op'] !== 'add_matrix') {
+        errors.push({
+          path: `operations[${index}]`,
+          code: 'INVALID_OPERATION',
+          message: `operations[${index}].seed is valid only on add_matrix`,
+        })
+      } else if (typeof seed !== 'object' || Array.isArray(seed)) {
+        errors.push({
+          path: `operations[${index}]`,
+          code: 'INVALID_OPERATION',
+          message: `operations[${index}].seed must be an object {columns?, rows?}`,
+        })
       } else {
-        item['fields'] = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, String(v)]))
+        const seedObj = seed as Record<string, unknown>
+        const asList = (value: unknown, key: string): string[] | undefined => {
+          if (value === undefined || value === null) return undefined
+          if (!Array.isArray(value)) {
+            errors.push({
+              path: `operations[${index}].seed.${key}`,
+              code: 'INVALID_OPERATION',
+              message: `operations[${index}].seed.${key} must be an array of strings`,
+            })
+            return undefined
+          }
+          return value.map((v) => String(v))
+        }
+        const columns = asList(seedObj.columns, 'columns')
+        const rows = asList(seedObj.rows, 'rows')
+        item['seed'] = { ...(columns ? { columns } : {}), ...(rows ? { rows } : {}) }
       }
     }
     operations.push(item as unknown as ChangeItem)

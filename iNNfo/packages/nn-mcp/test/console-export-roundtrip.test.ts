@@ -177,14 +177,26 @@ describe('console export round trip', () => {
 
     const text = exportChangeset(drafts, modelId)
     const doc = parseChangeset(text)
-    expect(doc.changes.map((c) => c.op)).toEqual(['update_field', 'remove_element', 'add_element'])
+    // A new draft exports as add_element plus one update_field per field: a change
+    // carries no inline `fields`.
+    expect(doc.changes.map((c) => c.op)).toEqual([
+      'update_field',
+      'remove_element',
+      'add_element',
+      'update_field',
+      'update_field',
+    ])
     expect(doc.changes[0].target).toBe(`${modelId}@${vision.slug}&statement`)
+    expect(doc.changes[3].target).toBe(`${modelId}@mission&statement`)
+    expect(doc.changes[4].target).toBe(`${modelId}@mission&target_year`)
+    expect(doc.changes[3].from).toBeUndefined()
+    expect(doc.changes[4].from).toBeUndefined()
 
     await writeFile(join(changesDir, 'tester_changes_NN.md'), text, 'utf-8')
     const result = await applyChange(root, 'changes/tester_changes_NN.md')
     expect(result.errors ?? []).toEqual([])
     expect(result.success).toBe(true)
-    expect(result.appliedCount).toBe(3)
+    expect(result.appliedCount).toBe(5)
 
     const live = await readFile(join(knowledgeDir, 'strategy_NN.md'), 'utf-8')
     expect(live).toContain('Accelerate clean energy')

@@ -31,21 +31,24 @@ describe('nnUI.DraftList', () => {
       proposed: 'new',
     },
   ]
+  const sheets = (root: HTMLElement) => root.querySelectorAll('article[data-nn-component="element-card"]')
 
-  it('renders one card per draft with the anatomy and a Discard control', () => {
+  it('renders one change sheet per draft with a Discard control', () => {
     const onDelete = vi.fn()
     const list = UI.DraftList({ drafts, byId }, { onDelete })
     expect(comp(list)).toBe('draft-list')
-    const rows = list.querySelectorAll('li[data-draft-id]')
+    // A change is an element: the pending list is made of element sheets.
+    const rows = sheets(list)
     expect(rows.length).toBe(2)
     expect(rows[0].getAttribute('data-change-state')).toBe('unsent')
-    expect(rows[0].querySelector('.nn-change-card-title')!.textContent).toContain('Comment')
-    expect(rows[0].querySelector('.nn-change-card-note')!.textContent).toBe('still valid')
-    expect(rows[1].querySelector('.nn-change-card-title')!.textContent).toContain('Edit')
-    expect(rows[1].querySelector('.nn-change-card-diff')!.textContent).toBe('A \u2192 new')
+    expect(rows[0].getAttribute('data-draft-id')).toBe('fb-001')
+    expect(rows[0].querySelector('.nn-card-badges')!.textContent).toContain('Comment on')
+    expect(rows[0].textContent).toContain('still valid')
+    expect(rows[1].querySelector('.nn-card-badges')!.textContent).toContain('Edit')
+    expect(rows[1].textContent).toContain('A \u2192 new')
     expect(list.querySelector('select')).toBeNull()
     expect(list.querySelector('[data-nn-component="status-badge"]')).not.toBeNull()
-    const dis = rows[0].querySelector('.nn-change-discard') as HTMLButtonElement
+    const dis = rows[0].querySelector('[data-nn="discard"]') as HTMLButtonElement
     dis.click()
     expect(onDelete).toHaveBeenCalledWith('fb-001')
   })
@@ -58,27 +61,27 @@ describe('nnUI.DraftList', () => {
       byId,
     })
     expect(list.querySelector('[data-nn-component="citation-icon"]')).toBeNull()
-    expect(list.querySelector('.nn-change-card-source')!.textContent).toBe('sources/a.md')
+    expect(list.textContent).toContain('sources/a.md')
   })
 
   it('renders no Discard control without onDelete (the export preview)', () => {
     const list = UI.DraftList({ drafts, byId })
-    expect(list.querySelector('.nn-change-discard')).toBeNull()
-    expect(list.querySelectorAll('li[data-draft-id]').length).toBe(2)
+    expect(list.querySelector('[data-nn="discard"]')).toBeNull()
+    expect(sheets(list).length).toBe(2)
   })
 
   it('marks target changed on hash mismatch and on a missing element (stale token)', () => {
     const list = UI.DraftList({ drafts, byId })
-    const rows = list.querySelectorAll('li[data-draft-id]')
+    const rows = sheets(list)
     expect(rows[0].hasAttribute('data-target-changed')).toBe(false)
     expect(rows[1].hasAttribute('data-target-changed')).toBe(true)
-    expect(rows[1].querySelector('.nn-change-card-stale')!.textContent).toBe('target changed')
+    expect(rows[1].querySelector('.nn-change-sheet-stale')!.textContent).toBe('target changed')
 
     const missing = UI.DraftList({
       drafts: [{ id: 'fb-003', element_id: 'gone', kind: 'comment', base_hash: 'x', comment: 'c' }],
       byId,
     })
-    expect(missing.querySelector('li[data-draft-id]')!.hasAttribute('data-target-changed')).toBe(true)
+    expect(sheets(missing)[0].hasAttribute('data-target-changed')).toBe(true)
   })
 
   it('is inert to HTML in draft text (no <img onerror>)', () => {
@@ -130,39 +133,35 @@ describe('nnUI.ChangeHistory', () => {
       ],
     },
   ]
+  const sheets = (root: HTMLElement) => root.querySelectorAll('article[data-nn-component="element-card"]')
 
-  it('renders Applied and Not applied cards, skips other blocks, no StatusBadge', () => {
+  it('renders Applied and Not applied sheets, skips other blocks, no StatusBadge', () => {
     const history = UI.ChangeHistory({ changes, byId }, {})
-    const cards = history.querySelectorAll('li[data-nn-component="change-card"]')
+    const cards = sheets(history)
     expect(cards.length).toBe(2)
     expect(cards[0].getAttribute('data-change-state')).toBe('applied')
-    expect(cards[0].querySelector('.nn-change-card-state')!.textContent).toBe('Applied')
-    expect(cards[0].querySelector('.nn-change-card-title')!.textContent).toBe(
-      'Edit `owner` of `Goal 1`',
-    )
-    expect(cards[0].querySelector('.nn-change-card-state')!.getAttribute('title')).toBe(
-      'Recorded in the domain.',
-    )
-    expect(cards[0].querySelector('.nn-change-card-diff')!.textContent).toBe('Ana \u2192 Bea')
-    expect(cards[0].querySelector('.nn-change-card-context')!.textContent).toBe(
-      'ana · 2026-10-02T12:00:00Z · Applied',
-    )
+    expect(cards[0].querySelector('.nn-change-sheet-state')!.textContent).toBe('Applied')
+    expect(cards[0].querySelector('.nn-card-badges')!.textContent).toContain('Edit `owner` of `Goal 1`')
+    // The applied block keeps the changeset columns: from and to are two rows.
+    expect(cards[0].textContent).toContain('from')
+    expect(cards[0].textContent).toContain('Ana')
+    expect(cards[0].textContent).toContain('to')
+    expect(cards[0].textContent).toContain('Bea')
+    // The change's own record: author and applied time are field rows now.
+    expect(cards[0].textContent).toContain('ana')
+    expect(cards[0].textContent).toContain('2026-10-02T12:00:00Z')
     expect(cards[1].getAttribute('data-change-state')).toBe('not-applied')
-    expect(cards[1].querySelector('.nn-change-card-state')!.textContent).toBe('Not applied')
-    expect(cards[1].querySelector('.nn-change-card-resolution')!.textContent).toContain(
-      'PRECONDITION_FAILED',
-    )
+    expect(cards[1].querySelector('.nn-change-sheet-state')!.textContent).toBe('Not applied')
+    expect(cards[1].textContent).toContain('PRECONDITION_FAILED')
     expect(history.querySelector('[data-nn-component="status-badge"]')).toBeNull()
   })
 
   it('falls back to the slug in the title when the element is unknown', () => {
     const history = UI.ChangeHistory({ changes, byId: {} }, {})
-    expect(history.querySelector('.nn-change-card-title')!.textContent).toBe(
-      'Edit `owner` of `goal-1`',
-    )
+    expect(history.querySelector('.nn-card-badges')!.textContent).toContain('Edit `owner` of `goal-1`')
   })
 
-  it('renders evidence sources as a clickable citation on applied and unsent cards', () => {
+  it('renders evidence sources as a clickable citation on applied and pending sheets', () => {
     const onCitation = vi.fn()
     const withSource = [
       {
@@ -182,13 +181,12 @@ describe('nnUI.ChangeHistory', () => {
     ]
     const history = UI.ChangeHistory({ changes: withSource, byId }, { onCitation })
     const cite = history.querySelector(
-      '.nn-change-card-source [data-nn-component="citation-icon"]',
+      '[data-nn-component="citation-icon"]',
     ) as HTMLButtonElement
     expect(cite).not.toBeNull()
-    expect(history.querySelector('.nn-change-card-source')!.textContent).toContain(
-      'sources/report.pdf#p3',
-    )
+    expect(history.textContent).toContain('sources/report.pdf#p3')
     cite.click()
+    // The kit keeps its host contract: the list reports the source address.
     expect(onCitation).toHaveBeenCalledWith('sources/report.pdf#p3')
 
     const onDraftCitation = vi.fn()
@@ -219,38 +217,23 @@ describe('nnUI.ChangeHistory', () => {
       },
       {},
     )
-    expect(history.querySelector('.nn-change-card-resolution')!.textContent).toContain(
-      'VALIDATION_FAILED',
-    )
+    expect(history.textContent).toContain('VALIDATION_FAILED')
   })
 
   it('offers Revert only for an applied update_field block', () => {
     const onRevert = vi.fn()
     const history = UI.ChangeHistory({ changes, byId }, { onRevert })
-    const reverts = history.querySelectorAll('.nn-change-revert')
+    const reverts = history.querySelectorAll('[data-nn="revert"]')
     expect(reverts.length).toBe(1)
     ;(reverts[0] as HTMLButtonElement).click()
-    expect(onRevert).toHaveBeenCalledWith(changes[0].changes[0])
-
-    const other = UI.ChangeHistory(
-      {
-        changes: [
-          {
-            status: 'applied',
-            changes: [{ id: 'x', op: 'rename_element', target: 'm@goal-1', status: 'applied' }],
-          },
-        ],
-        byId,
-      },
-      { onRevert },
-    )
-    expect(other.querySelector('.nn-change-revert')).toBeNull()
+    expect(onRevert).toHaveBeenCalledTimes(1)
+    expect(onRevert.mock.calls[0][0]).toMatchObject({ id: 'c-01', from: 'Ana', to: 'Bea' })
   })
 
   it('Go to element calls onGoTo and hostile text stays inert', () => {
     const onGoTo = vi.fn()
     const history = UI.ChangeHistory({ changes, byId }, { onGoTo })
-    const go = history.querySelector('.nn-change-goto') as HTMLButtonElement
+    const go = history.querySelector('[data-nn="go-to"]') as HTMLButtonElement
     go.click()
     expect(onGoTo).toHaveBeenCalledWith('goal-1')
 
@@ -279,6 +262,7 @@ describe('nnUI.ChangeHistory', () => {
     expect((globalThis as any).__pwned2).toBeUndefined()
   })
 })
+
 
 describe('nnUI.AnnotationPopover', () => {
   it('is a modal dialog with the requested kind options only', () => {

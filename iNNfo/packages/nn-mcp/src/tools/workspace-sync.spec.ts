@@ -107,7 +107,7 @@ describe('syncWorkspaceManifest', () => {
     expect(after).toBe(manifestBody)
   })
 
-  it('excludes cogNNitive-templated models and the manifest itself from discovery', async () => {
+  it('keeps cogNNitive-templated models in discovery (record role retired) and excludes the manifest', async () => {
     await writeFile(join(rootDir, 'domaiNN_NN.md'), ['# NN Models', ''].join('\n'), 'utf-8')
     await writeFile(
       join(rootDir, 'acme_cogNNitive_NN.md'),
@@ -116,7 +116,10 @@ describe('syncWorkspaceManifest', () => {
     )
 
     const result = await syncWorkspaceManifest(rootDir, { dry_run: true })
-    expect(result.changes).toEqual([])
+    expect(result.changes).toEqual([
+      expect.objectContaining({ path: 'acme_cogNNitive_NN.md' }),
+    ])
+    expect(result.changes.every((change) => change.path !== 'domaiNN_NN.md')).toBe(true)
   })
 
   it('excludes workspace-conforming lineage records from discovery', async () => {

@@ -9,8 +9,14 @@ import {
 import { slugify } from './parser/slug.js'
 import { parsePropertyValue } from './parser/sections.js'
 import { RESERVED_CONCEPT_NAMES, WIDGET_CONFIG_KEYS } from './validator/constants.js'
-import { levenshteinDistance, slugifyHeading, splitSourceFieldValue } from './sourceRef.js'
+import { levenshteinDistance, slugifyHeading } from './sourceRef.js'
+import { updateReferenceString, updateWikiLinks } from './references.js'
 import { validateFieldValue } from './schema/field-values.js'
+
+// The reference-rewriting helpers live in `sourceRef.ts` (pure string helpers, so
+// the browser-safe changelog can relink without importing the mutation engine).
+// Re-exported here because `browser.ts` publishes `updateReferenceString`.
+export { updateReferenceString, updateWikiLinks } from './references.js'
 
 export interface MutationResult {
   success: boolean
@@ -121,6 +127,45 @@ type MutationHandler = (
   schema?: BlueprintSchema,
 ) => MutationResult
 
+/** One operation of a strict replay: the op name plus its mutation arguments. */
+export interface ReplayOperation {
+  op: string
+  args?: Record<string, unknown>
+}
+
+/** The result of replaying a sequence of operations onto one draft. */
+export interface ReplayResult {
+  /** True when every op succeeded. */
+  success: boolean
+  /** The replayed model; the input model is never mutated. */
+  model: ParsedKnowledge
+  /** One result per operation, in order. */
+  results: MutationResult[]
+}
+
+/**
+ * Replays a sequence of operations from a starting model (the `add_model`
+ * skeleton, in strict drift) with ONE clone: every op runs against the same
+ * draft, so the cost is linear in the number of ops instead of cloning the
+ * whole model per op like `applyMutation` does. The input model is untouched.
+ *
+ * A failing op does not stop the replay (a recorded change that would have
+ * failed cannot be in an applied log; strict mode compares the resulting body,
+ * and the per-op results say which one diverged).
+ */
+export function replayMutations(
+  model: ParsedKnowledge,
+  ops: readonly ReplayOperation[],
+  schema?: BlueprintSchema,
+): ReplayResult {
+  const draft = cloneKnowledge(model)
+  const results: MutationResult[] = []
+  for (const { op, args } of ops) {
+    results.push(runMutation(draft, op, args ?? {}, schema))
+  }
+  return { success: results.every((result) => result.success), model: draft, results }
+}
+
 export function freeze_slugs(model: ParsedKnowledge): MutationResult {
   const existingSlugs = new Set<string>()
   for (const [, elements] of model.elements.entries()) {
@@ -166,6 +211,7 @@ const MUTATION_HANDLERS: Record<string, MutationHandler> = {
   rename_concept: (model, args) => renameConcept(model, args),
   rename_element: (model, args, schema) => renameElement(model, args, schema),
   update_matrix_cell: (model, args) => updateMatrixCell(model, args),
+  update_element_text: (model, args) => updateElementText(model, args),
   update_concept_text: (model, args, schema) => updateConceptText(model, args, schema),
   update_concept_field: (model, args, schema) => updateConceptField(model, args, schema),
   remove_matrix: (model, args) => removeMatrix(model, args),
@@ -505,13 +551,30 @@ function addElement(
     }
   }
 
-  // Support both nested args.fields and root-level fields passed in args
+  // A change carries no inline fields (`changeset-document-model`): each field is
+  // its own `update_field`. Reject the key loudly instead of silently dropping it.
+  if (args.fields !== undefined && args.fields !== null) {
+    return {
+      success: false,
+      errors: [
+        {
+          path: 'fields',
+          message:
+            'INVALID_OPERATION: add_element must not carry inline fields; emit one update_field change per field (target model@element&field)',
+        },
+      ],
+    }
+  }
+
+  // Support root-level field args on the direct mutation API
   const reservedArgsKeys = new Set([
     'conceptName',
     'elementName',
     'slug',
     'description',
     'fields',
+    // Not a field: a change derives from `evidence`. Accepted here only so the
+    // generic copy below does not smuggle it into the element's fields.
     'sources',
     'rationale',
     'approved_by',
@@ -526,12 +589,6 @@ function addElement(
     if (!reservedArgsKeys.has(k) && v !== undefined) {
       fields[k] = v
     }
-  }
-  if (args.fields && typeof args.fields === 'object') {
-    Object.assign(fields, args.fields)
-  }
-  if (args.sources !== undefined) {
-    fields['sources'] = args.sources
   }
 
   if (existingElements.length > 0) {
@@ -648,6 +705,21 @@ function updateField(
     return {
       success: false,
       errors: [{ path: '', message: `${missing.join(', ')} ${missing.length === 1 ? 'is' : 'are'} required` }],
+    }
+  }
+
+  // The prose body is a knowledge unit, not a field (`changeset-document-model`):
+  // writing `description` through update_field would duplicate or shadow it.
+  if (fieldName.trim().toLowerCase() === 'description') {
+    return {
+      success: false,
+      errors: [
+        {
+          path: 'fieldName',
+          message:
+            'USE_UPDATE_ELEMENT_TEXT: the element prose is not a field; use update_element_text on the bare element target (model@element)',
+        },
+      ],
     }
   }
 
@@ -896,6 +968,81 @@ function removeElement(model: ParsedKnowledge, args: Record<string, unknown>): M
   }
 
   return { success: true, cascadedMatrixCells: cascadedCells }
+}
+
+/**
+ * Replaces an element's prose body (`ElementNode.description`). The prose is a
+ * knowledge unit, not a field: `update_field …&description` is refused with
+ * `USE_UPDATE_ELEMENT_TEXT` and this op never emits a `description::` line.
+ */
+function updateElementText(
+  model: ParsedKnowledge,
+  args: Record<string, unknown>,
+): MutationResult {
+  let elementName =
+    (args.elementName as string) ||
+    (args.elementSlug as string) ||
+    (args.slug as string) ||
+    ''
+  const conceptName = (args.conceptName as string) || ''
+  const text =
+    typeof args.text === 'string'
+      ? args.text
+      : typeof args.content === 'string'
+        ? args.content
+        : typeof args.value === 'string'
+          ? args.value
+          : typeof args.to === 'string'
+            ? args.to
+            : undefined
+
+  if (args.target && typeof args.target === 'string') {
+    let clean = args.target.trim()
+    if (clean.includes('@')) clean = clean.slice(clean.indexOf('@') + 1)
+    // The prose address may carry the canonical `&#body` suffix.
+    const bodyIdx = clean.indexOf('&')
+    if (bodyIdx !== -1) clean = clean.slice(0, bodyIdx)
+    if (!elementName) elementName = clean.trim()
+  }
+
+  if (!elementName) {
+    return { success: false, errors: [{ path: '', message: 'elementName is required' }] }
+  }
+  if (text === undefined) {
+    return { success: false, errors: [{ path: '', message: 'to (or text) is required' }] }
+  }
+
+  let foundElement: ElementNode | undefined
+  if (conceptName) {
+    const existingElements = model.elements.get(conceptName)
+    if (!existingElements) {
+      return { success: false, errors: [{ path: '', message: `Concept "${conceptName}" not found` }] }
+    }
+    foundElement = existingElements.find((e) => matchesElement(e, elementName))
+  } else {
+    for (const [, elements] of model.elements.entries()) {
+      const el = elements.find((e) => matchesElement(e, elementName))
+      if (el) {
+        foundElement = el
+        break
+      }
+    }
+  }
+
+  if (!foundElement) {
+    return {
+      success: false,
+      errors: [
+        {
+          path: '',
+          message: `Element "${elementName}" not found${conceptName ? ` in concept "${conceptName}"` : ''}`,
+        },
+      ],
+    }
+  }
+
+  foundElement.description = text
+  return { success: true }
 }
 
 function updateConceptText(
@@ -1296,72 +1443,6 @@ function renameConcept(model: ParsedKnowledge, args: Record<string, unknown>): M
   return { success: true }
 }
 
-export function updateReferenceString(text: string, oldName: string, newName: string): string {
-  if (!text || typeof text !== 'string') return text
-  const oldSlug = slugify(oldName)
-
-  // Case 1: Exact match (scalar reference field value without wikilink brackets)
-  if (!text.trim().startsWith('[[') && !text.trim().endsWith(']]')) {
-    if (slugify(text.trim()) === oldSlug) {
-      const leadingSpaces = text.match(/^\s*/)?.[0] || ''
-      const trailingSpaces = text.match(/\s*$/)?.[0] || ''
-      return `${leadingSpaces}${newName}${trailingSpaces}`
-    }
-  }
-
-  // Case 2: Qualified scalar string, e.g. "[Model] OldName" or "Model :: OldName"
-  if (!text.trim().startsWith('[[') && !text.trim().endsWith(']]')) {
-    const qualifiedBracketRegex = new RegExp(`^(\\s*\\[[^\\]]+\\]\\s*)(.+)$`, 'i')
-    const matchBracket = text.match(qualifiedBracketRegex)
-    if (matchBracket && slugify(matchBracket[2].trim()) === oldSlug) {
-      const trailingSpaces = matchBracket[2].match(/\s*$/)?.[0] || ''
-      return `${matchBracket[1]}${newName}${trailingSpaces}`
-    }
-
-    const qualifiedColonRegex = new RegExp(`^(\\s*[^:]+::\\s*)(.+)$`, 'i')
-    const matchColon = text.match(qualifiedColonRegex)
-    if (matchColon && slugify(matchColon[2].trim()) === oldSlug) {
-      const trailingSpaces = matchColon[2].match(/\s*$/)?.[0] || ''
-      return `${matchColon[1]}${newName}${trailingSpaces}`
-    }
-  }
-
-  // Case 3: Embedded wikilinks: [[Target]] or [[Target|Alias]] or [[Qualified Target]]
-  return updateWikiLinks(text, oldName, newName)
-}
-
-/** Rewrite only `[[...]]` wikilink references (Case 3 of `updateReferenceString`),
- *  leaving bare string values untouched. Used by the schema-aware rename pass
- *  for fields the parent template does NOT declare as `type:: reference`. */
-export function updateWikiLinks(text: string, oldName: string, newName: string): string {
-  if (!text || typeof text !== 'string') return text
-  const oldSlug = slugify(oldName)
-
-  return text.replace(/\[\[\s*([^\|]+?)(\s*\|[^\]]+)?\s*\]\]/gi, (match, target, alias) => {
-    const trimmedTarget = target.trim()
-
-    // Direct match inside wikilink
-    if (slugify(trimmedTarget) === oldSlug) {
-      return `[[${newName}${alias ?? ''}]]`
-    }
-
-    // Qualified match inside wikilink: e.g. "[Model] OldName" or "Model :: OldName"
-    const qBracket = new RegExp(`^(\\[[^\\]]+\\]\\s*)(.+)$`, 'i')
-    const mBracket = trimmedTarget.match(qBracket)
-    if (mBracket && slugify(mBracket[2]) === oldSlug) {
-      return `[[${mBracket[1]}${newName}${alias ?? ''}]]`
-    }
-
-    const qColon = new RegExp(`^(.*::\\s*)(.+)$`, 'i')
-    const mColon = trimmedTarget.match(qColon)
-    if (mColon && slugify(mColon[2]) === oldSlug) {
-      return `[[${mColon[1]}${newName}${alias ?? ''}]]`
-    }
-
-    return match
-  })
-}
-
 /** Which field names does the schema declare as `type:: reference` (or
  *  `type:: knowledge`) for each concept? Used to gate the rename rewrite. */
 function referenceFieldsByConcept(schema: BlueprintSchema | undefined): Map<string, Set<string>> {
@@ -1540,75 +1621,4 @@ function generateIndex(model: ParsedKnowledge, args: Record<string, unknown>): M
   return { success: true }
 }
 
-/**
- * Rewrites the field-level citation for a specific touched field on an element per D20.
- * Updates the companion citation field (e.g. `<fieldName>_source` or `<fieldName>_sources`),
- * preserves untouched fields on the element, and records the citation in element sources.
- */
-export function rewriteFieldCitation(
-  element: ElementNode,
-  fieldName: string,
-  citationRef: string,
-): string | undefined {
-  if (!element.fields) {
-    element.fields = {}
-  }
-
-  const isSourcesField = fieldName.toLowerCase() === 'sources' || fieldName.toLowerCase() === 'source'
-  let targetCitationField: string
-  let oldCitation: string | undefined
-
-  if (isSourcesField) {
-    targetCitationField = fieldName
-  } else if (element.fields[`${fieldName}_sources`] !== undefined) {
-    targetCitationField = `${fieldName}_sources`
-    oldCitation = typeof element.fields[targetCitationField] === 'string'
-      ? (element.fields[targetCitationField] as string)
-      : Array.isArray(element.fields[targetCitationField])
-        ? (element.fields[targetCitationField] as string[])[0]
-        : undefined
-  } else if (element.fields[`${fieldName}_source`] !== undefined) {
-    targetCitationField = `${fieldName}_source`
-    oldCitation = typeof element.fields[targetCitationField] === 'string'
-      ? (element.fields[targetCitationField] as string)
-      : undefined
-  } else {
-    targetCitationField = `${fieldName}_source`
-  }
-
-  if (Array.isArray(element.fields[targetCitationField])) {
-    element.fields[targetCitationField] = [citationRef]
-  } else {
-    element.fields[targetCitationField] = citationRef
-  }
-
-  const sourcesKey = element.fields['source'] !== undefined && element.fields['sources'] === undefined
-    ? 'source'
-    : 'sources'
-
-  const existingSources = splitSourceFieldValue(element.fields[sourcesKey] ?? [])
-  let newSources: string[]
-
-  if (existingSources.length === 0) {
-    newSources = [citationRef]
-  } else if (oldCitation && existingSources.includes(oldCitation)) {
-    newSources = existingSources.map((s) => (s === oldCitation ? citationRef : s))
-  } else if (!existingSources.includes(citationRef)) {
-    newSources = [...existingSources, citationRef]
-  } else {
-    newSources = existingSources
-  }
-
-  element.fields[sourcesKey] = newSources
-
-  if (element.rawFields) {
-    delete element.rawFields[targetCitationField]
-    delete element.rawFields[sourcesKey]
-  }
-
-  // The citation this rewrite replaced (the field's previous origin), or `undefined`
-  // when the field had no prior citation (e.g. an added element). The apply engine no
-  // longer writes any companion citation (D20 removed): the change is the only provenance.
-  return oldCitation
-}
 

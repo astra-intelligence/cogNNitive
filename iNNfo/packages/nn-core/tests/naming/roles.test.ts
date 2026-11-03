@@ -13,7 +13,7 @@ describe('roleOf', () => {
   })
 
   it('maps catalog and record blueprints to their roles', () => {
-    expect(roleOf({ path: 'x/Acme_cogNNitive_NN.md', parentSpecName: 'cogNNitive' })).toBe('lineage-record')
+    expect(roleOf({ path: 'x/Acme_cogNNitive_NN.md', parentSpecName: 'cognnitive_V_0-1-0' })).toBe('knowledge')
     expect(roleOf({ path: 'sources/sources_NN.md', parentSpecName: 'sources' })).toBe('catalog')
     expect(roleOf({ path: 'artifacts_NN.md', parentSpecName: 'artifacts' })).toBe('catalog')
     expect(roleOf({ path: 'workspace_NN.md', parentSpecName: 'workspace' })).toBe('catalog')

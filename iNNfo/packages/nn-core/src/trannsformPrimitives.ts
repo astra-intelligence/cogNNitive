@@ -28,28 +28,21 @@ export {
   projectLineage,
   extractDeclaredCitations,
   extractFileCitations,
+  evidenceCitationSites,
+  type LineageArtifact,
+  type LineageChangeset,
+  type LineageEdge,
+  type LineageKnowledge,
+  type LineageSource,
+  type LineageView,
 } from './lineage/project.js'
 
 export {
-  renderLineageSections,
-} from './lineage/render.js'
-
-export {
   readLineageSnapshot,
-  readLineageRecord,
 } from './lineage/fs-snapshot.js'
 
-export {
-  RECORD_TEMPLATE_URL,
-  RECORD_INNFO_URL,
-  RECORD_BLUEPRINT,
-  splitTopLevelSections,
-  renderRecordFrontmatter,
-  refreshExistingModel,
-  findLineageRecord,
-} from './lineage/record.js'
-
-export { checkLineageDrift } from './lineage/drift.js'
+export { buildChangeLog } from './changelog/load.js'
+export { isRegenerableView } from './naming/contract.js'
 
 export * from './naming/index.js'
 

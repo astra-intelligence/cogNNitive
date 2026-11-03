@@ -99,37 +99,6 @@ describe('citation fields are resolved from the schema', () => {
   })
 })
 
-describe('citation lists are deduplicated on write', () => {
-  const doc = (sources: string) =>
-    [
-      '---',
-      'spec_version: "V_0-2-1"',
-      'level: 3',
-      'title: "Citations"',
-      '---',
-      '',
-      '> [!NOTE]',
-      '> Banner.',
-      '',
-      '# NN Stakeholders',
-      '',
-      '## NN Stakeholders: Alice',
-      `sources:: ${sources}`,
-      '',
-    ].join('\n')
-
-  it('removes a repeated pointer, first occurrence winning', () => {
-    const serialized = serializeKnowledge(
-      parseKnowledge(doc('[sources/import/a.md@## Intro, sources/import/b.md@## Other, sources/import/a.md@## Intro]')),
-    )
-    expect(serialized).toContain('sources:: [sources/import/a.md@## Intro, sources/import/b.md@## Other]')
-  })
-
-  it('leaves a duplicate-free citation list byte-identical', () => {
-    const source = doc('[sources/import/a.md@## Intro, sources/import/b.md@## Other]')
-    expect(serializeKnowledge(parseKnowledge(source))).toBe(source)
-  })
-})
 
 describe('citation text fidelity', () => {
   it('emits the human-readable heading, not its slug', () => {

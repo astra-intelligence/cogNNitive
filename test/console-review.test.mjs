@@ -149,12 +149,11 @@ describe('Console Review Workflow & Feedback Roundtrip Contract', () => {
         reviewTab.querySelector('[data-nn-component="draft-list"]'),
         'Review tab renders through nnUI.DraftList',
       )
-      const items = reviewTab.querySelectorAll('.nn-change-card')
-      assert.equal(items.length, 1)
-      assert.match(
-        items[0].querySelector('.nn-change-card-note').textContent,
-        /Updated seat minimum to 50/,
+      const items = reviewTab.querySelectorAll(
+        '[data-nn-component="draft-list"] article[data-nn-component="element-card"]',
       )
+      assert.equal(items.length, 1)
+      assert.match(items[0].textContent, /Updated seat minimum to 50/)
     })
 
     function reviewTabFor(elementHash) {
@@ -184,7 +183,11 @@ describe('Console Review Workflow & Feedback Roundtrip Contract', () => {
 
     it('flags a draft whose target element hash changed since it was written', () => {
       const { tab } = reviewTabFor('2222222222222222')
-      const rows = [...tab.querySelectorAll('.nn-change-card')]
+      const rows = [
+        ...tab.querySelectorAll(
+          '[data-nn-component="draft-list"] article[data-nn-component="element-card"]',
+        ),
+      ]
       assert.equal(rows.length, 2)
       assert.equal(rows[0].getAttribute('data-target-changed'), 'true')
       assert.ok(tab.querySelector('[data-nn="stale-drafts"]'), 'review head names the stale drafts')
@@ -493,7 +496,7 @@ describe('Console Review Workflow & Feedback Roundtrip Contract', () => {
       assert.ok(document.querySelector('#nn-banner [data-nn="new-element"]'))
     })
 
-    it('stores a new draft whose export is add_element with concept, name and fields', () => {
+    it('stores a new draft whose export is add_element then one update_field per field', () => {
       const { ctl, store } = mountController()
       assert.equal(ctl.openNew(), true)
       const modal = document.querySelector('[data-nn-component="new-element-modal"]')
@@ -529,7 +532,16 @@ describe('Console Review Workflow & Feedback Roundtrip Contract', () => {
       assert.match(res.text, /^target:: strategy@Goal$/m)
       assert.match(res.text, /^concept:: Goal$/m)
       assert.match(res.text, /^name:: "Grow revenue"$/m)
-      assert.match(res.text, /^fields:: [{]"owner":"CFO"[}]$/m)
+      // add_element carries no inline fields: each filled field is its own
+      // update_field with its own evidence and no `from` (the field is new).
+      assert.match(res.text, /^op:: update_field$/m)
+      assert.match(res.text, /^target:: strategy@grow-revenue&owner$/m)
+      assert.match(res.text, /^to:: CFO$/m)
+      assert.doesNotMatch(res.text, /^fields::/m, 'no emitter writes fields')
+      assert.doesNotMatch(res.text, /^from::/m, 'creation-time updates omit from')
+      const blocks = res.text.match(/^## NN Change: (.+)$/gm) || []
+      assert.equal(blocks.length, 2, 'one add_element block plus one update_field block')
+      assert.equal(new Set(blocks).size, 2, 'each block has a distinct id')
     })
 
     function mountDomainController(models) {

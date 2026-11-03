@@ -1,9 +1,20 @@
+/**
+ * Staleness of a pending change against the applied history, answered by the
+ * change log (change-provenance: one reader for lifecycle).
+ *
+ * The log already folds every applied change into element lifecycles: the last
+ * `add_element` or `remove_element` of an element decides whether the element is
+ * alive, and a later `add_element` resets it (the epoch cut). This module scans
+ * the newest `maxScan` changesets into a log and asks it, instead of keeping its
+ * own reverse-scan matching.
+ */
 import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { parseChangeset } from './parser.js'
 import { compareVersions } from '../workspace/integrity/versionStatus.js'
 import { slugify } from '../parser/slug.js'
-import { extractModelSlug } from './utils.js'
+import { buildChangeLogFromChangesets, type ChangesetLike } from '../changelog/load.js'
+import type { LoggedChange } from '../changelog/index.js'
 
 export interface StalenessCheckResult {
   stale: boolean
@@ -11,34 +22,92 @@ export interface StalenessCheckResult {
   message?: string
 }
 
-function matchesElement(
-  targetStr: string,
-  changeSlug: string | undefined,
-  changeName: string | undefined,
-  resolvedSlug: string | undefined,
-  targetElementSlug: string,
-): boolean {
-  const tLower = targetElementSlug.toLowerCase()
-  if (resolvedSlug && resolvedSlug.toLowerCase() === tLower) return true
-  if (changeSlug && changeSlug.toLowerCase() === tLower) return true
-  if (changeName) {
-    if (changeName.toLowerCase() === tLower) return true
-    if (slugify(changeName).toLowerCase() === tLower) return true
+/** A model's version transition, as the changeset frontmatter records it. */
+interface VersionTransition {
+  base_version?: string
+  result_version?: string
+}
+
+interface ScannedHistory {
+  changesets: ChangesetLike[]
+  /** Changeset path -> authored model key (lowercase) -> version transition. */
+  transitions: Map<string, Map<string, VersionTransition>>
+}
+
+/** Reads the newest `maxScan` `changes/` documents, newest filename first. */
+async function scanHistory(changesDir: string, maxScan: number): Promise<ScannedHistory> {
+  const history: ScannedHistory = { changesets: [], transitions: new Map() }
+  let entries: string[]
+  try {
+    entries = await readdir(changesDir)
+  } catch {
+    return history
   }
 
-  const atIdx = targetStr.indexOf('@')
-  const remainder = atIdx !== -1 ? targetStr.slice(atIdx + 1).trim() : targetStr.trim()
-  const ampIdx = remainder.indexOf('&')
-  const elIdent = ampIdx !== -1 ? remainder.slice(0, ampIdx) : remainder
-  if (elIdent.toLowerCase() === tLower) return true
+  const files = entries
+    .filter((file) => file.endsWith('.md') && !file.startsWith('.'))
+    .sort((a, b) => b.localeCompare(a))
+    .slice(0, Math.max(0, maxScan))
 
-  return false
+  for (const filename of files) {
+    let content: string
+    try {
+      content = await readFile(join(changesDir, filename), 'utf-8')
+    } catch {
+      continue
+    }
+    let doc
+    try {
+      doc = parseChangeset(content)
+    } catch {
+      continue
+    }
+    const path = `changes/${filename}`
+    const fm = doc.frontmatter
+    history.changesets.push({
+      path,
+      status: fm.status,
+      author: fm.author,
+      appliedAt: fm.applied_at,
+      changes: doc.changes,
+    })
+    const transitions = new Map<string, VersionTransition>()
+    for (const [modelKey, transition] of Object.entries(fm.models ?? {})) {
+      transitions.set(modelKey.toLowerCase(), transition as VersionTransition)
+    }
+    history.transitions.set(path, transitions)
+  }
+
+  return history
+}
+
+/** True when `address` names the element `modelSlug@elementSlug` (slug-insensitive). */
+function matchesElementAddress(address: string, modelSlug: string, elementSlug: string): boolean {
+  const at = address.indexOf('@')
+  if (at === -1) return false
+  if (address.slice(0, at).toLowerCase() !== modelSlug.toLowerCase()) return false
+  const element = address.slice(at + 1).toLowerCase()
+  const wanted = elementSlug.toLowerCase()
+  return element === wanted || slugify(element) === slugify(wanted)
+}
+
+/** The last applied lifecycle change (`add_element` / `remove_element`) of an element. */
+function lifecycleOf(log: { all: readonly LoggedChange[] }, modelSlug: string, elementSlug: string): LoggedChange | undefined {
+  let lifecycle: LoggedChange | undefined
+  for (const change of log.all) {
+    if (!change.applied) continue
+    if (change.op !== 'add_element' && change.op !== 'remove_element') continue
+    if (!matchesElementAddress(change.resolvedTarget ?? change.target, modelSlug, elementSlug)) continue
+    lifecycle = change
+  }
+  return lifecycle
 }
 
 /**
- * Checks applied changeset history in reverse chronological order (max 50)
- * to verify if the target element was deleted after the pending changeset's base_version.
- * Stops if an add_element for that slug is encountered (lifecycle restart).
+ * Checks whether the target element was deleted by an applied change after the
+ * pending changeset's `base_version`. A later `add_element` resets the
+ * lifecycle, so the element is alive again. Only the newest `maxScan`
+ * changesets are inspected.
  */
 export async function checkStaleTarget(
   changesDir: string,
@@ -47,110 +116,21 @@ export async function checkStaleTarget(
   baseVersion: string,
   maxScan: number = 50,
 ): Promise<StalenessCheckResult> {
-  let entries: string[]
-  try {
-    entries = await readdir(changesDir)
-  } catch {
-    return { stale: false }
+  const { changesets, transitions } = await scanHistory(changesDir, maxScan)
+  const lifecycle = lifecycleOf(buildChangeLogFromChangesets(changesets), modelSlug, elementSlug)
+  if (!lifecycle || lifecycle.op !== 'remove_element') return { stale: false }
+
+  const transition = transitions.get(lifecycle.changeset)?.get(modelSlug.toLowerCase())
+  if (transition?.base_version && baseVersion) {
+    const deletedAtOrAfterBase =
+      compareVersions(transition.base_version, baseVersion) >= 0 ||
+      (transition.result_version !== undefined && compareVersions(transition.result_version, baseVersion) > 0)
+    if (!deletedAtOrAfterBase) return { stale: false }
   }
 
-  // Filter markdown files (exclude hidden/lock files)
-  const changesetFiles = entries.filter(
-    (file) => file.endsWith('.md') && !file.startsWith('.'),
-  )
-
-  // Sort descending to inspect newest changesets first
-  changesetFiles.sort((a, b) => b.localeCompare(a))
-
-  const boundedFiles = changesetFiles.slice(0, maxScan)
-
-  for (const filename of boundedFiles) {
-    const fullPath = join(changesDir, filename)
-    let content: string
-    try {
-      content = await readFile(fullPath, 'utf-8')
-    } catch {
-      continue
-    }
-
-    let csDoc
-    try {
-      csDoc = parseChangeset(content)
-    } catch {
-      continue
-    }
-
-    const status = csDoc.frontmatter.status
-    if (status !== 'applied' && status !== 'partially_applied') {
-      continue
-    }
-
-    // Iterate changes in reverse document order within the changeset
-    for (let i = csDoc.changes.length - 1; i >= 0; i--) {
-      const change = csDoc.changes[i]
-      const changeModelSlug = extractModelSlug(change.target)
-
-      if (changeModelSlug.toLowerCase() !== modelSlug.toLowerCase()) {
-        continue
-      }
-
-      const matches = matchesElement(
-        change.target,
-        change.slug,
-        change.name,
-        change.resolved_slug,
-        elementSlug,
-      )
-
-      if (!matches) {
-        continue
-      }
-
-      // Lifecycle reset: if element was re-added, stop scanning
-      if (change.op === 'add_element') {
-        return { stale: false }
-      }
-
-      // If element was removed:
-      if (change.op === 'remove_element') {
-        // Compare model version at time of delete with baseVersion
-        const models = csDoc.frontmatter.models
-        let appliedBase: string | undefined
-        let appliedResult: string | undefined
-
-        if (models) {
-          for (const [mKey, trans] of Object.entries(models)) {
-            if (mKey.toLowerCase() === modelSlug.toLowerCase()) {
-              appliedBase = trans.base_version
-              appliedResult = trans.result_version
-              break
-            }
-          }
-        }
-
-        // If deletion occurred at or after pending base_version:
-        if (appliedBase && baseVersion) {
-          if (
-            compareVersions(appliedBase, baseVersion) >= 0 ||
-            (appliedResult && compareVersions(appliedResult, baseVersion) > 0)
-          ) {
-            return {
-              stale: true,
-              code: 'STALE_TARGET_DELETED',
-              message: `Target element "${elementSlug}" in model "${modelSlug}" was deleted after base_version ${baseVersion}`,
-            }
-          }
-        } else {
-          // If no version transition metadata is available, flag stale
-          return {
-            stale: true,
-            code: 'STALE_TARGET_DELETED',
-            message: `Target element "${elementSlug}" in model "${modelSlug}" was deleted`,
-          }
-        }
-      }
-    }
+  return {
+    stale: true,
+    code: 'STALE_TARGET_DELETED',
+    message: `Target element "${elementSlug}" in model "${modelSlug}" was deleted after base_version ${baseVersion}`,
   }
-
-  return { stale: false }
 }

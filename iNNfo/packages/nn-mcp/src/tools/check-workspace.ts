@@ -16,15 +16,13 @@ import { readFileSync } from 'node:fs'
 import { existsSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import {
+  buildChangeLog,
   buildWorkspaceIntegrityReport,
   summarizeWorkspaceIntegrity,
   parseFrontmatter,
   SpecResolutionError,
-  checkLineageDrift,
   projectLineage,
-  readLineageRecord,
   readLineageSnapshot,
-  renderLineageSections,
   type TemplateCatalog,
   type WorkspaceIntegrityPorts,
   type WorkspaceModelRef,
@@ -32,13 +30,16 @@ import {
   type TemplateResolutionResult,
   type IntegrityDiagnostic,
   type CatalogSource,
+  type ProvenanceReport,
 } from '@cognnitive/nn-core'
 import type { SpecCache } from '@cognnitive/nn-core'
+import { checkDomainProvenance } from './provenance-strict.js'
 import { listKnowledge } from './list-read.js'
 import { modelIdCollisionDiagnostics, type ModelIdCollisionDiagnostic } from './model-collisions.js'
 import { deriveNameFromUrl } from './spec.js'
 import {
   collectWorkspaceDiagnostics,
+  collectEvidenceDiagnostics,
   filterDiagnosticsForModel,
   validateKnowledge,
 } from './validate.js'
@@ -60,13 +61,8 @@ const FRESHNESS_TIMEOUT_MS = 10000
 export interface CheckWorkspaceOptions {
   summaryOnly?: boolean
   offline?: boolean
-}
-
-/** Result of the lineage drift gate (site 3 of the gate; the record is not a model). */
-export interface LineageGateReport {
-  /** Workspace-relative path of the lineage record, or `null` when the domaiNN has none. */
-  record: string | null
-  diagnostics: IntegrityDiagnostic[]
+  /** Strict provenance: replay the applied changes and compare serialized bodies. */
+  strict?: boolean
 }
 
 interface CheckContext {
@@ -327,42 +323,24 @@ export function buildCheckWorkspacePorts(ctx: CheckContext): WorkspaceIntegrityP
 }
 
 /**
- * Lineage drift gate: compares the managed sections of the lineage record with
- * a fresh projection through the one core comparator. Read-only; a domaiNN
- * without a record passes with `record: null`.
+ * Provenance plus the projection's own diagnostics: a non-regenerable artifact
+ * with no `produce_artifact` change is `ARTIFACT_WITHOUT_RECORD` (a warning in
+ * both modes; it is not a body drift).
  */
-export function checkLineageGate(rootDir: string): LineageGateReport {
-  try {
-    const record = readLineageRecord(rootDir)
-    if (!record) return { record: null, diagnostics: [] }
-    const rendered = renderLineageSections(projectLineage(readLineageSnapshot(rootDir)))
-    const result = checkLineageDrift(record.content, rendered)
-    if (result.ok) return { record: record.path, diagnostics: [] }
-    return {
-      record: record.path,
-      diagnostics: result.diffs.map((d) => ({
-        path: record.path,
-        message: `Lineage record drift in ${d.section}: ${d.firstDiff}. Run nn-sources --lineage to regenerate the record.`,
-        severity: 'error' as const,
-        code: 'LINEAGE_DRIFT',
-      })),
-    }
-  } catch (err) {
-    /* v8 ignore start */
-    // never fail the pass: an unreadable workspace degrades to a warning.
-    return {
-      record: null,
-      diagnostics: [
-        {
-          path: '.',
-          message: `Lineage drift check could not run: ${errorMessage(err)}`,
-          severity: 'warning',
-          code: 'LINEAGE_CHECK_FAILED',
-        },
-      ],
-    }
-    /* v8 ignore stop */
-  }
+async function provenanceWithArtifacts(rootDir: string, strict: boolean): Promise<ProvenanceReport> {
+  const provenance = await checkDomainProvenance(rootDir, { strict })
+  const files = readLineageSnapshot(rootDir)
+  const projection = projectLineage(files, buildChangeLog(files))
+  const artifactDiagnostics = projection.diagnostics
+    .filter((diagnostic) => diagnostic.code === 'ARTIFACT_WITHOUT_RECORD')
+    .map((diagnostic) => ({
+      code: diagnostic.code as ProvenanceReport['diagnostics'][number]['code'],
+      severity: 'warning' as const,
+      message: `${diagnostic.code}: ${diagnostic.message}`,
+      unit: diagnostic.path,
+    }))
+  if (artifactDiagnostics.length === 0) return provenance
+  return { ...provenance, diagnostics: [...provenance.diagnostics, ...artifactDiagnostics] }
 }
 
 /**
@@ -379,7 +357,12 @@ export async function checkWorkspace(
   WorkspaceIntegrityReport & {
     truncated?: boolean
     collisionsTruncated?: boolean
-    lineage: LineageGateReport
+    /**
+     * Provenance report: fold mode by default, strict replay with
+     * `{strict: true}` (the unit drift is then the replay comparison).
+     * Carries the `EVIDENCE_UNKNOWN` diagnostics the flat list used to hold.
+     */
+    provenance: ProvenanceReport
     /** Repeated model ids (filename stems): warnings that name the id and every path. */
     collisions: ModelIdCollisionDiagnostic[]
   }
@@ -393,9 +376,10 @@ export async function checkWorkspace(
     absByPath: new Map(),
   }
   const base = await buildWorkspaceIntegrityReport(buildCheckWorkspacePorts(ctx))
+  const provenance = await provenanceWithArtifacts(rootDir, options.strict === true)
   const report = {
     ...base,
-    lineage: checkLineageGate(rootDir),
+    provenance,
     collisions: modelIdCollisionDiagnostics(ctx.models.map((m) => m.path)),
   }
 

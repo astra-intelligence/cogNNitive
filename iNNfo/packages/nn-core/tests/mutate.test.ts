@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parseKnowledge, serializeKnowledge } from '../src/parser/index.js'
-import { applyMutation, rewriteFieldCitation } from '../src/mutate.js'
-import type { ElementNode } from '../src/types/index.js'
+import { applyMutation } from '../src/mutate.js'
+import * as mutateModule from '../src/mutate.js'
 import type { BlueprintSchema } from '../src/schema/index.js'
 
 const MODEL_WITH_MATRIX = `---
@@ -135,56 +135,22 @@ describe('Phase 4: Matrix Cell Mutation & Slug Target Resolution', () => {
     expect(el?.fields.speed).toBe('maximum')
   })
 
-  it('4.4.1 rewriteFieldCitation rewrites touched field citation while preserving untouched fields', () => {
-    const element: ElementNode = {
-      type: 'Vision',
-      name: 'Corporate Vision',
-      description: '',
-      fields: {
-        statement: 'To lead the industry',
-        statement_source: 'sources/interview.md@## Vision',
-        target_year: '2030',
-        target_year_source: 'sources/report.pdf_sidecar_NN.md@## Timeline',
-        sources: [
-          'sources/interview.md@## Vision',
-          'sources/report.pdf_sidecar_NN.md@## Timeline',
-        ],
-      },
-      markers: {},
-    }
-
-    const citationRef = 'changes/ws_agent_20261007T120000Z_changes_NN.md@## NN Change: c-01'
-    rewriteFieldCitation(element, 'statement', citationRef)
-
-    // Touched field citation is updated
-    expect(element.fields.statement_source).toBe(citationRef)
-
-    // Untouched field citation is preserved
-    expect(element.fields.target_year_source).toBe('sources/report.pdf_sidecar_NN.md@## Timeline')
-
-    // sources array reflects the updated citation
-    expect(element.fields.sources).toEqual([
-      citationRef,
-      'sources/report.pdf_sidecar_NN.md@## Timeline',
-    ])
+  it('4.4.1 add_element does not copy a sources argument into a field', () => {
+    const model = parseKnowledge(MODEL_WITH_MATRIX)
+    const result = applyMutation(model, 'add_element', {
+      conceptName: 'Strengths',
+      elementName: 'New Strength',
+      slug: 'new-strength',
+      sources: 'sources/import/a.md@## X',
+    })
+    expect(result.success).toBe(true)
+    const el = model.elements.get('Strengths')?.find((e) => e.slug === 'new-strength')
+    expect(el?.fields.sources).toBeUndefined()
+    expect(el?.rawFields?.sources).toBeUndefined()
   })
 
-  it('4.4.2 rewriteFieldCitation initializes citation on an element without existing source', () => {
-    const element: ElementNode = {
-      type: 'Vision',
-      name: 'New Vision',
-      description: '',
-      fields: {
-        statement: 'Fresh statement',
-      },
-      markers: {},
-    }
-
-    const citationRef = 'changes/ws_agent_20261007T120000Z_changes_NN.md@## NN Change: c-02'
-    rewriteFieldCitation(element, 'statement', citationRef)
-
-    expect(element.fields.statement_source).toBe(citationRef)
-    expect(element.fields.sources).toEqual([citationRef])
+  it('4.4.2 rewriteFieldCitation is no longer exported', () => {
+    expect(Object.keys(mutateModule)).not.toContain('rewriteFieldCitation')
   })
 })
 

@@ -7,7 +7,6 @@ import {
   attachChangesetHistory,
   loadChangesetRecords,
   parseChangesetTarget,
-  normalizeAddressKey,
 } from '../src/index.js'
 
 const MODEL = `---
@@ -67,15 +66,13 @@ describe('console element history (changeset lineage)', () => {
     temps.length = 0
   })
 
-  it('parseChangesetTarget + normalizeAddressKey', () => {
+  it('parseChangesetTarget splits the model, element and field parts', () => {
     expect(parseChangesetTarget('M@element-1a&field')).toEqual({
       modelPart: 'M',
       elementPart: 'element-1a',
     })
     expect(parseChangesetTarget('M@element-1a')).toEqual({ modelPart: 'M', elementPart: 'element-1a' })
     expect(parseChangesetTarget('no-at-sign')).toEqual({ modelPart: '', elementPart: '' })
-    expect(normalizeAddressKey('Element 1A')).toBe('element1a')
-    expect(normalizeAddressKey('concept-1-element-1a')).toBe('concept1element1a')
   })
 
   it('attachChangesetHistory matches by element id and name, strips quotes, ignores non-matches', () => {
@@ -225,5 +222,49 @@ fields:: {"owner":"ana"}
     const dir = await mkdtemp(join(tmpdir(), 'nn-hist-'))
     temps.push(dir)
     expect(await loadChangesetRecords(dir)).toEqual([])
+  })
+
+  it('derives applied-only per-field provenance while the element history lists every status', () => {
+    const payload = buildConsolePayload({
+      content: MODEL,
+      path: 'kNNowledge/TestLab_NN.md',
+      changesets: [
+        {
+          path: 'changes/dom_lucas_20261010T120000Z_changes_NN.md',
+          status: 'partially_applied',
+          author: 'lucas',
+          appliedAt: 'T',
+          changes: [
+            { id: 'c-01', op: 'update_field', target: 'TestLab@element-1a&summary', to: 'One', evidence: 'sources/a.md', status: 'applied' },
+            { id: 'c-02', op: 'update_field', target: 'TestLab@element-1a&summary', to: 'Two', status: 'conflict' },
+            { id: 'c-03', op: 'update_field', target: 'TestLab@element-1a&summary', to: 'Three', evidence: 'sources/c.md', status: 'applied' },
+          ],
+        } as any,
+      ],
+    })
+    const el = payload.model.elements.find((e) => e.name === 'Element 1A')!
+    expect(el.history?.map((h) => h.id)).toEqual(['c-01', 'c-02', 'c-03'])
+    expect(el.history?.map((h) => h.status)).toEqual(['applied', 'conflict', 'applied'])
+    expect(el.provenance?.summary.history.map((h) => h.changeId)).toEqual(['c-01', 'c-03'])
+    expect(el.provenance?.summary.origin?.evidence).toBe('sources/c.md')
+  })
+
+  it('matches the element part exactly, so a-b and ab never collide', () => {
+    const elements: any[] = [
+      { id: 'a-b', name: 'A B' },
+      { id: 'ab', name: 'AB' },
+    ]
+    attachChangesetHistory(elements, [
+      {
+        path: 'changes/dom_lucas_1_changes_NN.md',
+        status: 'applied',
+        changes: [
+          { id: 'c-01', op: 'update_field', target: 'M@a-b&owner', to: 'Ana' },
+          { id: 'c-02', op: 'update_field', target: 'M@ab&owner', to: 'Bea' },
+        ],
+      } as any,
+    ])
+    expect(elements[0].provenance.owner.origin.to).toBe('Ana')
+    expect(elements[1].provenance.owner.origin.to).toBe('Bea')
   })
 })

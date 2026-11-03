@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest'
+﻿import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest'
 import { join } from 'node:path'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, realpathSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -47,7 +47,7 @@ async function stubSpecChain() {
 }
 
 /** Write a level-2 business blueprint (declaring a "Work" list concept)
- * resolving up to the stubbed level-1 chain — fully resolvable locally. */
+ * resolving up to the stubbed level-1 chain â€” fully resolvable locally. */
 async function stubBlueprintChain() {
   await writeFile(
     join(specsDir, 'business_V_0-2-0_NN.md'),
@@ -152,7 +152,7 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
       'check_domain',
       'query_units',
       'cognitivize',
-      'sync_lineage',
+      'read_lineage',
       'resolve_sources',
       'list_blueprint_procedures',
       'list_blueprint_skills',
@@ -462,7 +462,7 @@ describe('nn-mcp server (dispatch/handler layer, real MCP client/server round-tr
       await mkdir(join(rootDir, 'conversations'), { recursive: true })
       await writeFile(
         join(rootDir, 'conversations', '2026-10-01_192904.md'),
-        '# Session log\n\nNo frontmatter here — this is a transcript, not a model.\n',
+        '# Session log\n\nNo frontmatter here â€” this is a transcript, not a model.\n',
         'utf-8',
       )
 
