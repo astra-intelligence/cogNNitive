@@ -22,7 +22,7 @@ import { CacheManager } from '../scripts/cache-manager.mjs';
 import { buildTtsVoiceOptions, resolveRegisteredVoice } from '../scripts/lib/tts-options.mjs';
 import { buildImageOptions } from '../scripts/lib/image-options.mjs';
 import { collectAvatarJobs } from '../scripts/lib/avatar-jobs.mjs';
-import { computePlanHash, checkApproval } from '../scripts/lib/plan-approval.mjs';
+import { computePlanHash } from '../scripts/lib/plan.mjs';
 
 const TTS_MODEL = 'minimax/speech-2.8-hd';
 const NARRATION = 'Welcome to the demo of the cache aware estimator.';
@@ -230,8 +230,8 @@ test('the plan text is truthful: in-chat phrase, resolved models, no checklist o
     const est = estimateScriptCost(scriptPath, { cacheDir });
     const md = formatAssetPlanMarkdown(est);
     const hash8 = est.planHash.slice(0, 8);
-    assert.ok(md.includes('approve the plan ' + hash8));
-    assert.ok(!md.includes('approve-plan.mjs <this file>'));
+    assert.ok(md.includes('--approve ' + hash8), 'the plan tells the human which hash to approve');
+    assert.ok(!md.includes('approve the plan'), 'the in-chat approval phrase is retired');
     assert.ok(!md.includes('- [ ]'));
     assert.ok(!md.includes('Recommended'));
     assert.ok(!md.includes('Speech 2.5 HD'));
@@ -242,9 +242,12 @@ test('the plan text is truthful: in-chat phrase, resolved models, no checklist o
   }
 });
 
-test('the checkApproval hint carries the same in-chat phrase', () => {
+test('the plan hash is stable and price-sensitive', () => {
   const script = doc();
-  const res = checkApproval({ scriptContent: script, approvalPath: path.join(os.tmpdir(), 'est-cache-missing', 'x.json') });
-  assert.equal(res.ok, false);
-  assert.ok(res.message.includes('approve the plan ' + computePlanHash(script, {}).slice(0, 8)));
+  assert.equal(computePlanHash(script, {}), computePlanHash(script, {}), 'same inputs, same hash');
+  assert.notEqual(
+    computePlanHash(script, {}, { tts: 0.02 }),
+    computePlanHash(script, {}, { tts: 0.03 }),
+    'a price change invalidates a stale approval',
+  );
 });

@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { resolveMediaLayers } from '../scripts/video-engine-cli.mjs';
+import { resolveMediaLayers } from '../scripts/lib/compile.mjs';
 
 function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'nn-media-staging-'));

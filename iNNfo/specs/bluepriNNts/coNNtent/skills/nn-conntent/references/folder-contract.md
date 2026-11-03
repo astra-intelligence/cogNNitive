@@ -19,7 +19,7 @@ tools that enforce it.
     episodes/<slug>/
       <slug>_coNNtent_<s>_NN.md        # the Video record and its script
       media/  animations/<project>/
-      asset_plan.md  asset_plan.approved.json
+      asset_plan.md
       description.md                        # the publication body
       <slug>_<W>x<H>.mp4                    # the master, sized by output_formats
       formats/<slug>_<W>x<H>.mp4            # derived delivery files
@@ -78,8 +78,8 @@ because it "looks relative".
 
 `hyperframes/` holds every file the engine generates: `manifest.json`, the emitted
 HyperFrames project, `render.tmp.mp4` during a render and the `assets/` hardlinks
-into the provider cache. `asset_plan.approved.json` stays at the episode root: it
-is a tracked governance file that survives deleting `hyperframes/`.
+into the provider cache. Nothing else is tracked at the episode root as an engine
+artifact: `asset_plan.md` is the estimate the human reads, and no approval file exists.
 
 The episode `.gitignore` block is `**/hyperframes/`, `.cognnitive/cache/` and
 `.cognnitive/video/`. `audio/` is NOT ignored: real episodes hold authored audio
@@ -94,18 +94,18 @@ the central 1080 crops of the Open Gate safe square, and the square file is a
 lanczos scale. No format is rendered on its own; there is no `--format`, no 9:16
 recompile and no separate vertical master.
 
-## Finalize
+## Produce
 
-`scripts/finalize-video.mjs <episode-dir> [--formats …] [--fill crop|blur] [--force] [--dry-run]`
-reads the master and `hyperframes/manifest.json`, derives the delivery files under
-`formats/`, prints the `description.md` chapters and the `master::`/`thumbnail::`
-values. It copies nothing, writes no model, and refuses a manifest that came from
-another script or is older than the script.
+`scripts/produce.mjs <episode-dir> [--approve <plan_hash>] [--dry-run]` is the single
+pipeline command: intake, review gate, `status:: approved`, estimate, budget gate,
+compile + render, then the derived delivery files under `formats/` plus the
+`description.md` chapters and the `master::`/`thumbnail::` values, and finally
+`status:: produced`. It copies nothing and writes no model by hand. The primitives it
+drives are `scripts/lib/compile.mjs` and `scripts/lib/render.mjs`.
 
-## Cost-approval artifact
+## Cost estimate
 
-Next to the script, `asset_plan.md` carries a `plan_hash` and
-`asset_plan.approved.json` records the approval `compile` requires before any
-billable synthesis. Neither is part of finalize. The `video-guard.json`,
+Next to the script, `asset_plan.md` carries a `plan_hash` on its first line; that hash is
+what `--approve` compares. There is no approval file. The `video-guard.json`,
 `.cognnitive/video-ledger.jsonl` and `.cognnitive/cache/video/` live at the domain
 root, not in a series or episode folder. See `cost-guardrails.md`.

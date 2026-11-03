@@ -55,13 +55,15 @@ fallback): budgets and `dailyCapUsd` must be finite numbers >= 0,
 - `maxAvatarSeconds`: longest avatar audio that may be billed (finite number > 0, default 300).
 - `maxAvatarConcurrency`: simultaneous avatar jobs, enforced in-process and across
   processes with lock files under `.cognnitive/locks/` (stale locks are broken).
-- `allowDelegatedApproval`: when `true` (default), compile/synthesize-avatar honor
-  in-chat (`--delegated`) plan approvals (section 2b). Set it to `false` to require
-  the interactive TTY route of section 2.
+- `allowDelegatedApproval`: retired in V_0-15-0 along with the approval artifact. A
+  leftover value in a workspace `video-guard.json` is ignored; remove it.
 
-## 2. Plan approval is an artifact (a human act)
+## 2. The spending decision (Episode status + plan hash)
 
-1. `node scripts/asset-cost-estimator.mjs <script.md> --out assets/<slug>/asset_plan.md`
+There is no approval file. The decision lives in the Episode document and in one
+command-line value, so nothing on disk can be hand-edited into consent.
+
+1. `node scripts/asset-cost-estimator.mjs <script.md> --out <episode>/asset_plan.md`
    stamps the first line of the plan with `plan_hash` (sha256 of the normalized
    script text, NFC and newline-insensitive, plus the cascade-resolved model ids
    and their unit prices), `total_usd` and the model set.
@@ -69,72 +71,40 @@ fallback): budgets and `dailyCapUsd` must be finite numbers >= 0,
    will charge: it opens the video cache read-only, with the same keys `compile`
    writes (TTS, image, avatar clip), and quotes a cached item at $0 (marked
    `cached` in the plan); an image is quoted only for a layer with a prompt. The
-   plan states the in-chat phrase and lists the stamped resolved model ids.
-2. A **human** approves it — normally **in chat** (section 2b): the user replies
-   with `approve the plan <plan-hash-8>` and the agent relays it. A workspace may
-   instead require an interactive TTY: `node scripts/approve-plan.mjs
-   assets/<slug>/asset_plan.md [--allow-model <name>]...` (typed confirmation, no
-   `--yes` flag). Either way it writes `asset_plan.approved.json`
-   (`plan_hash`, `totalUsd`, `approvedAt`, `allowedModels`, `allowModels`, and for
-   the chat route `delegated`/`delegatedPhrase`).
-3. `compile` plans first and refuses the whole run before the first charge unless
-   the approval exists next to `script.md` (or via `--approval`), matches the
-   script and models, covers every model used, and the plan fits
-   `min(budgetPerRunUsd, approvedTotal x 1.25)` and the 24h cap. Editing the script
-   or a document that resolves a model id invalidates the approval.
+   plan states the hash to pass and lists the stamped resolved model ids.
+2. `produce` gates in this order: the review gate (each scene approved, no
+   outstanding `needs-change`), then `status:: approved`, then the estimate, then the
+   budget. When the estimate exceeds the Episode's `budget::`, `produce` stops with
+   exit 11 and asks; the human decides, and the run proceeds only with
+   `--approve <plan_hash>` matching the current hash. Editing the script, a document
+   that resolves a model id, or a catalog price changes the hash, so a stale
+   approval cannot be replayed.
+3. `compile` and `synthesize-avatar` never look for an approval artifact. They
+   enforce the model allow/block lists, the per-run `budgetPerRunUsd` and the rolling
+   `dailyCapUsd`.
 
-There is no model flag: `compile` and the estimator read the same cascade, so
-they always select the same models, and those ids are part of the hash.
-
-**Residual risk.** The approval is a file, not a signature. Requiring the human's
-phrase to contain the plan hash (both routes: typed in chat or at the TTY prompt)
-stops `approve-plan.mjs` from being run casually by an agent, but anything with
-file-write access to the workspace can still hand-write
-`asset_plan.approved.json`. Add a workspace permission rule that denies agent
-writes to `**/asset_plan.approved.json` and `video-guard.json`.
-
-### 2b. In-chat approval (the standard flow)
-
-Approval happens in the conversation — no external terminal. It is still a human,
-deliberate, auditable act because the phrase carries the plan hash:
-
-1. The agent asks the human to reply, in chat, with the exact phrase
-   `approve the plan <plan-hash-8>` (the first 8 chars of the plan stamp).
-2. The human sends that phrase. The agent relays it:
-   `node scripts/approve-plan.mjs <asset_plan.md> --delegated "<exact phrase>"`.
-   The script refuses any phrase that does not contain the plan hash, so a human
-   had to read the hash off the plan and repeat it. The phrase is recorded verbatim
-   (`delegated: true`, `delegatedPhrase`) in `asset_plan.approved.json` for audit.
-3. `compile` / `synthesize-avatar` honor it by default. A workspace that wants the
-   stronger TTY route sets `"allowDelegatedApproval": false`; then they refuse a
-   delegated approval (`delegated-not-allowed`) and require section 2.
-
-The agent MUST NOT invent or self-author the phrase: it only relays the human's
-actual chat reply. If the human has not replied yet, the agent asks and waits.
-
-Trade-off: a chat phrase is weaker than a TTY — a malicious document in the
-workspace could in principle contain an approval-looking phrase (prompt injection)
-that an incautious agent relays. Because the phrase MUST include the plan hash, a
-blind relay still fails unless the document also carried the current hash. The
-plan-hash match, model coverage, 1.25x cap, per-run budget and 24h cap all still
-apply to in-chat approvals.
+**Residual risk.** The gate is a command, not a signature. An agent with shell access
+can pass `--approve` itself. Keep the Episode's `budget::` low, keep
+`budgetPerRunUsd`/`dailyCapUsd` in `video-guard.json` tight, and deny agent writes to
+`video-guard.json`. The agent MUST NOT invent a plan hash: it prints the hash and
+waits for the human.
 
 ## 3. Dry run
 
-`node scripts/video-engine-cli.mjs compile <script.md> --dry-run` lists every
+`node scripts/lib/compile.mjs compile <script.md> --dry-run` lists every
 uncached billable call (TTS and image layers), the estimated total against the
-per-run and 24h caps, blocked models and approval status. It spends nothing,
-writes nothing (not even cache directories) and exits 0. `--dry-run` is rejected
-on `render`.
+per-run and 24h caps and the blocked models. It spends nothing,
+writes nothing (not even cache directories) and exits 0. `produce --dry-run` does the
+same across the whole pipeline. `--dry-run` is rejected on `render`.
 
 ## 4. Enforcement order (per billable call)
 
-model allow/block list, plan approval and approved model set, per-run cap, rolling
+model allow/block list, per-run cap, rolling
 24h cap, ledger append, then the request. Every refusal happens before the
 request. A provider failure after submit (HTTP error, failed task, timeout, empty
 output) throws with the task id; nothing is cached, no other provider is tried and
 nothing retries on its own. Concurrent identical TTS lines or images share one
-call.
+call. A bare synthesizer with no guard fails closed: it refuses billable calls.
 
 ## 5. Ledger
 
@@ -163,12 +133,13 @@ A Scene's voice — the `voice::` value of its referenced Template instance — 
 second with `wavespeed-ai/infinitetalk-fast`; the non-fast model, about $0.06/s, is blocked), so they
 have their own entry point on the same guard: `node scripts/synthesize-avatar.mjs <script.md>
 [--scene <id>]... [--dry-run] [--resume <task-id>] [--force-resubmit] [--poll-window <min>]
-[--allow-model <name>] [--approval <file>] [--cache-dir <dir>]`.
+[--allow-model <name>] [--cache-dir <dir>]`.
 Never call WaveSpeed for avatars directly or through an MCP tool: those calls bypass the budget, the
-daily cap, the approval, the ledger and the double-submit protection.
+daily cap, the ledger and the double-submit protection.
 
-**Order:** plan, human approval, `compile` (stages the narration audio), `synthesize-avatar`, `compile`
-again (picks the clips up), render.
+**Order:** plan, human decision (`status:: approved`, plus `--approve` when the estimate exceeds
+`budget::`), `compile` (stages the narration audio), `synthesize-avatar`, `compile`
+again (picks the clips up), render — or just `produce`, which runs that order.
 
 - **Job and inputs**: one avatar layer (`layer_type: talking_avatar`; a layer named "Avatar Intro" or one
   with an explicit `image`/`video` type is never an avatar) = one scene audio + a still image. The image

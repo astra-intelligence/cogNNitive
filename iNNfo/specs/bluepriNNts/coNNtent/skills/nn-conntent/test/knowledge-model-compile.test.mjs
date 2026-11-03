@@ -235,7 +235,7 @@ async function runTests() {
 
   // 4. The engine no longer imports the VUS parser/mirror.
   {
-    const engineModules = ['scene-compiler.mjs', 'video-engine-cli.mjs', 'asset-cost-estimator.mjs', 'synthesize-avatar.mjs', 'lib/knowledge-model.mjs', 'lib/tts-options.mjs'];
+    const engineModules = ['scene-compiler.mjs', 'lib/compile.mjs', 'asset-cost-estimator.mjs', 'synthesize-avatar.mjs', 'lib/knowledge-model.mjs', 'lib/tts-options.mjs'];
     const offenders = [];
     for (const rel of engineModules) {
       const src = fs.readFileSync(path.join(SKILL_DIR, 'scripts', rel), 'utf8');

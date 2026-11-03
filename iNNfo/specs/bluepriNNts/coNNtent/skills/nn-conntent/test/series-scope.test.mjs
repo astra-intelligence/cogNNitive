@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { loadCascadeBags } from '../scripts/lib/video-scope.mjs';
-import { loadSeriesDocument, loadSeriesFor } from '../scripts/build-script-from-draft.mjs';
+import { loadSeriesDocument, loadSeriesFor } from '../scripts/lib/series-doc.mjs';
 
 const DOMAIN = `---\ntitle: demo\n---\n\n# NN DomaiNN\n`;
 

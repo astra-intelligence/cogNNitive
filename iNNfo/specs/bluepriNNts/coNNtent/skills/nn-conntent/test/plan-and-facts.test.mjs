@@ -14,7 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { computePlanHash } from '../scripts/lib/plan-approval.mjs';
+import { computePlanHash } from '../scripts/lib/plan.mjs';
 import {
   appendLedgerRow,
   appendTimingRow,
@@ -133,7 +133,7 @@ test('a timing row carries the stage schema and a write failure only warns', () 
 });
 
 test('a render records one timing row per stage in the fixed order', async () => {
-  const { renderVideo } = await import('../scripts/video-engine-cli.mjs');
+  const { renderVideo } = await import('../scripts/lib/render.mjs');
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'facts-stages-'));
   try {
     for (const k of ['WAVESPEED_API_KEY', 'REPLICATE_API_TOKEN', 'TTS_PROVIDER', 'MEDIA_PROVIDER']) delete process.env[k];
@@ -178,7 +178,7 @@ test('a render records one timing row per stage in the fixed order', async () =>
 });
 
 test('a render records compile and render timing rows when a facts context is passed', async () => {
-  const { renderVideo } = await import('../scripts/video-engine-cli.mjs');
+  const { renderVideo } = await import('../scripts/lib/render.mjs');
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'facts-render-'));
   try {
     fs.writeFileSync(path.join(root, 'domaiNN_NN.md'), '# NN DomaiNN\n', 'utf8');

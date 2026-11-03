@@ -15,7 +15,7 @@ import path from 'node:path';
 import { SceneCompiler, ScriptValidationError } from './scene-compiler.mjs';
 import { loadKnowledgeModel, parseKnowledgeDocument } from './lib/knowledge-model.mjs';
 import { fileURLToPath } from 'node:url';
-import { computePlanHash, formatStamp } from './lib/plan-approval.mjs';
+import { computePlanHash, formatStamp } from './lib/plan.mjs';
 import { normalizeModelId } from './lib/video-guard.mjs';
 import { loadCascadeBags, resolve, withScriptPresets } from './lib/video-scope.mjs';
 import { isAvatarLayer, collectAvatarJobs, ttsCachePathFor, AVATAR_CACHE_EXT, AVATAR_CACHE_CATEGORY } from './lib/avatar-jobs.mjs';
@@ -385,7 +385,7 @@ export function formatAssetPlanMarkdown(estimateResult) {
   md += `# Asset Generation & Cost Estimation Plan\n\n`;
   md += `- **Plan Hash**: \`${estimateResult.planHash.slice(0, 8)}\` (full hash on the first line of this file)\n\n`;
   md += `> [!IMPORTANT]\n`;
-  md += `> **Pre-Generation Approval Gate**: Review the provider selections, model capabilities, and cost estimates below. Billable synthesis is refused until a human approves THIS plan in chat by replying \`approve the plan ${estimateResult.planHash.slice(0, 8)}\` (the agent relays it with \`node scripts/approve-plan.mjs <asset_plan.md> --delegated "approve the plan ${estimateResult.planHash.slice(0, 8)}"\`). Spend is then capped at 1.25x the total below. Items already in the cache are priced \$0.\n\n`;
+  md += `> **Pre-Generation Cost Gate**: Review the provider selections, model capabilities, and cost estimates below. Run the episode through \`produce\` and pass this plan hash to \`--approve\` to spend past the Episode budget: \`node scripts/produce.mjs <episode> --approve ${estimateResult.planHash.slice(0, 8)}\`. Spend is capped by \`budgetPerRunUsd\` and \`dailyCapUsd\` in \`video-guard.json\`. Items already in the cache are priced \$0.\n\n`;
 
   md += `## 1. Summary Overview\n\n`;
   md += `- **Total Scenes**: ${summary.sceneCount}\n`;

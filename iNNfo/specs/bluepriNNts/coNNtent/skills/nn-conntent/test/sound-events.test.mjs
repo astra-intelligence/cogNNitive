@@ -22,7 +22,7 @@ import {
   resolveSounds,
   resolveSoundFiles,
   SUPPORTED_SOUND_KEYS,
-} from '../scripts/video-engine-cli.mjs';
+} from '../scripts/lib/compile.mjs';
 import { MissingAssetError, resetMissingAssetWarnings } from '../scripts/lib/missing-asset.mjs';
 
 const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

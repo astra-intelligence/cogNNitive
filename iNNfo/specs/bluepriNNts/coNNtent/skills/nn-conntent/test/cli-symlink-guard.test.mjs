@@ -26,8 +26,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPTS_DIR = path.join(__dirname, '..', 'scripts');
 
 const GUARDED_SCRIPTS = [
-  'video-engine-cli.mjs',
-  'finalize-video.mjs',
+  path.join('lib', 'compile.mjs'),
+  path.join('lib', 'render.mjs'),
   'render-thumbnail.mjs',
 ];
 
@@ -56,7 +56,7 @@ let failures = 0;
 try {
   linkDirectory(linkedScriptsDir, SCRIPTS_DIR);
   assert.ok(
-    fs.existsSync(path.join(linkedScriptsDir, 'video-engine-cli.mjs')),
+    fs.existsSync(path.join(linkedScriptsDir, 'lib', 'render.mjs')),
     'junction must resolve to the scripts directory',
   );
 

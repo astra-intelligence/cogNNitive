@@ -38,14 +38,6 @@ export const DEFAULT_GUARD = Object.freeze({
   ],
   blockedModels: ['wavespeed-ai/infinitetalk'],
   voices: {},
-  // When true, compile/synthesize-avatar accept delegated (agent-relayed) plan
-  // approvals — the standard cognNNitive flow: the agent asks the human to reply
-  // IN CHAT with the exact phrase `approve the plan <plan-hash-8>`, then relays it
-  // via `approve-plan.mjs --delegated "<phrase>"`. Default true. The phrase MUST
-  // carry the plan hash, so approval stays a deliberate, auditable human act with
-  // no external terminal. A workspace may set it to false to require a TTY.
-  // See cost-guardrails.md.
-  allowDelegatedApproval: true,
   // Provider-native voices that need no registration or cloning; a trailing * is a prefix glob.
   systemVoices: [
     'Friendly_Person', 'Wise_Woman', 'Deep_Voice_Man', 'Inspirational_girl', 'Calm_Woman', 'Casual_Guy', 'Lively_Girl', 'Patient_Man', 'Young_Knight', 'Determined_Man', 'Lovely_Girl', 'Decent_Boy', 'Imposing_Manner', 'Elegant_Man', 'Abbess', 'Sweet_Girl_2', 'Exuberant_Girl', 'English_*',
@@ -145,9 +137,6 @@ export function validateConfig(config, source) {
     problems.push('allowedModels must be a non-empty array of model ids');
   }
   if (!isStringArray(config.blockedModels)) problems.push('blockedModels must be an array of model ids');
-  if (config.allowDelegatedApproval !== undefined && typeof config.allowDelegatedApproval !== 'boolean') {
-    problems.push('allowDelegatedApproval must be a boolean');
-  }
   if (!isStringArray(config.systemVoices)) problems.push('systemVoices must be an array of voice names (a trailing * is allowed)');
   if (!config.voices || typeof config.voices !== 'object' || Array.isArray(config.voices)) {
     problems.push('voices must be an object');
@@ -361,8 +350,8 @@ const failClosedApproval = () => ({
   ok: false,
   reason: 'missing',
   message:
-    'No approved plan is attached to this synthesizer, so billable calls are refused (fail closed). ' +
-    'Use compileVideo with an approved asset_plan.approved.json, or pass an explicit guard.',
+    'No spending policy is attached to this synthesizer, so billable calls are refused (fail closed). ' +
+    'Run the episode through `produce`, or pass an explicit guard.',
 });
 
 /**
@@ -441,8 +430,8 @@ export class SpendGuard {
     const covered = new Set([...approvalData.allowedModels, ...(approvalData.allowModels || [])].map(normalizeModelId));
     if (!covered.has(model)) {
       throw new ApprovalRequiredError(
-        'Model "' + model + '" is not covered by the approved plan (approved models: ' +
-          [...covered].join(', ') + '). Re-run the cost estimator with this model and approve again.',
+        'Model "' + model + '" is not covered by the spending policy (allowed models: ' +
+          [...covered].join(', ') + '). Re-run the cost estimator with this model and produce again.',
       );
     }
   }

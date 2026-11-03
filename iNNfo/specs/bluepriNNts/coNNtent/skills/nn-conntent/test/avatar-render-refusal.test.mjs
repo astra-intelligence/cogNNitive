@@ -14,7 +14,8 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { compileVideo, renderVideo } from '../scripts/video-engine-cli.mjs';
+import { compileVideo } from '../scripts/lib/compile.mjs';
+import { renderVideo } from '../scripts/lib/render.mjs';
 
 for (const k of ['WAVESPEED_API_KEY', 'REPLICATE_API_TOKEN', 'TTS_PROVIDER', 'MEDIA_PROVIDER']) {
   delete process.env[k];

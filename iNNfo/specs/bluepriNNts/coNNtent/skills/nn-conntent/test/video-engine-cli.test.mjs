@@ -16,7 +16,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { compileVideo, renderVideo } from '../scripts/video-engine-cli.mjs';
+import { compileVideo } from '../scripts/lib/compile.mjs';
+import { renderVideo } from '../scripts/lib/render.mjs';
 
 // Hermetic: a maintainer machine may export real provider keys. Tests must never reach a paid provider.
 for (const k of ['WAVESPEED_API_KEY', 'REPLICATE_API_TOKEN', 'TTS_PROVIDER', 'MEDIA_PROVIDER']) {
@@ -24,8 +25,9 @@ for (const k of ['WAVESPEED_API_KEY', 'REPLICATE_API_TOKEN', 'TTS_PROVIDER', 'ME
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const cliPath = path.join(__dirname, '..', 'scripts', 'video-engine-cli.mjs');
-const CLI_SRC = fs.readFileSync(cliPath, 'utf8');
+const compileCli = path.join(__dirname, '..', 'scripts', 'lib', 'compile.mjs');
+const renderCli = path.join(__dirname, '..', 'scripts', 'lib', 'render.mjs');
+const CLI_SRC = fs.readFileSync(renderCli, 'utf8');
 
 function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'video-engine-cli-test-'));
@@ -137,18 +139,18 @@ async function runTests() {
     const videoPath = path.join(tmpDir, 'neural-network-demo_1920x1920.mp4');
     fs.writeFileSync(scriptPath, sampleScript, 'utf8');
 
-    const compRes = spawnSync('node', [cliPath, 'compile', scriptPath], { encoding: 'utf8' });
+    const compRes = spawnSync('node', [compileCli, 'compile', scriptPath], { encoding: 'utf8' });
     assert.strictEqual(compRes.status, 0, `compile CLI failed: ${compRes.stderr}`);
     assert.ok(fs.existsSync(manifestPath), 'compile writes hyperframes/manifest.json');
     assert.ok(/Compiled manifest/.test(compRes.stdout));
 
-    const manifestArgRes = spawnSync('node', [cliPath, 'render', manifestPath, '--allow-mock'], {
+    const manifestArgRes = spawnSync('node', [renderCli, 'render', manifestPath, '--allow-mock'], {
       encoding: 'utf8',
       env: { ...process.env, NN_HYPERFRAMES_DISABLE: '1' },
     });
     assert.notStrictEqual(manifestArgRes.status, 0, 'rendering a manifest is refused');
 
-    const renderRes = spawnSync('node', [cliPath, 'render', scriptPath, '--allow-mock'], {
+    const renderRes = spawnSync('node', [renderCli, 'render', scriptPath, '--allow-mock'], {
       encoding: 'utf8',
       env: { ...process.env, NN_HYPERFRAMES_DISABLE: '1' },
     });
@@ -159,16 +161,15 @@ async function runTests() {
     console.log('✔ CLI commands "compile" and "render" execute headlessly with --allow-mock');
   }
 
-  // Test 4: The removed `preview` command is refused with a usage that lists
-  //         only `compile` and `render`.
+  // Test 4: An unknown command is refused with a usage that lists only its own command.
   {
-    const res = spawnSync('node', [cliPath, 'preview', 'script.md'], { encoding: 'utf8' });
+    const res = spawnSync('node', [renderCli, 'preview', 'script.md'], { encoding: 'utf8' });
     assert.notStrictEqual(res.status, 0, 'an unknown command must exit non-zero');
     const output = `${res.stdout}\n${res.stderr}`;
-    assert.match(output, /Usage: node video-engine-cli\.mjs <compile\|render>/);
+    assert.match(output, /Usage: node lib\/render\.mjs render/);
     assert.ok(!output.includes('<compile|render|preview>'), 'usage must not list a preview command');
     assert.ok(!/^\s*preview /m.test(output), 'usage must not list a preview command line');
-    console.log('✔ the removed preview command is refused with a compile/render usage');
+    console.log('✔ the removed preview command is refused with a usage listing only render');
   }
 
   // Test 5: The CLI uses the HyperFrames driver

@@ -36,12 +36,11 @@ import { loadCascadeBags, resolve } from './lib/video-scope.mjs';
 import { SceneCompiler, ScriptValidationError } from './scene-compiler.mjs';
 import { loadKnowledgeModel } from './lib/knowledge-model.mjs';
 import { withScriptPresets } from './lib/video-scope.mjs';
-import { APPROVAL_FILENAME, checkApproval } from './lib/plan-approval.mjs';
+import { parseArgs, CliUsageError } from './lib/cli-args.mjs';
 import { LOCKS_RELATIVE_DIR, SpendGuard, loadGuard, normalizeModelId, resolveDefaultCacheDir } from './lib/video-guard.mjs';
 import { collectAvatarJobs } from './lib/avatar-jobs.mjs';
 import { appendPending, findOutstanding, latestPending } from './lib/pending-predictions.mjs';
 import { acquireLock } from './lib/file-lock.mjs';
-import { parseArgs, CliUsageError } from './lib/cli-args.mjs';
 
 export const DEFAULT_POLL_WINDOW_MS = 20 * 60 * 1000;
 const SCRIPT_FILE = fileURLToPath(import.meta.url);
@@ -77,7 +76,6 @@ function buildResumeCommand(o, sceneIds, taskId) {
   for (const id of sceneIds) args.push('--scene', id);
   args.push('--resume', String(taskId));
   if (o.cacheDir) args.push('--cache-dir', path.resolve(o.cacheDir));
-  if (o.approvalPath) args.push('--approval', path.resolve(o.approvalPath));
   for (const a of o.allowModels || []) args.push('--allow-model', a);
   if (o.pollWindowMs) args.push('--poll-window', String(o.pollWindowMs / 60000));
   return args.map(quote).join(' ');
@@ -90,8 +88,7 @@ function buildResumeCommand(o, sceneIds, taskId) {
  * @param {boolean} [o.dryRun] Plan only: spends and writes nothing.
  * @param {string} [o.resume] Poll this existing task id; never re-submits or re-charges.
  * @param {boolean} [o.forceResubmit] Submit again even though the journal shows an outstanding job (COSTS MONEY).
- * @param {string[]} [o.allowModels] Unlocks a blocked model (must be recorded in the approval).
- * @param {string} [o.approvalPath]
+ * @param {string[]} [o.allowModels] Unlocks a blocked model.
  * @param {string} [o.cacheDir]
  * @param {{ image?: string, tts?: string, avatar?: string }} [o.models] Same flags as the estimator (part of plan_hash).
  * @param {number} [o.pollWindowMs] Bounded polling window (default 20 min).
@@ -121,8 +118,8 @@ export async function synthesizeAvatars(o) {
   };
   const loaded = loadGuard(scriptDir);
   const cacheDir = o.cacheDir || resolveDefaultCacheDir(scriptDir);
-  const approvalPath = o.approvalPath ? path.resolve(o.approvalPath) : path.join(scriptDir, APPROVAL_FILENAME);
-  const checkNow = () => checkApproval({ scriptContent, models, approvalPath, allowModels, allowDelegated: loaded.config.allowDelegatedApproval === true });
+  // Spending is authorized by `produce`; this guard enforces the caps and the model lists.
+  const checkNow = () => ({ ok: true });
   const avatarStaleMs = windowMs + 10 * 60 * 1000;
   const makeGuard = (dryRun) =>
     new SpendGuard({ config: loaded.config, root: loaded.root, allowModels, dryRun, approval: checkNow, avatarStaleMs });
@@ -208,7 +205,6 @@ export async function synthesizeAvatars(o) {
     dailyCapUsd: loaded.config.dailyCapUsd,
     dailySpentUsd: planGuard.dailySpentUsd,
     withinBudget: planGuard.plannedTotalUsd <= loaded.config.budgetPerRunUsd,
-    approval: checkNow(),
   });
   if (o.dryRun) {
     return {
@@ -342,11 +338,10 @@ export const USAGE = [
   '  --force-resubmit         submit again although the journal shows an outstanding job for the same scene.',
   '                           THIS COSTS MONEY (a second billed job while the first may still run). Normally use --resume.',
   '  --poll-window <minutes>  bounded polling window per job (default 20)',
-  '  --allow-model <name>     unlock a blocked model; must be recorded in the human approval (repeatable)',
-  '  --approval <file>        approved plan (default <script dir>/asset_plan.approved.json)',
+  '  --allow-model <name>     unlock a blocked model (repeatable)',
   '  --cache-dir <dir>        cache dir (default <workspace>/.cognnitive/cache/video)',
-  'Run compile first (it populates the TTS cache this reads; no staged audio file; an entry for older narration is not served). Needs WAVESPEED_API_KEY and a',
-  'human-approved plan. Billed seconds = ceil(measured audio seconds); audio over maxAvatarSeconds is refused.',
+  'Run compile first (it populates the TTS cache this reads; no staged audio file; an entry for older narration is not served). Needs WAVESPEED_API_KEY.',
+  'Billed seconds = ceil(measured audio seconds); audio over maxAvatarSeconds is refused.',
   'Exit codes: 0 ok, 1 refused or failed, 3 resumable (timeout or recoverable failure; the exact command is printed).',
 ].join('\n');
 
@@ -355,7 +350,7 @@ async function main() {
   try {
     parsed = parseArgs(process.argv.slice(2), {
       boolean: ['dry-run', 'force-resubmit'],
-      value: ['resume', 'poll-window', 'approval', 'cache-dir'],
+      value: ['resume', 'poll-window', 'cache-dir'],
       repeatable: ['scene', 'allow-model'],
     });
     if (parsed.flags['dry-run'] && parsed.flags.resume) throw new CliUsageError('--dry-run cannot be combined with --resume');
@@ -383,7 +378,6 @@ async function main() {
       resume: f.resume,
       forceResubmit: Boolean(f['force-resubmit']),
       allowModels: f['allow-model'],
-      approvalPath: f.approval,
       cacheDir: f['cache-dir'],
       pollWindowMs: Math.round(windowMin * 60000),
     });
@@ -398,7 +392,6 @@ async function main() {
       const p = res.plan;
       console.log('   Estimated total: $' + p.totalUsd.toFixed(4) + ' (budget per run: $' + p.budgetUsd.toFixed(2) + (p.withinBudget ? '' : ' - OVER BUDGET') + ')');
       console.log('   Spent in the last 24h: $' + p.dailySpentUsd.toFixed(4) + ' (daily cap: $' + p.dailyCapUsd.toFixed(2) + ')');
-      console.log('   Plan approval: ' + (p.approval.ok ? 'approved' : 'NOT approved (' + p.approval.reason + ')'));
       return;
     }
     for (const j of res.jobs) console.log(j.status + ': ' + j.sceneIds.join(', ') + ' -> ' + j.assetPath);

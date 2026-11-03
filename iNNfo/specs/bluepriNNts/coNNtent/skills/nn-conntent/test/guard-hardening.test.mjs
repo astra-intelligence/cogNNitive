@@ -21,7 +21,7 @@ import {
   normalizeModelId,
 } from '../scripts/lib/video-guard.mjs';
 import { acquireLock, acquireSlot, withFileLock } from '../scripts/lib/file-lock.mjs';
-import { computePlanHash } from '../scripts/lib/plan-approval.mjs';
+import { computePlanHash } from '../scripts/lib/plan.mjs';
 import { parseArgs, CliUsageError } from '../scripts/lib/cli-args.mjs';
 
 function tmp() {

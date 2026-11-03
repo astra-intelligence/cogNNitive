@@ -258,12 +258,15 @@ async function runTests() {
     console.log('OK V_0-15-0 contract: four Layer types, kind/review/variant, catalog schema, no budget or language default');
   }
 
-  // 7. The console template carries no literal blueprint version.
+  // 7. The draft-era console template is retired, so no literal blueprint version
+  //    can leak from it.
   {
-    const template = read('skills/nn-conntent/scripts/draft-template.html');
-    assert.doesNotMatch(template, /coNNtent_V_\d/, 'the version must be substituted at build time');
-    assert.match(template, /\{\{BLUEPRINT_VERSION\}\}/);
-    console.log('OK the review console template carries no literal blueprint version');
+    assert.equal(
+      fs.existsSync(path.join(BP, 'skills/nn-conntent/scripts/draft-template.html')),
+      false,
+      'the review console template is deleted',
+    );
+    console.log('OK the review console template is retired');
   }
 
   console.log('\nAll contract-additions tests passed!');

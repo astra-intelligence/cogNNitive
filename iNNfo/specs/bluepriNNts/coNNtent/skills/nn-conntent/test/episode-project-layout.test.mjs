@@ -17,7 +17,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { compileVideo, renderVideo } from '../scripts/video-engine-cli.mjs';
+import { compileVideo } from '../scripts/lib/compile.mjs';
+import { renderVideo } from '../scripts/lib/render.mjs';
 import { sameFile, resetCopyModeWarning } from '../scripts/lib/stage-assets.mjs';
 
 const SAMPLE = `---

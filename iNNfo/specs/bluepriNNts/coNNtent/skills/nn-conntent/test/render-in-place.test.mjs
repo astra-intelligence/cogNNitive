@@ -14,15 +14,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { masterPath } from '../scripts/finalize-video.mjs';
-import { renderVideo, VideoRenderError } from '../scripts/video-engine-cli.mjs';
+import { renderVideo, VideoRenderError } from '../scripts/lib/render.mjs';
 
 for (const k of ['WAVESPEED_API_KEY', 'REPLICATE_API_TOKEN', 'TTS_PROVIDER', 'MEDIA_PROVIDER']) {
   delete process.env[k];
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const cliPath = path.join(__dirname, '..', 'scripts', 'video-engine-cli.mjs');
+const compileCliPath = path.join(__dirname, '..', 'scripts', 'lib', 'compile.mjs');
+const renderCliPath = path.join(__dirname, '..', 'scripts', 'lib', 'render.mjs');
 
 const script = `---
 spec_version: "V_0-4-0"
@@ -67,7 +67,10 @@ fs.writeFileSync(fakeGsap, '/* gsap */');
 
 const base = (ep) => ({ scriptPath: ep.scriptPath, cacheDir: path.join(ep.dir, 'cache'), synthesizeAssets: false, gsapPath: fakeGsap });
 const cli = (args, env = {}) =>
-  spawnSync('node', [cliPath, ...args], { encoding: 'utf8', env: { ...process.env, NN_HYPERFRAMES_DISABLE: '1', ...env } });
+  spawnSync('node', [args[0] === 'compile' ? compileCliPath : renderCliPath, ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, NN_HYPERFRAMES_DISABLE: '1', ...env },
+  });
 
 // (a) render without --output is accepted and writes the master in place.
 {
@@ -76,7 +79,11 @@ const cli = (args, env = {}) =>
   assert.strictEqual(res.status, 0, `render without --output must be accepted: ${res.stderr}`);
   assert.ok(fs.existsSync(ep.master), 'the master is written in the episode folder');
   assert.ok(!fs.existsSync(ep.tmp), 'no render.tmp.mp4 is left behind');
-  assert.strictEqual(masterPath(ep.dir), ep.master, 'the master is named from the Video slug, not the title; finalize finds it');
+  assert.deepStrictEqual(
+    fs.readdirSync(ep.dir).filter((f) => f.endsWith('.mp4')),
+    ['nn-demo_1920x1920.mp4'],
+    'the master is named from the Video slug, not the title',
+  );
   console.log('✔ render accepts no --output and writes <slug>_1920x1920.mp4 in place');
 }
 
