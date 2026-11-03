@@ -214,6 +214,36 @@ test('produce writes the description.md chapter block and never overwrites an au
   }
 });
 
+test('approval retires the Variant elements (design A3)', async () => {
+  const withVariants = `${SCENE}
+# NN Variant
+
+## NN Variant: alt opening
+for:: narration
+
+An alternative opening line.
+`;
+  const ws = workspace(episodeDoc({ status: 'draft', review: 'required', scenes: withVariants }));
+  try {
+    const before = fs.readFileSync(ws.scriptPath, 'utf8');
+    // The scene is approved in the document, so the review gate passes on the first run.
+    fs.writeFileSync(
+      ws.scriptPath,
+      before.replace('kind:: Libre', 'kind:: Libre\nreview:: approved'),
+      'utf8',
+    );
+
+    const result = await produce({ episodePath: ws.scriptPath, deps: { render: fakeRender().render, log: () => {} } });
+    assert.equal(result.code, EXIT_DONE);
+
+    const after = fs.readFileSync(ws.scriptPath, 'utf8');
+    assert.doesNotMatch(after, /alt opening/, 'the consumed Variant element is removed');
+    assert.match(after, /review:: approved/, 'the scene keeps its verdict');
+  } finally {
+    done(ws.root);
+  }
+});
+
 test('a stale --approve hash stops again', async () => {
   const ws = workspace(episodeDoc({ status: 'draft', budget: '0.0001' }));
   try {

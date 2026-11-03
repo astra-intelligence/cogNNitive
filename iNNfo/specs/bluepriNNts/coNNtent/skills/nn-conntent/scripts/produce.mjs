@@ -34,11 +34,13 @@ import {
   dryApply as defaultDryApply,
   fieldChange,
   readComments,
+  removeElement,
 } from './lib/changes.mjs';
 import { estimateScriptCost } from './asset-cost-estimator.mjs';
 import { randomUUID } from 'node:crypto';
 import { readTimingRows } from './lib/facts.mjs';
-import { chapterLines, readManifestForFinalize } from './lib/description.mjs';import { DELIVERY_FORMATS, renderFormats } from './render-formats.mjs';
+import { chapterLines, readManifestForFinalize } from './lib/description.mjs';
+import { DELIVERY_FORMATS, renderFormats } from './render-formats.mjs';
 import { renderVideo } from './lib/render.mjs';
 import { resolveWorkspace } from './lib/video-guard.mjs';
 
@@ -184,7 +186,20 @@ export async function produce(options) {
     }
   }
 
-  // 3. Lifecycle: approved (before any spend).
+  // 3. Lifecycle: approved (before any spend), retiring the Variants the review consumed.
+  // Design A3: Variants are the candidate values a reviewer chooses between; once every
+  // Scene is approved the alternatives are spent, so the engine removes them through a
+  // changeset instead of leaving dead options in the document. `script_review:: skip`
+  // keeps them: the parser may still pick a value from them.
+  const variants = (episode.model.elements?.Variant || []).map((v) => String(v.slug || v.name || '')).filter(Boolean);
+  const retireVariants = reviewMode !== 'skip' && variants.length > 0 && episode.status !== 'produced';
+  if (retireVariants) {
+    await (deps.apply || applyChanges)(rootDir, variants.map((slug) => removeElement(modelId, slug, 'Variant')), {
+      title: 'engine: approved (variants retired)',
+    });
+    log(`lifecycle: retired ${variants.length} Variant element(s)`);
+    episode = readEpisode(scriptPath);
+  }
   if (episode.status !== 'approved' && episode.status !== 'produced') {
     await (deps.apply || applyChanges)(rootDir, [
       fieldChange(modelId, episode.slug, 'status', 'approved', episode.status),
