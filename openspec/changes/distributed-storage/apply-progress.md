@@ -1,5 +1,18 @@
 # Apply progress: distributed-storage
 
+## Chain status (updated 2026-11-03)
+
+Strategy: chained PRs, `feature-branch-chain`, tracker `feature/distributed-storage`; `size:exception` admitted per slice without a declared split. Only the tracker reaches `main`.
+
+| Slice | PR | Branch | Base | State |
+|---|---|---|---|---|
+| S0 | 495 | `ds/s0` | tracker | open, applied |
+| S1a | 500 | `ds/s1a` | `ds/s0` | open, applied (648 lines, `size:exception`) |
+| Docs (side PR) | 501 | `docs/distributed-storage` | `ds/s0` | open; vocabulary, skills and gate test stay in S7c |
+| S1b to S7d | n/a | n/a | n/a | not started |
+
+Pending decisions: none blocking. Labels: the repo has no `size:exception` label; the exception is recorded in each PR body.
+
 ## S0 - Provenance ban gate (PR 1)
 
 Status: S0 done (S0.1, S0.2, S0.3). The two `verify --fast` failures the apply pass reported were resolved by the orchestrator: the "Check OpenSpec Delta Specs" failure was real planning text (ADDED requirements in `specs/citation-parser-resolver/spec.md` and `specs/stable-element-identity/spec.md` lacked MUST; both now carry it), and the "Docs-Derived Facts Drift Guard" failure was environmental (nn-mcp `dist/` not built in the worktree; built with `tsup --config tsup.dist.config.ts`). `node scripts/verify.js --fast` then passed in full.
