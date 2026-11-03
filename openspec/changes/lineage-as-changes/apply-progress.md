@@ -2268,3 +2268,64 @@ maintainer's explicit go (hard stop).**
 
 ---
 
+## Accepted deviation (A13 / A14) — 2026-11-03
+
+**Decision: the maintainer explicitly accepted option A** (keep the L1-scoped provenance
+ban as a documented accepted deviation, with a backlog item for the corpus rebuild at the
+next L1-wide repin). This record exists so the code and the approved design do not silently
+contradict each other.
+
+### What the approved design says
+
+- **A13** (ban scope): `SOURCES_FIELD_BANNED` / `CITATION_FIELD_BANNED` are errors on L3;
+  the one allowed `citation` is `changes.evidence`. The row **rejects** a "version-scoped
+  ban": "The proposal forbids exemptions".
+- **A14** (L1 version): publish `iNNfo_V_0-6-0_NN.md` and repin only `changes`, `sidecar`
+  and `visual-catalog` to it, and — verbatim — "**The ban is enforced in code,
+  independent of the L1 version**".
+
+### What the shipped code does
+
+`iNNfo/packages/nn-core/src/validator/knowledge-checks.ts`:
+
+```ts
+const scope = `${l1Version ?? ''} ${parentName} ${parentUrl}`
+if (!/V_0-6-0/i.test(scope)) return
+```
+
+`checkProvenanceBan` receives the **blueprint's L1 pin** (passed by `validateKnowledge`)
+and returns early unless that pin is `V_0-6-0`. So the ban fires on documents whose
+bluepriNNt pins the new L1 (`changes`, `sidecar`, `visual-catalog`) and does not fire on
+documents whose bluepriNNt still pins `V_0-5-0`.
+
+That is precisely the "version-scoped ban" A13 rejects and the L1 dependence A14 denies.
+
+### Why it shipped that way
+
+- Dropping the gate turned **115 tests red** and left **108 files** writing `sources::`
+  (shipped samples, nn-core fixtures, the `docs/cognitive_nn/` demo corpus, documentation).
+- The field is optional, so the ban does not break their *meaning* — it breaks their
+  *validity*, and erases the demonstration of the retired syntax that several fixtures
+  assert.
+- Making them green requires ~10 new write-once sample versions built through changes,
+  ~60 rebuilt fixtures and a docs-corpus rewrite: a cascade that A14 deliberately avoids
+  (the same reason it refuses the 20-blueprint repin).
+
+### Accepted consequences
+
+- Documents pinned to `V_0-5-0`-era bluepriNNts keep the reserved property legitimately;
+  the ban is enforced wherever the new L1 is adopted. Deviations 72, 81, 83 and 89 record
+  the individual steps.
+- `verify.js` is green in this state, and the ban is still proven end-to-end by
+  `tests/validator/knowledge-checks.test.ts` (V_0-6-0-pinned documents).
+
+### Follow-up condition (the acceptance is conditional on this)
+
+The scoped ban is accepted **only** as a transition. At the next L1-wide repin (when the
+remaining bluepriNNts adopt a `V_0-6-0`-or-later L1), the ~108-file corpus MUST be rebuilt
+through changes and the gate removed, so the ban becomes version-independent as A14
+specifies. Tracked as a backlog item; it is a follow-up change, not part of
+`lineage-as-changes`.
+
+**Status: accepted by the maintainer on 2026-11-03 (option A).**
+
