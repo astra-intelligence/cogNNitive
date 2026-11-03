@@ -44,7 +44,7 @@ The video engine operates headlessly through programmatic modules:
 - **Media Duration (`scripts/lib/media-duration.mjs`)**: ffprobe duration with a provider-reported fallback.
 - **Deterministic Asset Cache (`scripts/cache-manager.mjs`)**: Content-addressed SHA-256 cache under `.cognnitive/cache/video/` with isolated subdirectories (`tts/`, `images/`, `temp/`).
 - **Asset Synthesizer (`scripts/asset-synthesizer.mjs` / `scripts/tts-generator.mjs`)**: Synthesizes TTS voiceover tracks and image/motion assets.
-- **Runtime Provisioner (`scripts/ensure-hyperframes.mjs`)**: Idempotent, consent-gated verification of the pinned HyperFrames CLI (`0.8.192`) and its agent skills.
+- **Runtime Provisioner (`scripts/ensure-hyperframes.mjs`)**: Idempotent, consent-gated verification of the pinned HyperFrames CLI (`0.8.192`) and the pinned GSAP build it vendors into `vendor/gsap.min.js`.
 - **Render Driver (`scripts/hyperframes-render.mjs`)**: emits the project and renders it via the pinned CLI; HyperFrames is the only renderer.
 - **Video Engine CLI (`scripts/video-engine-cli.mjs`)**: Headless CLI providing `compile` and `render` commands.
 
@@ -110,7 +110,7 @@ This skill owns **authoring, validating, compiling, rendering, and finalizing** 
    ```bash
    node scripts/video-engine-cli.mjs render <script_NN.md>
    ```
-   *`render` takes the SCRIPT (a manifest argument is a usage error) and compiles first, so a stale manifest can never be rendered. It has no output option: the master is always `<episode-dir>/<slug>_1920x1920.mp4`, and `compile` has no `--output`/`--out` either (the manifest is always `build/manifest.json`). The master size comes from the declared `master_resolution` in the domain Video Defaults; there is no `--format`, `--width` or `--height` and no 9:16 recompile. The master is written in place through a temp file in `build/`, so the path holds either the previous complete master or the new one. A HyperFrames failure is a loud, non-zero error that includes the tail of the CLI's stderr — there is no FFmpeg fallback. Everything after a literal `--` is forwarded verbatim to `hyperframes render`; `--allow-mock` is only for CI placeholders. A presenter Layer with no cached avatar clip stops the render before it starts.*
+   *`render` takes the SCRIPT (a manifest argument is a usage error) and compiles first, so a stale manifest can never be rendered. It has no output option: the master is always `<episode-dir>/<slug>_<W>x<H>.mp4`, and `compile` has no `--output`/`--out` either (the manifest is always `hyperframes/manifest.json`). The master size comes from the first entry of `output_formats`; there is no `--format`, `--width` or `--height` and no 9:16 recompile. The master is written in place through a temp file in `hyperframes/`, so the path holds either the previous complete master or the new one. The project loads `vendor/gsap.min.js` (never a network URL): a missing pinned GSAP is a loud failure. A HyperFrames failure is a loud, non-zero error that includes the tail of the CLI's stderr - there is no FFmpeg fallback. Everything after a literal `--` is forwarded verbatim to `hyperframes render`; `--allow-mock` is only for CI placeholders. An avatar Layer with no cached lip-sync clip stops the render before it starts.*
 7. **Compose Video Thumbnail**:
    ```bash
    node scripts/render-thumbnail.mjs --base <path> --title <title> --out <out> [--series <series-dir>]
@@ -145,7 +145,7 @@ This skill owns **authoring, validating, compiling, rendering, and finalizing** 
 | `scripts/lib/avatar-jobs.mjs` | Avatar job definition shared by synthesize-avatar and compile: layer predicate, audio source, content-addressed cache key, cached-clip pickup. |
 | `scripts/voice-clone.mjs` | Clone a voice once (pending reservation under a lock, atomic registry write, ledgered); refuses re-cloning without `--force`. |
 | `scripts/asset-cost-estimator.mjs` | Pre-generation provider options catalog, per-scene character/layer calculator, and production cost estimator. |
-| `scripts/video-engine-cli.mjs` | Headless CLI for `compile` and `render`. `compile` enforces the approval gate, writes `build/manifest.json` and `--dry-run` previews spend; `render` takes the script and writes the master in place. The size comes from the declared `master_resolution`. |
+| `scripts/video-engine-cli.mjs` | Headless CLI for `compile` and `render`. `compile` enforces the approval gate, writes `hyperframes/manifest.json` and links the assets, and `--dry-run` previews spend; `render` takes the script and writes the master in place. The size comes from `output_formats`. |
 | `scripts/render-formats.mjs` | The one derivation from the 1920x1920 master: `_1080x1920` and `_1920x1080` are the central 1080 crops, `_1080x1080` is a lanczos scale, and `--fill blur` is an opt-in with a `_blur` suffix. |
 | `scripts/render-thumbnail.mjs` | Programmatic thumbnail compositor: renders a one-frame HyperFrames composition (base image + typography + brand pill) through the pinned CLI. `--series <dir>` (or the cascade from `--out`) fills subtitle/badge from the Series `title`; font/accent come from the resolved `frame` tokens. |
 | `scripts/finalize-video.mjs` | Derives the delivery formats from the master in place, prints the `description.md` chapters and the `master::`/`thumbnail::` values. Never writes the model. |

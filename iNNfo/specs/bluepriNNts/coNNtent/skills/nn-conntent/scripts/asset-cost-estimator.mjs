@@ -20,7 +20,7 @@ import { normalizeModelId } from './lib/video-guard.mjs';
 import { loadCascadeBags, resolve, withScriptPresets } from './lib/video-scope.mjs';
 import { isAvatarLayer, collectAvatarJobs, ttsCachePathFor, AVATAR_CACHE_EXT, AVATAR_CACHE_CATEGORY } from './lib/avatar-jobs.mjs';
 import { layerPrompt, imageCachePathFor } from './lib/image-options.mjs';
-import { loadMergedCatalog } from './lib/catalog.mjs';
+import { loadMergedCatalog, assertImageSize } from './lib/catalog.mjs';
 import { CacheManager } from './cache-manager.mjs';
 import { loadGuard, resolveDefaultCacheDir } from './lib/video-guard.mjs';
 import { parseArgs, CliUsageError } from './lib/cli-args.mjs';
@@ -164,8 +164,14 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
   const cacheDir = options.cacheDir || (scriptDir ? resolveDefaultCacheDir(scriptDir) : null);
   const cache = cacheDir ? new CacheManager({ baseDir: cacheDir, readOnly: true }) : null;
   const models = { image: defaultImageModel, imageSize: defaultImageSize, tts: defaultTtsModel, avatar: defaultAvatarModel };
-  const config = scriptDir ? loadGuard(scriptDir).config : {};
+  const loaded = scriptDir ? loadGuard(scriptDir) : { config: {}, root: null };
+  const config = loaded.config;
   warnUnpricedAllowedModels(config);
+  // An `image_size` the resolved model does not offer fails the ESTIMATE, before any spend,
+  // against the same merged catalog (reference + domaiNN overlay) the compile reads.
+  if (defaultImageSize) {
+    assertImageSize(loadMergedCatalog({ domainRoot: loaded.root }), defaultImageModel, defaultImageSize);
+  }
   const cachedAvatarLayers = new Set();
   if (cache && scriptDir) {
     try {

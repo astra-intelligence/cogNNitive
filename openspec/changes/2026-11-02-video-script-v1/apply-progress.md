@@ -194,10 +194,34 @@ Landed and verified so far (each commit ran the full `verify.js`):
 - **5 / part 4** (`8d1a596b`): `assertImageSize` refuses an `image_size` the resolved model does not
   declare (`unsupported-size`), before any spend.
 
-Still missing to close the batch: chrome injection into the manifest, engine-inserted fixed scenes and
-removal of the `cli` level (Slice 4); hardlink staging, the project inside the episode folder, the
-vendored GSAP and the byte-identical link-vs-copy spike (Slice 5); per-synthesis-stage timing hooks
-(Slice 6). The spike is a hard stop if the two masters differ.
+- **4 / part 6** (`61225221`): the `cli` cascade level is gone from `SCOPE_ORDER` and
+  `bagsToChain` (a `cli` bag is ignored). `--image-model`, `--tts-model` and `--avatar-model` are
+  refused by `video-engine-cli`, `asset-cost-estimator` and `synthesize-avatar`, as
+  `video-script-model` "There is no cli level" requires. Model ids resolve once per run from the
+  documents, so the estimator, compile and synthesize-avatar share one `plan_hash` and one cache
+  key; a cascaded TTS model equal to the scene's own no longer forks the key.
+- **5 / part 7**: `lib/stage-assets.mjs` (`linkOrCopy`, `assetName`, `resolveGsapPath`,
+  `assertGsapPresent`). Staged assets are hardlinks to the provider cache; `EXDEV`/`EPERM`/
+  `ENOTSUP` falls back to a clone-on-write copy, records `link_mode: copy` and warns once. The
+  engine project now lives in `<episode>/hyperframes/` (`manifest.json`, `index.html`,
+  `compositions/`, `assets/`, `vendor/`): no `build/`, no `public/`, no `audio/`, the manifest at
+  `hyperframes/manifest.json` and the temp render file inside that folder. An authored
+  `Hyperframes/` folder is a named collision error before anything is written. `gsap` is pinned
+  exactly (`3.14.2`), `ensure-hyperframes --check` reports it, emission copies it to
+  `vendor/gsap.min.js` and the project references it (a missing install fails loudly, no network
+  URL anywhere). Copy mode deletes `hyperframes/assets/` after a successful render. `image_size`
+  is validated against the merged catalog (`sizes`, overlay included) by both the estimate and
+  the compile, and is now a real field consumer.
 
-Verification at the batch tip: skill suite 448 tests, 448 pass; `node scripts/verify.js` green (233
-steps); nothing merged to `dev`/`main`; no tag; `video_NN` untouched.
+**Link-vs-copy spike (hard stop): PASSED.** Rendered the same two-scene episode twice with the
+real pinned HyperFrames CLI (`0.8.192`): run 1 `link_mode=link`, run 2 forced `EXDEV` →
+`link_mode=copy` (assets staged again from scratch, one warning, `hyperframes/assets/` deleted
+after the render). Both masters are byte-identical:
+`sha256 3c2b45ab…7c9cfbef7`, 28,466 bytes, `spike_1920x1920.mp4`. Harness:
+`temp/spike-link-vs-copy.mjs` (gitignored scratch, not committed).
+
+Still missing to close the batch: per-synthesis-stage timing hooks (`tts`, `image`, `avatar`
+through `recordStage`, Slice 6).
+
+Verification at the batch tip: skill suite 467 tests, 467 pass; `node scripts/verify.js` green;
+nothing merged to `dev`/`main`; no tag; `video_NN` untouched.

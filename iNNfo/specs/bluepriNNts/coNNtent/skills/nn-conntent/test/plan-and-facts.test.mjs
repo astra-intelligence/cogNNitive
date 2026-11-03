@@ -30,6 +30,9 @@ import {
 
 const SCRIPT = '# NN Video\n\n## NN Video: X\nslug:: x\n';
 
+/** A stand-in for the pinned GSAP build: emission vendors it into `vendor/`. */
+const gsapPath = path.join(os.tmpdir(), `nn-gsap-facts-${process.pid}.js`);
+fs.writeFileSync(gsapPath, '/* gsap */');
 test('a price change invalidates the plan hash', () => {
   const models = { tts: 'minimax/speech-2.8-hd' };
   const a = computePlanHash(SCRIPT, models, { tts: 0.02 });
@@ -144,6 +147,7 @@ test('a render records compile and render timing rows when a facts context is pa
       scriptPath,
       cacheDir: path.join(root, 'cache'),
       synthesizeAssets: false,
+      gsapPath,
       facts: { rootDir: root, runId: 'run-1', episode: 'timed', planHash: 'abc' },
       hyperframesRun: async (cmd, args) => {
         fs.writeFileSync(args[args.indexOf('--output') + 1], 'fake-mp4');

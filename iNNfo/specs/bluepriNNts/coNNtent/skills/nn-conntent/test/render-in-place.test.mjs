@@ -4,7 +4,7 @@
  * nn-conntent/test/render-in-place.test.mjs
  *
  * Render contract (cognnitive-video-engine): render takes no output option, renders to
- * E/build/render.tmp.mp4 and renames it over E/<slug>_1920x1920.mp4 only on success;
+ * E/hyperframes/render.tmp.mp4 and renames it over E/<slug>_<W>x<H>.mp4 only on success;
  * compile has no --output/--out. Offline: the HyperFrames runner is injected.
  */
 
@@ -58,10 +58,14 @@ function makeEpisode() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'render-in-place-'));
   const scriptPath = path.join(dir, 'script.md');
   fs.writeFileSync(scriptPath, script, 'utf8');
-  return { dir, scriptPath, master: path.join(dir, 'nn-demo_1920x1920.mp4'), tmp: path.join(dir, 'build', 'render.tmp.mp4') };
+  return { dir, scriptPath, master: path.join(dir, 'nn-demo_1920x1920.mp4'), tmp: path.join(dir, 'hyperframes', 'render.tmp.mp4') };
 }
 
-const base = (ep) => ({ scriptPath: ep.scriptPath, cacheDir: path.join(ep.dir, 'cache'), synthesizeAssets: false });
+/** A stand-in for the pinned GSAP build: emission vendors it into `vendor/`. */
+const fakeGsap = path.join(os.tmpdir(), `nn-gsap-inplace-${process.pid}.js`);
+fs.writeFileSync(fakeGsap, '/* gsap */');
+
+const base = (ep) => ({ scriptPath: ep.scriptPath, cacheDir: path.join(ep.dir, 'cache'), synthesizeAssets: false, gsapPath: fakeGsap });
 const cli = (args, env = {}) =>
   spawnSync('node', [cliPath, ...args], { encoding: 'utf8', env: { ...process.env, NN_HYPERFRAMES_DISABLE: '1', ...env } });
 
@@ -76,7 +80,7 @@ const cli = (args, env = {}) =>
   console.log('✔ render accepts no --output and writes <slug>_1920x1920.mp4 in place');
 }
 
-// (b) success: the renderer targets build/render.tmp.mp4, then it is renamed over the master.
+// (b) success: the renderer targets hyperframes/render.tmp.mp4, then it is renamed over the master.
 {
   const ep = makeEpisode();
   fs.writeFileSync(ep.master, 'previous-master');
@@ -91,7 +95,7 @@ const cli = (args, env = {}) =>
       return { status: 0 };
     },
   });
-  assert.strictEqual(path.resolve(target), ep.tmp, 'the renderer writes build/render.tmp.mp4');
+  assert.strictEqual(path.resolve(target), ep.tmp, 'the renderer writes hyperframes/render.tmp.mp4');
   assert.strictEqual(masterDuringRender, 'previous-master', 'the previous master is intact while rendering');
   assert.strictEqual(fs.readFileSync(ep.master, 'utf8'), 'new-master');
   assert.ok(!fs.existsSync(ep.tmp), 'render.tmp.mp4 was renamed away');
@@ -123,7 +127,7 @@ console.log('✔ a failed render leaves the previous master untouched and no par
 {
   const ep = makeEpisode();
   const manifestPath = path.join(ep.dir, 'm.json');
-  fs.writeFileSync(manifestPath, JSON.stringify({ compositionId: 'x-title', metadata: { buildDir: path.join(ep.dir, 'build') } }));
+  fs.writeFileSync(manifestPath, JSON.stringify({ compositionId: 'x-title', metadata: { hyperframesDir: path.join(ep.dir, 'hyperframes') } }));
   await assert.rejects(renderVideo({ manifestPath }), /slug/i);
   assert.deepStrictEqual(fs.readdirSync(ep.dir).filter((f) => f.endsWith('.mp4')), []);
   console.log('✔ a missing Video slug is a clear error');

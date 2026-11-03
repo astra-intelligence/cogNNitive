@@ -16,6 +16,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { emitHyperframesProject, HYPERFRAMES_PIN } from './scene-project.mjs';
 import { SLOT_OF } from './overlay-blocks.mjs';
+import { assertGsapPresent } from './lib/stage-assets.mjs';
 
 /** Quotes one argument so a shell passes it through as a single literal token. */
 export function quoteArg(arg, platform = process.platform) {
@@ -44,9 +45,25 @@ function outputTail(text) {
   return String(text || '').trim().slice(-DETAIL_MAX);
 }
 
-/** Emit the project and copy the compiled public assets into `<project>/assets/`. */
-export function buildHyperframesProject(manifest, projectDir) {
+/**
+ * Emit the project, link the vendored GSAP build into `<project>/vendor/`, and make the
+ * compiled public assets available under `<project>/assets/`.
+ *
+ * Render is hermetic (capability cognnitive-video-engine): the project loads GSAP from
+ * `vendor/gsap.min.js`, never from a CDN, so a missing install is a loud failure here.
+ *
+ * @param {object} manifest
+ * @param {string} projectDir
+ * @param {{ gsapPath?: string }} [opts]
+ */
+export function buildHyperframesProject(manifest, projectDir, opts = {}) {
   const built = emitHyperframesProject(manifest, { projectDir });
+  // GSAP is a 70 KB library, not a provider cache entry: it is copied. Copying it never
+  // changes `link_mode`, which describes how the staged ASSETS were made available.
+  const gsap = opts.gsapPath || assertGsapPresent();
+  const vendorDir = path.join(projectDir, 'vendor');
+  fs.mkdirSync(vendorDir, { recursive: true });
+  fs.copyFileSync(gsap, path.join(vendorDir, 'gsap.min.js'));
   const publicDir = manifest?.metadata?.publicDir;
   const assetsDir = path.join(projectDir, 'assets');
   fs.mkdirSync(assetsDir, { recursive: true });
@@ -116,21 +133,21 @@ function stageComponents(manifest, projectDir) {
 
 /**
  * `extraArgs` are forwarded verbatim to `hyperframes render` (e.g. `--workers 2`).
- * @param {{ manifest: object, outputPath: string, projectDir?: string, concurrency?: number, pin?: string, extraArgs?: string[] }} input
+ * @param {{ manifest: object, outputPath: string, projectDir?: string, concurrency?: number, pin?: string, extraArgs?: string[], gsapPath?: string }} input
  * @param {{ run?: (cmd: string, args: string[], opts?: object) => any }} [deps]
  * @returns {Promise<{ rendered: true } | { rendered: false, reason: string, detail?: string }>}
  */
 export async function tryHyperframesRender(input, deps = {}) {
   const { manifest, outputPath } = input;
   const pin = input.pin || HYPERFRAMES_PIN;
-  if (!input.projectDir) throw new Error('tryHyperframesRender: projectDir is required (compile sets manifest.metadata.buildDir)');
+  if (!input.projectDir) throw new Error('tryHyperframesRender: projectDir is required (compile sets manifest.metadata.hyperframesDir)');
   const projectDir = path.resolve(input.projectDir);
   const run = deps.run || defaultRun;
 
   if (process.env.NN_HYPERFRAMES_DISABLE === '1') return { rendered: false, reason: 'disabled' };
 
   try {
-    buildHyperframesProject(manifest, projectDir);
+    buildHyperframesProject(manifest, projectDir, { gsapPath: input.gsapPath });
   } catch (err) {
     return { rendered: false, reason: `emit-failed: ${err?.message || String(err)}` };
   }
@@ -138,7 +155,7 @@ export async function tryHyperframesRender(input, deps = {}) {
   // Resolve the pinned CLI from this skill's node_modules/.bin. A missing CLI or a
   // version different from the pin is returned as a named reason — never a silent
   // `npx` install. The caller raises a loud named error; there is no FFmpeg fallback.
-  const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const skillDir = deps.skillDir || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const binName = process.platform === 'win32' ? 'hyperframes.cmd' : 'hyperframes';
   const injectedCli = deps.cliPath !== undefined;
   const cliPath = deps.cliPath || path.join(skillDir, 'node_modules', '.bin', binName);

@@ -28,7 +28,7 @@ const SCRIPT = '---\nlevel: 3\n---\n\n# NN Video\n\n## NN Video: X\nslug:: x\n';
 
 function episode({ master = 'x_1920x1920.mp4', thumbnail = 'x_thumbnail_2560x1440.png' } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nn-finalize-'));
-  fs.mkdirSync(path.join(dir, 'build'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'hyperframes'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'x_coNNtent_s_NN.md'), SCRIPT, 'utf8');
   if (master) fs.writeFileSync(path.join(dir, master), 'master-bytes', 'utf8');
   if (thumbnail) fs.writeFileSync(path.join(dir, thumbnail), 'png', 'utf8');
@@ -42,7 +42,7 @@ function episode({ master = 'x_1920x1920.mp4', thumbnail = 'x_thumbnail_2560x144
       ],
     },
   };
-  fs.writeFileSync(path.join(dir, 'build', 'manifest.json'), JSON.stringify(manifest), 'utf8');
+  fs.writeFileSync(path.join(dir, 'hyperframes', 'manifest.json'), JSON.stringify(manifest), 'utf8');
   return dir;
 }
 
@@ -88,7 +88,7 @@ test('finalize derives the formats from the master and prints the fields', async
 
 test('a manifest compiled from another script is refused', async () => {
   const dir = episode();
-  const manifestPath = path.join(dir, 'build', 'manifest.json');
+  const manifestPath = path.join(dir, 'hyperframes', 'manifest.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   manifest.metadata.scriptSource = path.join(dir, 'other_coNNtent_s_NN.md');
   fs.writeFileSync(manifestPath, JSON.stringify(manifest), 'utf8');
