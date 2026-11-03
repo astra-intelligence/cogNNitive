@@ -109,3 +109,11 @@ Next to the script, `asset_plan.md` carries a `plan_hash` on its first line; tha
 what `--approve` compares. There is no approval file. The `video-guard.json`,
 `.cognnitive/video-ledger.jsonl` and `.cognnitive/cache/video/` live at the domain
 root, not in a series or episode folder. See `cost-guardrails.md`.
+
+## Housekeeping
+
+`prune-duplicates.mjs <episode-or-series-dir> [--apply] [--json]` reports the files whose
+exact bytes and extension already exist in the provider cache and, with `--apply`, deletes
+them. The default is a dry run because this is the only cleanup that removes authored
+files; `hyperframes/`, `formats/` and `.cognnitive/` are never scanned, and a cache entry
+is never deleted.

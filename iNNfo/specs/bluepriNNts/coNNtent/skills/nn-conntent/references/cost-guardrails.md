@@ -89,6 +89,14 @@ can pass `--approve` itself. Keep the Episode's `budget::` low, keep
 `video-guard.json`. The agent MUST NOT invent a plan hash: it prints the hash and
 waits for the human.
 
+## 2b. Stale prices
+
+The catalog carries a `price_date` per model. Past `DEFAULT_STALE_AFTER_DAYS` the price is
+stale: the estimate still uses it (it is the best number available) but the plan carries a
+`Stale price` warning naming each model and the date it was priced. A stale price never
+changes `plan_hash` or the total, and it never blocks a run. Refresh the catalog instead of
+editing the estimate.
+
 ## 3. Dry run
 
 `node scripts/lib/compile.mjs compile <script.md> --dry-run` lists every

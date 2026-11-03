@@ -371,3 +371,41 @@ merge commit `34b22907`.
 - Deviations: the view groups and formats only; it computes no fact. Stale rows stay in the
   cost total (a stale price is still a real charge) and are flagged separately.
 
+
+## Slice 10 - the draft procedure, housekeeping and the docs pass
+
+- Branch: `feature/conntent-v1-10` (base `feature/conntent-v1-3b`, tip `07a6364a`)
+- TDD: RED first (`test/prune-duplicates.test.mjs` 5 tests, `test/plan-stale-price.test.mjs`
+  3 tests), then GREEN.
+- Changes:
+  - `coNNtent/procedures/usage_procedures_NN.md`: the blueprint's usage procedure, from
+    `idea` to `published`, including the draft step that emits a sealed
+    `proposal_changes_NN.md` with an `evidence::` line per change (decision 7). The
+    `usage-procedure` and `procedures-version` guards pass.
+  - `scripts/prune-duplicates.mjs`: reports the files whose exact bytes and extension
+    already exist in the provider cache and, with `--apply`, deletes them. The default is a
+    dry run because this is the only cleanup that removes authored files; `hyperframes/`,
+    `formats/` and `.cognnitive/` are never scanned, and the cache entry is never deleted.
+    A same-name-different-bytes file and another extension are reported and left alone.
+  - `asset-cost-estimator.mjs`: the estimate now carries `stalePrices` (from the catalog
+    `price_date` and the engine's own `isPriceStale`) and the plan prints a `Stale price`
+    warning naming each model and the date it was priced. A stale price never changes
+    `plan_hash`, the total, or whether the run is allowed.
+  - `lib/field-consumers.mjs`: `description` is a real consumer (`produce.mjs` writes the
+    chapter block); it leaves `PLANNED_CONSUMERS`.
+  - `SKILL.md`, `references/{folder-contract,cost-guardrails}.md`: the two console views,
+    `prune-duplicates`, and the stale-price rule.
+- Verification: skill suite 418 tests, 418 pass; `node scripts/verify.js` green (233 steps).
+- Deviations and remaining debt:
+  - `daily_budget` (domain/blueprint levels only) is still declared and still not enforced.
+    Enforcing it means a second rolling window inside `SpendGuard`, next to the existing
+    `dailyCapUsd`; that is a design change, not a doc edit, so it stays open and is named
+    here rather than half-done.
+  - `PLANNED_CONSUMERS` still lists fields whose owning slice is closed (`role`,
+    `max_duration`, `fixed`, `chrome`, `watermark`, `cta`, `bumper`, `music`, `narration`,
+    `variants`, `for`, `intro`, `style`, `source`, `placement`, `timing`) and the three
+    publication fields (`script`, `published_url`, `thumbnail`). They are authoring fields
+    the document declares; naming a module that does not read them would be worse than
+    saying they are still planned. The audit only fails on a field that is in none of the
+    three maps, so this is honest debt, not a broken gate.
+

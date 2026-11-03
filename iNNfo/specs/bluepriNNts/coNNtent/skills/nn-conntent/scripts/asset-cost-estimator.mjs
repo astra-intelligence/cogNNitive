@@ -20,7 +20,7 @@ import { normalizeModelId } from './lib/video-guard.mjs';
 import { loadCascadeBags, resolve, withScriptPresets } from './lib/video-scope.mjs';
 import { isAvatarLayer, collectAvatarJobs, ttsCachePathFor, AVATAR_CACHE_EXT, AVATAR_CACHE_CATEGORY } from './lib/avatar-jobs.mjs';
 import { layerPrompt, imageCachePathFor } from './lib/image-options.mjs';
-import { loadMergedCatalog, assertImageSize } from './lib/catalog.mjs';
+import { loadMergedCatalog, assertImageSize, isPriceStale, DEFAULT_STALE_AFTER_DAYS } from './lib/catalog.mjs';
 import { CacheManager } from './cache-manager.mjs';
 import { loadGuard, resolveDefaultCacheDir } from './lib/video-guard.mjs';
 import { parseArgs, CliUsageError } from './lib/cli-args.mjs';
@@ -62,6 +62,31 @@ let CATALOG = null;
 function mergedCatalog() {
   if (!CATALOG) CATALOG = loadMergedCatalog({ overlay: null });
   return CATALOG;
+}
+
+/**
+ * The models in this plan whose catalog `price_date` is past the staleness threshold.
+ * A stale price does not change the estimate; the plan just has to say so.
+ * @param {string[]} modelIds
+ * @param {Date} now
+ * @returns {Array<{ model: string, priceDate: string }>}
+ */
+function stalePricesOf(modelIds, now) {
+  const catalog = mergedCatalog();
+  const stale = [];
+  for (const id of modelIds) {
+    const entry = Object.values(catalog.models || {}).find(
+      (model) =>
+        String(model.api_id) === id ||
+        String(model.api_id).endsWith('/' + id) ||
+        id.endsWith('/' + String(model.api_id)),
+    );
+    if (!entry || !entry.price_date) continue;
+    if (isPriceStale(entry.price_date, { now })) {
+      stale.push({ model: id, priceDate: String(entry.price_date) });
+    }
+  }
+  return stale;
 }
 
 /**
@@ -340,6 +365,7 @@ export function estimateScriptCost(scriptContentOrPath, options = {}) {
   return {
     planHash,
     planModels: [...planModels].sort(),
+    stalePrices: stalePricesOf([...planModels], options.now instanceof Date ? options.now : new Date()),
     scenes: sceneEstimates,
     summary: {
       sceneCount: sceneEstimates.length,
@@ -386,6 +412,18 @@ export function formatAssetPlanMarkdown(estimateResult) {
   md += `- **Plan Hash**: \`${estimateResult.planHash.slice(0, 8)}\` (full hash on the first line of this file)\n\n`;
   md += `> [!IMPORTANT]\n`;
   md += `> **Pre-Generation Cost Gate**: Review the provider selections, model capabilities, and cost estimates below. Run the episode through \`produce\` and pass this plan hash to \`--approve\` to spend past the Episode budget: \`node scripts/produce.mjs <episode> --approve ${estimateResult.planHash.slice(0, 8)}\`. Spend is capped by \`budgetPerRunUsd\` and \`dailyCapUsd\` in \`video-guard.json\`. Items already in the cache are priced \$0.\n\n`;
+
+  // A price can be old without being wrong for the estimate; the plan just has to admit it.
+  const stalePrices = Array.isArray(estimateResult.stalePrices) ? estimateResult.stalePrices : [];
+  if (stalePrices.length > 0) {
+    md += `> [!WARNING]\n`;
+    md += `> **Stale price**: ${stalePrices.length} model price(s) in this plan were priced more than `;
+    md += `${DEFAULT_STALE_AFTER_DAYS} days ago. The estimate is the best number available, not an invoice.\n`;
+    for (const stale of stalePrices) {
+      md += `> - \`${stale.model}\` priced on ${stale.priceDate}\n`;
+    }
+    md += `\n`;
+  }
 
   md += `## 1. Summary Overview\n\n`;
   md += `- **Total Scenes**: ${summary.sceneCount}\n`;
