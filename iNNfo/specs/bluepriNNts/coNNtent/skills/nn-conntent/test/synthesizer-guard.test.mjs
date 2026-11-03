@@ -220,8 +220,35 @@ describe('billing-safe failure handling', () => {
   });
 });
 
+describe('the rolling daily budget from the documents', () => {
+  it('refuses a call that would pass the daily budget, even when the daily cap allows it', async () => {
+    const ctx = setup({ budgetPerRunUsd: 50, dailyCapUsd: 50 }, { dailyBudgetUsd: 0.0001 });
+    const provider = fakeProvider();
+    const synth = makeSynth(ctx, provider);
+    await assert.rejects(
+      synth.synthesizeTTS('x'.repeat(2000), { model: TTS }),
+      (err) => err instanceof BudgetExceededError && /daily budget/i.test(err.message),
+    );
+    assert.equal(provider.state.posts.length, 0, 'nothing was sent');
+  });
+
+  it('lets a call through while there is headroom', async () => {
+    const ctx = setup({ budgetPerRunUsd: 50, dailyCapUsd: 50 }, { dailyBudgetUsd: 100 });
+    const provider = fakeProvider();
+    const synth = makeSynth(ctx, provider);
+    const res = await synth.synthesizeTTS('hola', { model: TTS });
+    assert.equal(res.fromCache, false);
+    assert.equal(provider.state.posts.length, 1);
+  });
+
+  it('is unset by default, so it never narrows a run that does not declare it', async () => {
+    const ctx = setup({ budgetPerRunUsd: 50, dailyCapUsd: 50 });
+    assert.equal(ctx.guard.dailyBudgetUsd, null);
+  });
+});
+
 describe('approval, caps and fail-closed default', () => {
-  const notApproved = () => ({ ok: false, reason: 'missing', message: 'No approved plan found. Run approve-plan.' });
+  const notApproved = () => ({ ok: false, reason: 'missing', message: 'No approval is attached to this synthesizer.' });
 
   it('refuses a cache miss without approval, spending nothing', async () => {
     const ctx = setup({}, { approval: notApproved });
@@ -229,7 +256,7 @@ describe('approval, caps and fail-closed default', () => {
     const synth = makeSynth(ctx, provider);
     await assert.rejects(
       synth.synthesizeTTS('linea nueva', { model: TTS }),
-      (err) => err instanceof ApprovalRequiredError && /approve-plan/.test(err.message),
+      (err) => err instanceof ApprovalRequiredError && /No approval/.test(err.message),
     );
     assert.equal(provider.state.posts.length, 0);
     assert.equal(started(ctx.root).length, 0);

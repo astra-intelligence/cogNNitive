@@ -42,6 +42,8 @@ import { readTimingRows, readLedgerRows } from './lib/facts.mjs';
 import { chapterLines, readManifestForFinalize } from './lib/description.mjs';
 import { DELIVERY_FORMATS, renderFormats } from './render-formats.mjs';
 import { renderVideo } from './lib/render.mjs';
+import { synthesizeAvatars } from './synthesize-avatar.mjs';
+import { isAvatarLayer } from './lib/avatar-jobs.mjs';
 import { resolveWorkspace } from './lib/video-guard.mjs';
 
 export const EXIT_DONE = 0;
@@ -258,6 +260,18 @@ export async function produce(options) {
   if (options.dryRun) {
     log(`plan: $${total.toFixed(4)} of $${budgetUsd.toFixed(2)} (plan ${planHash.slice(0, 8)}); dry run, nothing spent.`);
     return { code: EXIT_DONE, summary: { planHash, total, budget: budgetUsd, dryRun: true } };
+  }
+
+  // 4b. The avatar stage. Talking avatars are the costliest call and the only stage a
+  // render cannot do itself: it refuses a layer with no cached clip. produce therefore runs
+  // it here, before the render, whenever the episode actually has one.
+  const avatarLayers = (episode.model.elements?.Layer || []).filter(
+    (layer) => isAvatarLayer(layer) || String(layer.fields?.avatar ?? '').toLowerCase() === 'true',
+  );
+  if (avatarLayers.length > 0 && !options.dryRun) {
+    const sync = (deps.synthesizeAvatars || synthesizeAvatars);
+    await sync({ scriptPath });
+    log(`avatars: ${avatarLayers.length} layer(s) synthesized or picked up from cache`);
   }
 
   // 5. Compile + render the master.
