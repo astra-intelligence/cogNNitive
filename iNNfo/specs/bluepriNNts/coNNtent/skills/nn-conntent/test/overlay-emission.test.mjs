@@ -15,7 +15,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildProject } from '../scripts/scene-project.mjs';
 import { overlayMount, readVariableIds, assertSlotContract, SlotContractError, SLOT_OF } from '../scripts/overlay-blocks.mjs';
-import { resolveComponents, compileVideo } from '../scripts/video-engine-cli.mjs';
+import { resolveComponents, compileVideo } from '../scripts/lib/compile.mjs';
 import { MissingAssetError } from '../scripts/lib/missing-asset.mjs';
 
 const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

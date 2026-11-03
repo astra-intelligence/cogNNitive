@@ -6,7 +6,7 @@ import path from 'node:path';
 import { tryHyperframesRender, quoteArg } from '../scripts/hyperframes-render.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { renderVideo, splitPassthrough } from '../scripts/video-engine-cli.mjs';
+import { renderVideo, splitPassthrough } from '../scripts/lib/render.mjs';
 
 const manifest = {
   version: '1.0.0',
@@ -158,8 +158,10 @@ test('a version different from the pin is a named reason', async () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('a passthrough after -- is warned about and ignored when the command is not render', () => {
-  const cli = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'video-engine-cli.mjs');
+test('an unknown command is refused instead of forwarding a passthrough', () => {
+  const cli = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'lib', 'render.mjs');
   const res = spawnSync('node', [cli, 'bogus', '--', '--workers', '2'], { encoding: 'utf8' });
-  assert.match(res.stderr, /ignored.*--workers 2|--workers 2.*ignored/);
+  assert.notEqual(res.status, 0, 'an unknown command must exit non-zero');
+  assert.match(res.stderr, /Usage: node lib\/render\.mjs render/);
+  assert.ok(!/--workers/.test(res.stdout), 'nothing is rendered from a passthrough alone');
 });

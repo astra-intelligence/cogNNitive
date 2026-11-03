@@ -267,3 +267,51 @@ merge commit `34b22907`.
   knows; another declared size fails with `unsupported-format` instead of guessing.
 - Open issues: `daily_budget` and the stale-price warning line are still planned (Slice 10); the
   formats derivation for a non-1920x1920 master is a Slice 5 follow-up recorded here.
+
+## Slice 7b - the old pipeline is deleted and the spend gate is the Episode
+
+- Branch: `feature/conntent-v1-7b` (base `feature/conntent-v1-3b`, tip `004fa4a9`)
+- TDD: RED first (`test/pipeline-modules.test.mjs`, 6 tests), then GREEN.
+- Decision taken before writing code: `approve-plan.mjs` was the ONLY writer of
+  `asset_plan.approved.json`, the artifact `SpendGuard` demanded before any billable call
+  (`lib/video-guard.mjs:456`, `requireApproval = true` by default; only `voice-clone` opts out).
+  Deleting it as the slice specified would have left the spend gate unsatisfiable in every real
+  run, because `produce` never wrote that file. The maintainer chose to remove the compile-level
+  gate instead: spend is governed by the Episode (`status::`, `--approve <plan_hash>`) plus
+  `budgetPerRunUsd`/`dailyCapUsd` and the model allow/block lists.
+- Changes:
+  - `scripts/lib/compile.mjs` (from `video-engine-cli.mjs`): the compile primitive, with its own
+    `compile` CLI. `lib/render.mjs`: the render primitive, with its own `render` CLI and the
+    `--` passthrough. `produce` imports `renderVideo` from `lib/render.mjs`.
+  - `scripts/lib/plan.mjs`: `computePlanHash`, `formatStamp` and `parsePlanMarkdown` survive;
+    `plan_hash` is still what `--approve` compares. `lib/plan-approval.mjs` is deleted.
+  - The compile-level approval plumbing is gone (`checkApproval`, `APPROVAL_FILENAME`,
+    `allowDelegatedApproval`, the 1.25x approved-total cap). `SpendGuard` keeps its fail-closed
+    default so a bare synthesizer still refuses billable calls.
+  - `scripts/lib/series-doc.mjs`: `loadSeriesDocument`/`loadSeriesFor` moved out of
+    `build-script-from-draft.mjs`, because `render-thumbnail.mjs` reads the Series title in live
+    code (it was not only a test dependency).
+  - `produce` now writes the `description.md` chapter block from the manifest
+    (`lib/description.mjs`), and never overwrites an authored body.
+  - Deleted with their tests: `video-engine-cli.mjs`, `build-script-from-draft.mjs`,
+    `build-draft-html.mjs`, `draft-template.html`, `finalize-video.mjs`, `approve-plan.mjs`,
+    `lib/legacy-draft-keys.mjs`, `lib/plan-approval.mjs`, plus `test/{build-draft-html,
+    build-script-from-draft,legacy-draft-keys,finalize-video,plan-approval,preset-selector,
+    draft-template-preset-only}.test.mjs`.
+  - `SKILL.md`, `references/{folder-contract,cost-guardrails}.md`: the `produce` flow, no approval
+    artifact, no draft console.
+- Verification: skill suite 409 tests, 409 pass; `node scripts/verify.js` green (231 steps).
+- Deviations:
+  - `synthesize-avatar.mjs` keeps its standalone CLI. It is not only used by tests: `produce` does
+    not drive the avatar stage yet, so deleting the CLI would remove the only way to synthesize
+    avatars. `specs/video-script-skill/spec.md:88` lists `synthesize-avatar` as a permitted
+    primitive, so the slice condition ("delete unless a test needs them") is resolved by the spec.
+  - `tts-generator.mjs` has no CLI to delete (it is a class only).
+- Open issues carried forward:
+  - `lib/knowledge-model.mjs` and `lib/video-scope.mjs` are still present, although
+    `specs/video-script-skill/spec.md:58` says the skill MUST NOT contain them. Both are live and
+    imported across `produce`, `render-thumbnail` and most tests; removing them is a refactor of
+    its own (the mirror/cascade/registry replacement), not a 7b delete. No gate enforces the clause
+    yet.
+  - `produce` must own the avatar stage (then the `synthesize-avatar` CLI can be reconsidered).
+  - `PLANNED_CONSUMERS` still carries entries pointing at closed slices.

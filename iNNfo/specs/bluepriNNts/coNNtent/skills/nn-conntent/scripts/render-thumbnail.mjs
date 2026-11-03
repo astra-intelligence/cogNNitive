@@ -33,7 +33,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { loadSeriesFor } from './build-script-from-draft.mjs';
+import { loadSeriesFor } from './lib/series-doc.mjs';
 import { loadCascadeBags, resolve, findNearest } from './lib/video-scope.mjs';
 import { loadFrame, frameCss } from './lib/frame-tokens.mjs';
 import { resolveWorkspace } from './lib/video-guard.mjs';

@@ -1138,17 +1138,17 @@ agent-bootstrap:
     );
 
     const projected = path.join(skillsDir, 'nn-conntent');
-    const cli = path.join(projected, 'scripts', 'finalize-video.mjs');
+    const cli = path.join(projected, 'scripts', 'produce.mjs');
     assert.ok(fs.existsSync(path.join(projected, 'SKILL.md')), 'SKILL.md is projected');
 
-    // finalize-video.mjs with no args prints its usage banner and exits non-zero;
+    // produce.mjs with a bogus episode prints its usage banner and exits non-zero;
     // what matters is that it loads and runs without a monorepo checkout.
     const ok = spawnSync(process.execPath, [cli], { cwd: e2eDir, encoding: 'utf8' });
     assert.ok(
       !/ERR_MODULE_NOT_FOUND|Cannot find (package|module)/.test(`${ok.stdout}${ok.stderr}`),
       `projected CLI must run outside the monorepo: ${ok.stderr}`,
     );
-    assert.ok(/finalize-video/.test(`${ok.stdout}${ok.stderr}`), 'CLI prints its usage banner');
+    assert.ok(/produce/.test(`${ok.stdout}${ok.stderr}`), 'CLI prints its usage banner');
     console.log('✔ End-to-end embedded coNNtent skill projection test passed');
   } finally {
     fs.rmSync(e2eDir, { recursive: true, force: true });

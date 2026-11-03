@@ -13,11 +13,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { SceneCompiler } from '../scripts/scene-compiler.mjs';
-import { compileVideo, resolveFrame } from '../scripts/video-engine-cli.mjs';
+import { compileVideo, resolveFrame } from '../scripts/lib/compile.mjs';
 import { MissingAssetError } from '../scripts/lib/missing-asset.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const cliPath = path.join(__dirname, '..', 'scripts', 'video-engine-cli.mjs');
+const cliPath = path.join(__dirname, '..', 'scripts', 'lib', 'compile.mjs');
 
 function tmp(prefix) {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));

@@ -38,8 +38,8 @@ import {
 import { estimateScriptCost } from './asset-cost-estimator.mjs';
 import { randomUUID } from 'node:crypto';
 import { readTimingRows } from './lib/facts.mjs';
-import { DELIVERY_FORMATS, renderFormats } from './render-formats.mjs';
-import { renderVideo } from './video-engine-cli.mjs';
+import { chapterLines, readManifestForFinalize } from './lib/description.mjs';import { DELIVERY_FORMATS, renderFormats } from './render-formats.mjs';
+import { renderVideo } from './lib/render.mjs';
 import { resolveWorkspace } from './lib/video-guard.mjs';
 
 export const EXIT_DONE = 0;
@@ -254,6 +254,18 @@ export async function produce(options) {
     });
     formats = made.variants || [];
     log(`formats: ${formats.filter((v) => !v.skipped).length} derived under ${path.join(episodeDir, 'formats')}`);
+  }
+
+  // 6b. Chapters: the printable block comes from the manifest the render just wrote.
+  // An authored description.md wins — produce only seeds one when it is absent.
+  const { manifest } = readManifestForFinalize({ episodeDir, scriptPath });
+  const chapters = chapterLines(manifest);
+  const descriptionPath = path.join(episodeDir, 'description.md');
+  if (!fs.existsSync(descriptionPath)) {
+    fs.writeFileSync(descriptionPath, chapters.join('\n') + '\n', 'utf8');
+    log(`description: chapters written to ${descriptionPath}`);
+  } else {
+    log(`description: chapters (the authored file was left untouched)\n${chapters.join('\n')}`);
   }
 
   // 7. Lifecycle: produced, only after the master and every declared format exist.

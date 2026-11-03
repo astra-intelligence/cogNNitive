@@ -35,11 +35,11 @@ test('bagsToChain drops a cli bag instead of folding it last', () => {
   assert.equal(chain.nodes.length, 0);
 });
 
-test('video-engine-cli refuses every retired model flag', () => {
+test('compile refuses every retired model flag', () => {
   for (const flag of RETIRED_FLAGS) {
     const run = spawnSync(
       process.execPath,
-      [path.join(SCRIPTS_DIR, 'video-engine-cli.mjs'), 'compile', 'episode_NN.md', flag, 'some/model'],
+      [path.join(SCRIPTS_DIR, 'lib', 'compile.mjs'), 'compile', 'episode_NN.md', flag, 'some/model'],
       { encoding: 'utf8' },
     );
     assert.equal(run.status, 1, flag);

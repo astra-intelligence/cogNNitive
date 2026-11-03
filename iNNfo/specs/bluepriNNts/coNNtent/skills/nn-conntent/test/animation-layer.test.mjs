@@ -31,7 +31,7 @@ import {
   AnimationIdCollisionError,
 } from '../scripts/lib/animations.mjs';
 
-const cliPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'video-engine-cli.mjs');
+const cliPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'lib', 'compile.mjs');
 
 function tmp(prefix = 'nn-animation-') {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));

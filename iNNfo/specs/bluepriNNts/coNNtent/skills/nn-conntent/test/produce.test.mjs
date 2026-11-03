@@ -87,6 +87,21 @@ function fakeRender() {
     const dir = path.dirname(opts.scriptPath);
     const master = path.join(dir, 'probe_1920x1920.mp4');
     fs.writeFileSync(master, 'master-bytes');
+    const hyperframesDir = path.join(dir, 'hyperframes');
+    fs.mkdirSync(hyperframesDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(hyperframesDir, 'manifest.json'),
+      JSON.stringify({
+        fps: 30,
+        tracks: {
+          scenes: [
+            { fromFrame: 0, props: { title: 'Opening' } },
+            { fromFrame: 90, props: { title: 'Explaining' } },
+          ],
+        },
+        metadata: { scriptSource: opts.scriptPath },
+      }),
+    );
     return { outputVideoPath: master, renderTimeMs: 1, linkMode: 'link', spentUsd: 0.25 };
   };
   return { render, calls };
@@ -171,6 +186,29 @@ test('an over-budget estimate stops with exit 11; the matching --approve proceed
     assert.equal(after.status, 'produced');
     assert.equal(after.fields.master, 'probe_1920x1920.mp4');
     assert.ok(fs.existsSync(path.join(ws.episode, 'probe_1920x1920.mp4')));
+  } finally {
+    done(ws.root);
+  }
+});
+
+test('produce writes the description.md chapter block and never overwrites an authored body', async () => {
+  const ws = workspace(episodeDoc({ status: 'draft', review: 'skip' }));
+  try {
+    const result = await produce({ episodePath: ws.scriptPath, deps: { render: fakeRender().render, log: () => {} } });
+    assert.equal(result.code, EXIT_DONE);
+
+    const desc = fs.readFileSync(path.join(ws.episode, 'description.md'), 'utf8');
+    assert.match(desc, /^00:00 Opening$/m, 'the first scene starts at zero');
+    assert.match(desc, /^00:03 Explaining$/m, 'the second scene starts at its frame time');
+
+    // An authored body wins: a second run must not clobber it.
+    fs.writeFileSync(path.join(ws.episode, 'description.md'), 'Authored prose.', 'utf8');
+    await produce({ episodePath: ws.scriptPath, deps: { render: fakeRender().render, log: () => {} } });
+    assert.equal(
+      fs.readFileSync(path.join(ws.episode, 'description.md'), 'utf8'),
+      'Authored prose.',
+      'the authored description.md is never overwritten',
+    );
   } finally {
     done(ws.root);
   }

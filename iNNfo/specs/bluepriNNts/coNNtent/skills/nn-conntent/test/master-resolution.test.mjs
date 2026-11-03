@@ -54,7 +54,7 @@ test('no width/height and no declaration is a named error, never a 1920x1080 ass
 });
 
 test('the retired format flags are gone from the CLI', () => {
-  const cli = read('scripts/video-engine-cli.mjs');
+  const cli = read('scripts/lib/render.mjs');
   assert.doesNotMatch(cli, /DELIVERY_FORMATS/);
   assert.doesNotMatch(cli, /resolveFormatSize/);
   assert.doesNotMatch(cli, /--format/);
