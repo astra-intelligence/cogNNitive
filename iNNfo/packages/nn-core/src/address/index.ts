@@ -42,3 +42,4 @@ export function isAddressError(value: Address | AddressError): value is AddressE
 }
 
 export { parseAddress } from './parse.js'
+export { formatAddress } from './format.js'
