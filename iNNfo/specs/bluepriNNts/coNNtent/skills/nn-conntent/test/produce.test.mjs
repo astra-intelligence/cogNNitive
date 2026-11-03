@@ -282,6 +282,61 @@ test('daily_budget leaves a run alone when there is headroom', async () => {
   }
 });
 
+test('produce runs the avatar stage before render when the episode has an avatar layer', async () => {
+  const withAvatar = `${SCENE}
+# NN Layer
+
+## NN Layer: Avatar Intro
+type:: avatar
+avatar:: true
+asset:: media/face.png
+`;
+  const ws = workspace(episodeDoc({ status: 'draft', review: 'skip', scenes: withAvatar }));
+  try {
+    const order = [];
+    const result = await produce({
+      episodePath: ws.scriptPath,
+      deps: {
+        render: async (opts) => {
+          order.push('render');
+          return fakeRender().render(opts);
+        },
+        synthesizeAvatars: async () => {
+          order.push('avatars');
+          return { jobs: [] };
+        },
+        log: () => {},
+      },
+    });
+    assert.equal(result.code, EXIT_DONE);
+    assert.deepEqual(order, ['avatars', 'render'], 'the avatar stage runs before the render, once');
+  } finally {
+    done(ws.root);
+  }
+});
+
+test('produce never runs the avatar stage for an episode without avatar layers', async () => {
+  const ws = workspace(episodeDoc({ status: 'draft', review: 'skip' }));
+  try {
+    let called = false;
+    const result = await produce({
+      episodePath: ws.scriptPath,
+      deps: {
+        render: fakeRender().render,
+        synthesizeAvatars: async () => {
+          called = true;
+          return { jobs: [] };
+        },
+        log: () => {},
+      },
+    });
+    assert.equal(result.code, EXIT_DONE);
+    assert.equal(called, false, 'no avatar layer means no avatar stage');
+  } finally {
+    done(ws.root);
+  }
+});
+
 test('a stale --approve hash stops again', async () => {
   const ws = workspace(episodeDoc({ status: 'draft', budget: '0.0001' }));
   try {

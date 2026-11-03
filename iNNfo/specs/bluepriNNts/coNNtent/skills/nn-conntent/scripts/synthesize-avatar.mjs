@@ -120,9 +120,12 @@ export async function synthesizeAvatars(o) {
   const cacheDir = o.cacheDir || resolveDefaultCacheDir(scriptDir);
   // Spending is authorized by `produce`; this guard enforces the caps and the model lists.
   const checkNow = () => ({ ok: true });
+  const dailyBudgetRaw = resolve('daily_budget', bags).value;
+  const dailyBudgetUsd =
+    dailyBudgetRaw === null || dailyBudgetRaw === undefined || dailyBudgetRaw === '' ? null : Number(dailyBudgetRaw);
   const avatarStaleMs = windowMs + 10 * 60 * 1000;
   const makeGuard = (dryRun) =>
-    new SpendGuard({ config: loaded.config, root: loaded.root, allowModels, dryRun, approval: checkNow, avatarStaleMs });
+    new SpendGuard({ config: loaded.config, root: loaded.root, allowModels, dryRun, approval: checkNow, avatarStaleMs, dailyBudgetUsd });
 
   const compiler = new SceneCompiler({});
   const model = o.model || loadKnowledgeModel(scriptPath, { model: o.model, modelPath: o.modelPath });

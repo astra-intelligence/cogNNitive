@@ -372,13 +372,18 @@ export class SpendGuard {
    * @param {() => { ok: boolean, message?: string, approval?: any }} [opts.approval] Approval check. Defaults to FAIL CLOSED.
    * @param {boolean} [opts.dryRun]
    * @param {number} [opts.avatarStaleMs] Avatar slot staleness (keep above the poll window; a live holder heartbeats anyway).
+   * @param {number | null} [opts.dailyBudgetUsd] Rolling 24h ceiling declared by the documents
+   *   (`daily_budget::` at the domaiNN or bluepriNNt level). Null means the documents declare
+   *   none. It is the author's intent and is enforced per call, next to the machine's own
+   *   `dailyCapUsd`; `--approve` never relaxes it.
    */
-  constructor({ config, root, allowModels = [], approval = failClosedApproval, dryRun = false, avatarStaleMs = 45 * 60 * 1000 }) {
+  constructor({ config, root, allowModels = [], approval = failClosedApproval, dryRun = false, avatarStaleMs = 45 * 60 * 1000, dailyBudgetUsd = null }) {
     validateConfig(config, 'SpendGuard');
     this.config = config;
     this.root = root;
     this.allowModels = allowModels;
     this.approval = approval;
+    this.dailyBudgetUsd = Number.isFinite(dailyBudgetUsd) ? dailyBudgetUsd : null;
     this.dryRun = dryRun;
     this.avatarStaleMs = avatarStaleMs;
     this.budget = new BudgetTracker({ budgetUsd: config.budgetPerRunUsd });
@@ -478,6 +483,13 @@ export class SpendGuard {
           'Daily cap exceeded: "' + label + '" (~$' + estUsd.toFixed(4) + ') on top of $' + spent.toFixed(4) +
             ' already spent in the last 24h would pass the $' + this.config.dailyCapUsd.toFixed(2) +
             ' dailyCapUsd in ' + GUARD_FILENAME + '. Nothing was spent on this call.',
+        );
+      }
+      if (this.dailyBudgetUsd !== null && spent + estUsd > this.dailyBudgetUsd + 1e-9) {
+        throw new BudgetExceededError(
+          'Daily budget exceeded: "' + label + '" (~$' + estUsd.toFixed(4) + ') on top of $' + spent.toFixed(4) +
+            ' already spent in the last 24h would pass the $' + this.dailyBudgetUsd.toFixed(2) +
+            ' daily_budget the documents declare. Nothing was spent on this call.',
         );
       }
       this.budget.charge(estUsd, label, capUsd);

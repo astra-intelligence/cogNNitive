@@ -442,3 +442,29 @@ merge commit `34b22907`.
     can still overshoot by one run's worth. Tightening it means a second rolling window
     inside `SpendGuard`.
 
+
+## Not a slice - the last functional gaps
+
+- Branch: `feature/conntent-v1-debt2` (base `feature/conntent-v1-3b`, tip `0660f26a`)
+- Changes:
+  - `scripts/produce.mjs`: `produce` now runs the avatar stage itself when the episode has a
+    Layer with `type:: avatar`, before the render. A render refuses an avatar Layer with no
+    cached clip, so "one command" was not true for talking-avatar episodes. The standalone
+    `synthesize-avatar.mjs` stays for a single scene, a resume and a dry run (and
+    `specs/video-script-skill/spec.md:88` lists it as a permitted primitive).
+  - `lib/video-guard.mjs`: `SpendGuard` takes `dailyBudgetUsd` and enforces it per call,
+    inside the same ledger lock as `dailyCapUsd`. This closes the gap left by the previous
+    pass, where `daily_budget` was only a gate: a single run could overshoot by one run's
+    worth. `compile.mjs` and `synthesize-avatar.mjs` resolve `daily_budget` from the cascade
+    and pass it.
+  - `SKILL.md`, `references/cost-guardrails.md`: the avatar stage and the per-call daily
+    ceiling.
+- Verification: skill suite 425 tests, 425 pass; `node scripts/verify.js` green (233 steps).
+- Still open, by decision:
+  - `lib/knowledge-model.mjs` and `lib/video-scope.mjs` still exist. `spec.md:58` forbids
+    them; removing them is the mirror/cascade/registry replacement across 14 modules and
+    their tests. Doing it in the same pass as the `dev` merge would put an unvalidated
+    refactor into `dev`. It needs its own branch and its own red-green cycle.
+  - `PLANNED_CONSUMERS` keeps the authoring fields of closed slices and the three
+    publication fields (`script`, `published_url`, `thumbnail`).
+

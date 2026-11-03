@@ -155,8 +155,8 @@ Never call WaveSpeed for avatars directly or through an MCP tool: those calls by
 daily cap, the ledger and the double-submit protection.
 
 **Order:** plan, human decision (`status:: approved`, plus `--approve` when the estimate exceeds
-`budget::`), `compile` (stages the narration audio), `synthesize-avatar`, `compile`
-again (picks the clips up), render — or just `produce`, which runs that order.
+`budget::`), `synthesize-avatar`, `compile`, render — or just `produce`, which walks that order
+and runs the avatar stage itself whenever the episode declares an avatar Layer.
 
 - **Job and inputs**: one avatar layer (`layer_type: talking_avatar`; a layer named "Avatar Intro" or one
   with an explicit `image`/`video` type is never an avatar) = one scene audio + a still image. The image

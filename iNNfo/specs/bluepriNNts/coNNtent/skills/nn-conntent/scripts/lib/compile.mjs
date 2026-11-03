@@ -533,11 +533,15 @@ export async function compileVideo(options) {
     avatar: normalizeModelId(resolve('avatar_model', bags).value),
   };
   const checkNow = () => ({ ok: true });
+  // The documents may declare a rolling 24h ceiling; the guard enforces it per call too.
+  const dailyBudgetRaw = resolve('daily_budget', bags).value;
+  const dailyBudgetUsd =
+    dailyBudgetRaw === null || dailyBudgetRaw === undefined || dailyBudgetRaw === '' ? null : Number(dailyBudgetRaw);
   const synthOptions = { defaultModels: models, bags, ...(options.synthesizerOptions || {}) };
   const makeGuard = (dryRun) =>
     // `produce` owns the spending decision (the Episode's `status::` plus `--approve <plan_hash>`);
     // this guard enforces the per-run and rolling 24h caps and the model allow/block lists.
-    new SpendGuard({ config: loaded.config, root: loaded.root, allowModels, dryRun, approval: checkNow });
+    new SpendGuard({ config: loaded.config, root: loaded.root, allowModels, dryRun, approval: checkNow, dailyBudgetUsd });
 
   const compiler = new SceneCompiler({
     fps: options.fps,

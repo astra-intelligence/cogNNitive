@@ -105,7 +105,8 @@ below is what `produce` does; the primitive commands are for debugging a single 
    node scripts/lib/compile.mjs compile <script_NN.md> [--dry-run] [--allow-model <name>]... [--cache-dir <dir>]
    ```
    *Compile plans first and refuses the whole run before the first charge unless every model is allowed and the total fits the per-run `budgetPerRunUsd` and the rolling `dailyCapUsd` (cache hits stay free). The spending decision belongs to `produce`; `compile` never looks for an approval file. There is no model flag: the estimator and `compile` resolve the same ids from the same documents. Avatar jobs are serialized across processes and every billable call is appended to `.cognnitive/video-ledger.jsonl`. A `replicate/<vendor>/<model>` name in a script is normalized to the WaveSpeed id for the guard, pricing, URL, ledger and plan_hash. Voices are cloned once with `node scripts/voice-clone.mjs <name> <sample>`; `scene_voice` resolves by registered name or `voice_id`, or is a provider system voice listed in `systemVoices`; anything else fails before spend.*
-5b. **Synthesize Talking Avatars (guarded, after the first compile)**:
+5b. **Synthesize Talking Avatars (guarded, and `produce` does it for you)**:
+   *`produce` runs this stage by itself whenever the episode has a Layer with `type:: avatar`, before the render: a render refuses an avatar Layer with no cached clip. The standalone command exists for a single scene, a resume, or a dry run:*
    ```bash
    node scripts/synthesize-avatar.mjs <script_NN.md> [--scene <id>]... [--dry-run] [--resume <task-id>] [--force-resubmit] [--poll-window <min>] [--allow-model <name>] [--cache-dir <dir>]
    node scripts/lib/compile.mjs compile <script_NN.md>   # picks the clips up, zero extra spend
