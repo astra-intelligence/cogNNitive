@@ -353,3 +353,21 @@ merge commit `34b22907`.
 - Open issues: the Series view (Slice 9) still needs its own `.data.mjs` for the cross-machine
   comparison and the stale-price flag.
 
+
+## Slice 9 - the Series view
+
+- Branch: `feature/conntent-v1-9` (base `feature/conntent-v1-3b`, tip `a908d456`)
+- TDD: RED first (`test/console-view-series.test.mjs`, 10 tests), then GREEN.
+- Changes:
+  - `coNNtent/assets/console-view-series.js`: a read-only view that groups the Series'
+    episodes by state (fixed order, produced first) with counts, shows each episode's real
+    cost, one timing cell per (stage, fingerprint) so two machines sit side by side, and
+    flags a stale price without dropping the row. It has an empty state and never errors.
+  - `coNNtent/assets/console-view-series.data.mjs`: merges every `<ledger|timings>*.jsonl`
+    under `<domaiNN>/.cognnitive/video/`, so one file per machine is the normal case
+    (decision A13). Cost is summed from ledger rows (refunds subtracted); staleness uses the
+    engine's own `isPriceStale` imported from the skill, so the threshold cannot drift.
+- Verification: skill suite unchanged; `node scripts/verify.js` green (233 steps).
+- Deviations: the view groups and formats only; it computes no fact. Stale rows stay in the
+  cost total (a stale price is still a real charge) and are flagged separately.
+
