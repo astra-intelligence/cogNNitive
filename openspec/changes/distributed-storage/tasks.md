@@ -1,11 +1,11 @@
 # Tasks: Distributed storage
 
 Change: `distributed-storage`. Mode: Strict TDD (every behavior task is `[RED]` failing test, then `[GREEN]` implementation, then `[REFACTOR]` where useful). Artifact store: openspec. Inputs: `proposal.md`, `design.md` (A1-A17, sections 9, 12, 14), 27 `specs/*/spec.md` files (the brief said 28; the folder holds 27), `exploration.md`.
-Delivery strategy: `ask-on-risk` (not yet chosen by the maintainer). Chain strategy: NOT chosen (`stacked-to-main` vs `feature-branch-chain`; design.md section 12 assumes `feature-branch-chain`, which is a proposal, not a decision). The Review Workload Forecast is the last section of this file.
+Delivery strategy (decided by the maintainer, 2026-11-03): chained PRs, with `size:exception` admitted for a slice that exceeds the 400-line budget and has no pre-declared fallback split. Chain strategy (decided, 2026-11-03): `feature-branch-chain` with tracker branch `feature/distributed-storage`; PR 1 targets the tracker, every later PR targets the immediately previous PR branch, and only the tracker merges to `main`. The Review Workload Forecast is the last section of this file.
 
-## Maintainer decisions pending (blocking apply)
+## Maintainer decisions (resolved 2026-11-03; apply unblocked)
 
-Source: design.md section 14. Apply MUST NOT start until the maintainer answers, or accepts the defaults below. The earliest slice each answer blocks is stated so the maintainer can authorize a partial start (S0 to S3a touch none of the three).
+Source: design.md section 14. The maintainer answered in chat on 2026-11-03: Q1 and Q2 apply (the defaults below are accepted as written), and Q3 is yes. The "Blocks" column now only says which slice each decision shapes.
 
 | # | Decision | Default the design assumes if unanswered | Blocks |
 |---|---|---|---|
@@ -13,7 +13,7 @@ Source: design.md section 14. Apply MUST NOT start until the maintainer answers,
 | Q2 | Confirm that decision 6 (one grammar, no second form) covers in-document typed references: typed `[[Name]]` values become `@slug`, and the corpus cost (samples and fixtures) is paid in S7b. | Confirmed. In-document `[[Name]]` in typed fields is removed. Prose wikilinks are untouched. | S3b, S7b |
 | Q3 | Cut the pending `lineage-as-changes` `templates-v*` tag together with this release (one tag, one re-pin). | Yes, one `templates-v*` tag at S7d, with the maintainer's explicit go at the S7d stop. | S7d |
 
-Also open, delivery-level (asked by the orchestrator before apply, per the Review Workload Guard): split into chained PRs vs `size:exception`, and chain strategy. See the forecast.
+Delivery-level decisions (also resolved 2026-11-03): chained PRs with `size:exception` admitted per slice, and chain strategy `feature-branch-chain` (tracker `feature/distributed-storage`). See the forecast.
 
 ## Other spec-level ambiguities and reconciliations (non-blocking; each has a default)
 
@@ -179,7 +179,7 @@ Rollback: revert; S2b stays inert.
 
 ---
 
-## S3b - References: title resolution deleted; address-only typed fields (PR 7, ~400 LOC; at budget; blocked by Q1 and Q2)
+## S3b - References: title resolution deleted; address-only typed fields (PR 7, ~400 LOC; at budget; Q1 and Q2 resolved: apply)
 
 Goal: typed reference and model fields resolve by address only; titles are display-only; `scope_elements[].parent` is an address (design A7, F9, F14).
 Depends on: PR 6.
@@ -409,7 +409,7 @@ Rollback: revert; the released `video-script` stays at `V_0-14-1`.
 
 ---
 
-## S7b - Corpus: new sample versions and fixtures (PR 18, ~100 LOC plus mechanical corpora; blocked by Q2)
+## S7b - Corpus: new sample versions and fixtures (PR 18, ~100 LOC plus mechanical corpora; Q2 resolved: apply)
 
 Goal: samples and fixtures use addresses; superseded sample files are deleted (the `lineage-as-changes` A15 pattern).
 Depends on: PR 17.
@@ -448,7 +448,7 @@ Rollback: revert; docs and the gate test only (the shared-rules mirrors regenera
 
 ---
 
-## S7d - Release commit (PR 20, ~60 LOC plus generated; MAINTAINER STOP; blocked by Q3)
+## S7d - Release commit (PR 20, ~60 LOC plus generated; MAINTAINER STOP; Q3 resolved: cut the lineage-as-changes tag together)
 
 Goal: one release event at the tracker tip (design section 11).
 Depends on: PR 19.
@@ -551,7 +551,7 @@ Estimated total: about 6,460 hand-authored lines across 20 PRs, plus roughly 5,0
 | Delivery strategy | ask-on-risk |
 | Chain strategy | pending |
 
-Decision needed before apply: Yes
+Decision needed before apply: No (resolved 2026-11-03: chained PRs, `size:exception` admitted per slice, `feature-branch-chain`)
 Chained PRs recommended: Yes
 Chain strategy: pending
 400-line budget risk: High
@@ -583,4 +583,4 @@ Chain strategy: pending
 
 Splits and merges versus design.md section 12: none of the 20 slices is split or merged. The only deviation is content placement (A-19): the `changes` bluepriNNt edit moves from S7a into S6a, S6b and S6d because the apply engine validates changesets against it.
 
-Delivery assumptions: `delivery_strategy` = `ask-on-risk` (the maintainer has not chosen). `chain_strategy` = NOT chosen; `stacked-to-main` vs `feature-branch-chain` MUST be asked before apply. Under `ask-on-risk` the orchestrator stops and asks whether to split into chained PRs (recommended, 20 PRs above) or proceed with `size:exception` (not recommended: the 6,460 hand-authored lines cannot be reviewed as one PR), and then, if chained, which chain strategy. The three maintainer decisions (Q1-Q3) are separate from, and in addition to, this delivery decision.
+Delivery decisions (maintainer, 2026-11-03): `delivery_strategy` = chained PRs (the 20 above), with `size:exception` admitted for a slice that runs over 400 lines and has no pre-declared fallback split (S5b, S6d, S7a, S7c need that call at apply; S2b, S3b, S6b have declared splits). `chain_strategy` = `feature-branch-chain` with tracker `feature/distributed-storage`. Rationale: existing domaiNNs (`video_NN`, `LC_programas`) stop validating once the old forms are removed, so only the tracker may reach `main`, and only after S7d. Q1-Q3 are resolved as recorded at the top of this file.
