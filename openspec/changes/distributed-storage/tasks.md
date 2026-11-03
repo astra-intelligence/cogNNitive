@@ -66,7 +66,7 @@ First failing test: a document pinned to `iNNfo_V_0-7-0` still raises `SOURCES_F
 
 - [x] S0.1 [RED] [S] Add the three cases above to `core/validator/knowledge-checks.spec.ts`. (design A17; lineage-as-changes regression)
 - [x] S0.2 [GREEN] [S] Replace the equality test with a numeric L1-version comparison helper `l1AtLeast(scope, 'V_0-6-0')` in the same file; no regex per version.
-- [ ] S0.3 [S] Standard PR gate. Open PR 1.
+- [x] S0.3 [S] Standard PR gate. Open PR 1. (`verify.js --fast` green; two planning-spec requirements fixed to carry MUST; PR 1 targets the tracker.)
 
 Verification: `npm --workspace=@cognnitive/nn-core test -- knowledge-checks`, `npm run verify:fast`.
 Rollback: revert the PR; no persisted data changes.

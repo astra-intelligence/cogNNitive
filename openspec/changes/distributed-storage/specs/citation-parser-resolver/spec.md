@@ -79,7 +79,7 @@ innfo-core MUST export a single `parseCitation(value)` returning a structured ci
 
 ### Requirement: The `@## NN Change:` citation form is not parsed
 
-No code path MAY parse `<path>@## NN Change: <id>` as a citation. How a change record is cited instead (for example through a hierarchical id of the changeset document) is a design decision; until then such a value is a malformed citation.
+No code path MUST parse `<path>@## NN Change: <id>` as a citation: the form is removed, and the parser MUST NOT accept it. How a change record is cited instead (for example through a hierarchical id of the changeset document) is a design decision; until then such a value is a malformed citation.
 
 #### Scenario: Change-heading citation fails
 - GIVEN `changes/lc_tutorias_20261012T173127Z_changes_NN.md@## NN Change: c-09`

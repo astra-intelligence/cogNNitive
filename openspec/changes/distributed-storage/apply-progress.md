@@ -2,7 +2,7 @@
 
 ## S0 - Provenance ban gate (PR 1)
 
-Status: S0.1 and S0.2 done; S0.3 (standard PR gate, open PR) left open: the PR is opened by the orchestrator and `verify:fast` has two failures outside S0 (see Gate).
+Status: S0 done (S0.1, S0.2, S0.3). The two `verify --fast` failures the apply pass reported were resolved by the orchestrator: the "Check OpenSpec Delta Specs" failure was real planning text (ADDED requirements in `specs/citation-parser-resolver/spec.md` and `specs/stable-element-identity/spec.md` lacked MUST; both now carry it), and the "Docs-Derived Facts Drift Guard" failure was environmental (nn-mcp `dist/` not built in the worktree; built with `tsup --config tsup.dist.config.ts`). `node scripts/verify.js --fast` then passed in full.
 
 ### Claim check (before editing)
 `checkProvenanceBan` in `iNNfo/packages/nn-core/src/validator/knowledge-checks.ts` gated on `/V_0-6-0/i.test(scope)`, where scope = `${l1Version} ${parentName} ${parentUrl}`. Confirmed: only the literal `V_0-6-0` fires the ban; `V_0-7-0` and `V_0-10-0` do not. The only caller (`validator/knowledge.ts:168`) passes the template `parent_spec.name` as `l1Version`.
@@ -10,7 +10,7 @@ Status: S0.1 and S0.2 done; S0.3 (standard PR gate, open PR) left open: the PR i
 ### Tasks
 - [x] S0.1 RED: five cases appended to `src/validator/knowledge-checks.spec.ts` (describe "checkProvenanceBan - L1 version gate"): `V_0-6-0` banned, `V_0-7-0` banned, `V_0-10-0` banned (numeric), `V_0-5-9` not banned, and a guard that a bluepriNNt version (`business_V_0-9-0`) is not an L1 pin.
 - [x] S0.2 GREEN: `l1AtLeast(scope, floor)` (exported) plus `PROVENANCE_BAN_FLOOR = 'V_0-6-0'`; numeric per-component compare; no per-version regex.
-- [ ] S0.3 left to the orchestrator (open PR 1).
+- [x] S0.3 standard PR gate: `verify.js --fast` green; PR 1 opened against the tracker `feature/distributed-storage`.
 
 ### TDD evidence
 - RED: `node ../../../node_modules/vitest/vitest.mjs run src/validator/knowledge-checks.spec.ts` (cwd `iNNfo/packages/nn-core`): 14 tests, 2 failed (`V_0-7-0` and `V_0-10-0`: `expected [] to include 'SOURCES_FIELD_BANNED'`), the right reason. The `V_0-6-0`, `V_0-5-9` and bluepriNNt-version cases passed already (they pin existing behavior).

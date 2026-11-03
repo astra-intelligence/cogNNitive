@@ -47,7 +47,7 @@ When two elements with the same display name under the same parent cannot both b
 
 ### Requirement: Element slugs are scoped by the model id
 
-The slug-uniqueness rule applies within one model, as it does today. The same slug MAY occur in different models, including different instance models of the same concept; their element addresses differ by model id.
+The slug-uniqueness rule MUST apply within one model, as it does today. The same slug MAY occur in different models, including different instance models of the same concept; their element addresses differ by model id.
 
 #### Scenario: Same Scene slug in two videos
 - GIVEN Scene `00-gancho` in `villabotijos-today/pepper-mapache` and in `innteresante/intro`
