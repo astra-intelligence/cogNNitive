@@ -174,3 +174,30 @@ targets the previous slice's branch. Nothing merges into `dev` or `main` from th
 - Falsified the fallback: `estimateCallUsd` still prices a model the guard does not allow (needed by synthesizer-level tests), while `estimateScriptCost` refuses a resolved model that is allowed but unpriced. The full no-fallback rule lands with the guard rewrite in 7a.
 - Verification: skill suite 438 tests, 438 pass; `node scripts/verify.js` green (232 steps).
 - Deviations: `video-guard.json` is NOT deleted here (its allowlist still drives the guard until `produce` lands in 7a); recorded in tasks 3b.2. Stale-price *warning* is not printed yet: `isPriceStale` and `price_date` are in place, the warning line lands with the plan output in 7a. Open issues: none.
+
+## Batch 4+5+6 — in flight on `feature/conntent-v1-4` (one PR at the end)
+
+Per maintainer decision (option 1): slices 4, 5 and 6 accumulate on one branch and open a single PR
+when all three are complete.
+
+Landed and verified so far (each commit ran the full `verify.js`):
+
+- **4 / part 1** (`f83c750c`): `kind` level in the cascade between `series` and `video`; `kind` may
+  expand `presets`; new `lib/kinds.mjs` (series grammar from the Series document, `kindBagOf`,
+  `chromeFieldsFor`, `validateSceneKinds`, `validateLanguage`); a V_0-15-0 document requires a known
+  `kind::` (or `Libre`) on every scene and a resolved `language`, legacy documents stay exempt.
+  Cascade proof: a kind preset beats `series` and loses to `video`.
+- **5 / part 2** (`5e53530a`): `image_size` is part of the image cache key; the master is named
+  `<slug>_<W>x<H>.mp4` from the manifest size instead of a literal `1920x1920`.
+- **6 / part 3** (`5a235f16`): `renderVideo` appends `compile` and `render` timing rows when given a
+  `facts` context (plan hash, episode, link mode, frames/fps/resolution, cache counts, machine fp).
+- **5 / part 4** (`8d1a596b`): `assertImageSize` refuses an `image_size` the resolved model does not
+  declare (`unsupported-size`), before any spend.
+
+Still missing to close the batch: chrome injection into the manifest, engine-inserted fixed scenes and
+removal of the `cli` level (Slice 4); hardlink staging, the project inside the episode folder, the
+vendored GSAP and the byte-identical link-vs-copy spike (Slice 5); per-synthesis-stage timing hooks
+(Slice 6). The spike is a hard stop if the two masters differ.
+
+Verification at the batch tip: skill suite 448 tests, 448 pass; `node scripts/verify.js` green (233
+steps); nothing merged to `dev`/`main`; no tag; `video_NN` untouched.
