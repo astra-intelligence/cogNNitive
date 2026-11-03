@@ -227,7 +227,7 @@ message names the path, the id when there is one, and the fix.
 | `MODEL_WITHOUT_FILE` | A document touched by changes has no file. Restore it. See the limit below. |
 
 References have their own codes (`REF_MODEL_NOT_FOUND`, `ADDRESS_MALFORMED` and others), listed in
-[Storage and identity](../concepts/storage-and-identity.md#reference-diagnostics).
+[Storage and identity](../concepts/storage-and-identity.md) under *Reference diagnostics*.
 
 ## Limitations
 

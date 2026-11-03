@@ -7,7 +7,7 @@ that references, change targets and citations of kNNowledge all share.
 
 > [!NOTE]
 > This page describes distributed storage as designed for the release that introduces it.
-> Existing domaiNNs are **not** migrated by that release. See [Limitations](#limitations).
+> Existing domaiNNs are **not** migrated by that release. See *Limitations* at the end of this page.
 
 ## The problem
 
@@ -52,7 +52,7 @@ series/innteresante/assets/intro/intro_video-script_NN.md              Video ins
 ```
 
 Two series, each with a Video `intro`. Both stay legal because identity is hierarchical (see
-[Hierarchical identity](#hierarchical-identity)).
+*Hierarchical identity* below).
 
 ### Compact: Programas in one document
 
